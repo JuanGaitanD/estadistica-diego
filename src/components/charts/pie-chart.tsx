@@ -7,6 +7,7 @@ import { Cell, Legend, Pie, PieChart as RePieChart, ResponsiveContainer, Tooltip
 import { formatNumber, formatPercent } from "@/components/shared/format";
 import type { FrequencyTableResult } from "@/core/statistics";
 
+import { LEGEND_PROPS, TOOLTIP_PROPS } from "./chart-theme";
 import { ChartContainer } from "./chart-container";
 import { categoricalColorFor } from "./palette";
 
@@ -105,7 +106,12 @@ export function PieChart({
               nameKey="label"
               cx="50%"
               cy="50%"
-              outerRadius={110}
+              outerRadius={104}
+              innerRadius={44}
+              paddingAngle={1.5}
+              stroke="var(--card)"
+              strokeWidth={2}
+              isAnimationActive={false}
               label={(props) => {
                 const payload = props.payload as unknown as Slice | undefined;
                 if (!payload) return "";
@@ -120,6 +126,8 @@ export function PieChart({
               ))}
             </Pie>
             <Tooltip
+              {...TOOLTIP_PROPS}
+              cursor={false}
               formatter={(value, _name, item) => {
                 const numeric = typeof value === "number" ? value : Number(value);
                 const payload = item.payload as unknown as Slice;
@@ -129,7 +137,7 @@ export function PieChart({
                 ];
               }}
             />
-            <Legend />
+            <Legend {...LEGEND_PROPS} />
           </RePieChart>
         </ResponsiveContainer>
         <table className="sr-only">

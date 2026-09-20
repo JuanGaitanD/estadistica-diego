@@ -45,14 +45,14 @@ export function ContingencyHeatmap({
         aria-label={`Mapa de calor de contingencia entre ${data.rowVariableId} y ${data.columnVariableId}, total = ${data.grandTotal}`}
         className="flex h-full w-full flex-col gap-2 overflow-auto"
       >
-        <table className="w-full border-collapse text-sm">
+        <table className="w-full border-collapse overflow-hidden rounded-[calc(var(--radius)*0.75)] text-[0.8125rem]">
           <thead>
             <tr>
-              <th className="border-border border p-2 text-left" />
+              <th className="sl-rule border-b p-2.5 text-left" />
               {data.columnLabels.map((label) => (
                 <th
                   key={label}
-                  className="border-border text-muted-foreground border p-2 text-center font-medium"
+                  className="sl-rule text-muted-foreground border-b p-2.5 text-center text-[0.6875rem] font-semibold tracking-[0.06em] uppercase"
                 >
                   {label}
                 </th>
@@ -62,17 +62,17 @@ export function ContingencyHeatmap({
           <tbody>
             {data.rowLabels.map((rowLabel, rowIndex) => (
               <tr key={rowLabel}>
-                <th className="border-border text-muted-foreground border p-2 text-left font-medium">
+                <th className="text-muted-foreground p-2.5 text-left text-[0.6875rem] font-semibold tracking-[0.06em] uppercase">
                   {rowLabel}
                 </th>
                 {data.columnLabels.map((_, colIndex) => {
                   const cell = data.cells[rowIndex]?.[colIndex];
-                  if (!cell) return <td key={colIndex} className="border-border border p-2" />;
+                  if (!cell) return <td key={colIndex} className="p-2.5" />;
                   const t = cell.totalPercent / maxPercent;
                   return (
                     <td
                       key={colIndex}
-                      className={`border-border border p-2 text-center ${heatTextClassName(t)}`}
+                      className={`sl-tnum p-2.5 text-center ${heatTextClassName(t)}`}
                       style={{ backgroundColor: sequentialColor(t) }}
                     >
                       {formatNumber(cell.absolute, { decimals: 0 })}

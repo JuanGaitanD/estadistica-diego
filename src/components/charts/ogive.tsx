@@ -17,6 +17,7 @@ import {
 import { formatNumber, formatPercent } from "@/components/shared/format";
 import type { FrequencyTableResult } from "@/core/statistics";
 
+import { AXIS_PROPS, GRID_PROPS, TOOLTIP_LINE_PROPS } from "./chart-theme";
 import { ChartContainer } from "./chart-container";
 import { categoricalColorFor } from "./palette";
 
@@ -90,30 +91,31 @@ export function Ogive({
             data={full as unknown as Record<string, unknown>[]}
             margin={{ top: 24, right: 24, left: 16, bottom: 24 }}
           >
-            <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+            <CartesianGrid {...GRID_PROPS} />
             <XAxis
               dataKey="x"
               type="number"
               tickFormatter={(value: number) => formatNumber(value, { decimals })}
-              tick={{ fontSize: 12 }}
+              {...AXIS_PROPS}
               domain={["dataMin", "dataMax"]}
             >
               <Label
                 value="Límite superior de clase"
                 offset={-15}
                 position="insideBottom"
-                style={{ fontSize: 12 }}
+                style={{ fontSize: 11 }}
               />
             </XAxis>
-            <YAxis type="number" tick={{ fontSize: 12 }}>
+            <YAxis type="number" {...AXIS_PROPS} width={48}>
               <Label
                 value={measureLabel}
                 angle={-90}
                 position="insideLeft"
-                style={{ fontSize: 12 }}
+                style={{ fontSize: 11 }}
               />
             </YAxis>
             <Tooltip
+              {...TOOLTIP_LINE_PROPS}
               formatter={(value) => {
                 const numeric = typeof value === "number" ? value : Number(value);
                 return measure === "absolute"
@@ -126,8 +128,9 @@ export function Ogive({
               dataKey="value"
               name={measureLabel}
               stroke={categoricalColorFor(data.variableId)}
-              strokeWidth={2}
-              dot={{ r: 4 }}
+              strokeWidth={2.25}
+              dot={{ r: 3.5, strokeWidth: 2, stroke: "var(--card)" }}
+              activeDot={{ r: 5.5, strokeWidth: 2, stroke: "var(--card)" }}
               isAnimationActive={false}
             >
               <LabelList

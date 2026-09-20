@@ -8,7 +8,6 @@ import {
   CartesianGrid,
   Cell,
   LabelList,
-  Legend,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -18,6 +17,7 @@ import {
 import { formatNumber, formatPercent } from "@/components/shared/format";
 import type { FrequencyTableResult } from "@/core/statistics";
 
+import { AXIS_PROPS, GRID_PROPS, TOOLTIP_PROPS } from "./chart-theme";
 import { ChartContainer } from "./chart-container";
 import { categoricalColorFor } from "./palette";
 
@@ -99,25 +99,26 @@ export function BarChart({
             layout={horizontal ? "vertical" : "horizontal"}
             margin={{ top: 24, right: 16, left: 16, bottom: hasLongLabels ? 48 : 16 }}
           >
-            <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+            <CartesianGrid {...GRID_PROPS} />
             {horizontal ? (
               <>
-                <XAxis type="number" tick={{ fontSize: 12 }} />
-                <YAxis type="category" dataKey="label" tick={{ fontSize: 12 }} width={120} />
+                <XAxis type="number" {...AXIS_PROPS} />
+                <YAxis type="category" dataKey="label" {...AXIS_PROPS} width={120} />
               </>
             ) : (
               <>
                 <XAxis
                   dataKey="label"
-                  tick={{ fontSize: 12 }}
+                  {...AXIS_PROPS}
                   angle={hasLongLabels ? -35 : 0}
                   textAnchor={hasLongLabels ? "end" : "middle"}
                   height={hasLongLabels ? 60 : 30}
                 />
-                <YAxis type="number" tick={{ fontSize: 12 }} />
+                <YAxis type="number" {...AXIS_PROPS} width={40} />
               </>
             )}
             <Tooltip
+              {...TOOLTIP_PROPS}
               formatter={(value, _name, item) => {
                 const numeric = typeof value === "number" ? value : Number(value);
                 const payload = item.payload as unknown as BarDatum;
@@ -127,7 +128,6 @@ export function BarChart({
                 ];
               }}
             />
-            <Legend />
             <Bar dataKey="value" name={measureLabel(measure)} isAnimationActive={false}>
               {bars.map((bar) => (
                 <Cell
@@ -147,7 +147,7 @@ export function BarChart({
                     decimals: measure === "relative" ? 2 : 0,
                   })
                 }
-                style={{ fontSize: 12 }}
+                className="sl-chart-value"
               />
             </Bar>
           </ReBarChart>

@@ -26,14 +26,16 @@ export function ChartContainer({
   className,
 }: ChartContainerProps) {
   return (
-    <figure id={id} className={cn("border-border bg-card rounded-lg border p-4 sm:p-6", className)}>
-      <div className="mb-4 flex items-start justify-between gap-4">
-        <div>
-          <h3 className="text-card-foreground text-base font-semibold">{title}</h3>
-          {description ? <p className="text-muted-foreground mt-1 text-sm">{description}</p> : null}
+    <figure id={id} className={cn("sl-surface sl-chart p-4 sm:p-6", className)}>
+      <figcaption className="border-rule mb-5 flex items-start justify-between gap-4 border-b pb-4">
+        <div className="min-w-0">
+          <h3 className="text-card-foreground text-base leading-snug font-semibold">{title}</h3>
+          {description ? (
+            <p className="text-muted-foreground mt-1.5 text-sm leading-relaxed">{description}</p>
+          ) : null}
         </div>
         {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
-      </div>
+      </figcaption>
       <div className="min-h-[280px] w-full sm:min-h-[360px]">{children}</div>
     </figure>
   );
