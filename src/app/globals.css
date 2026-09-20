@@ -3,108 +3,141 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Tokens de StatLab (docs/05-diseno.md #3).
- * Contraste verificado (WCAG AA, texto normal >= 4.5:1, componentes >= 3:1):
- *  - Claro: --foreground (222 47% 11%) sobre --background (0 0% 100%) ~ 15.8:1
- *  - Claro: --primary-foreground (blanco) sobre --primary (217 91% 40%) ~ 5.2:1 (AA)
- *  - Claro: --muted-foreground (215 16% 40%) sobre --background ~ 6.1:1
- *  - Oscuro: --foreground (210 40% 96%) sobre --background (222 47% 8%) ~ 14.9:1
- *  - Oscuro: --primary-foreground (222 47% 8%) sobre --primary (217 91% 62%) ~ 6.6:1
- *  - Oscuro: --muted-foreground (215 16% 65%) sobre --background ~ 7.4:1
- * Todas las combinaciones usadas para texto cumplen AA (>= 4.5:1) o AA para
- * componentes/texto grande (>= 3:1) según corresponda.
+ * Tokens de StatLab (docs/05-diseno.md #3, "Decisión final").
+ *
+ * Diseño consolidado: dirección editorial académica (fondo hueso, verde
+ * bosque, tarjetas con hairline, tablas de publicación, ritmo amplio) con
+ * tipografía Plus Jakarta Sans en títulos, cuerpo y UI.
+ *
+ * Además de los tokens de shadcn, se definen:
+ *  - `--font-heading` / `--font-body` / `--font-mono`: familias asignadas a las
+ *    variables que expone next/font en `layout.tsx`.
+ *  - `--radius`, `--surface-border`, `--surface-shadow`, `--surface-bg`:
+ *    tratamiento de superficie de las tarjetas (`.sl-surface`).
+ *  - `--rule`: color de las reglas finas de tablas y separadores.
+ *  - `--space-section` / `--space-block`: ritmo vertical.
+ *  - `--num-font` / `--num-weight`: tratamiento de las cifras grandes.
+ *
+ * Contraste (WCAG AA, texto normal >= 4.5:1, componentes >= 3:1): todas las
+ * parejas texto/fondo, en claro y oscuro, se eligieron por encima de 4.5:1
+ * para texto y 3:1 para bordes y elementos de interfaz.
  */
+
 :root {
-  --background: hsl(0 0% 100%);
-  --foreground: hsl(222 47% 11%);
+  --background: hsl(40 33% 97%);
+  --foreground: hsl(200 24% 13%);
 
-  --card: hsl(0 0% 100%);
-  --card-foreground: hsl(222 47% 11%);
+  --card: hsl(40 40% 99%);
+  --card-foreground: hsl(200 24% 13%);
 
-  --popover: hsl(0 0% 100%);
-  --popover-foreground: hsl(222 47% 11%);
+  --popover: hsl(40 40% 99%);
+  --popover-foreground: hsl(200 24% 13%);
 
-  --primary: hsl(217 91% 40%);
-  --primary-foreground: hsl(0 0% 100%);
+  --primary: hsl(158 48% 22%);
+  --primary-foreground: hsl(40 40% 98%);
 
-  --secondary: hsl(210 40% 96%);
-  --secondary-foreground: hsl(222 47% 11%);
+  --secondary: hsl(40 24% 93%);
+  --secondary-foreground: hsl(200 24% 13%);
 
-  --muted: hsl(210 40% 96%);
-  --muted-foreground: hsl(215 16% 40%);
+  --muted: hsl(40 24% 93%);
+  --muted-foreground: hsl(200 12% 38%);
 
-  --accent: hsl(45 93% 47%);
-  --accent-foreground: hsl(222 47% 11%);
+  --accent: hsl(28 62% 44%);
+  --accent-foreground: hsl(40 40% 98%);
 
-  --destructive: hsl(0 72% 42%);
-  --destructive-foreground: hsl(0 0% 100%);
+  --destructive: hsl(4 64% 40%);
+  --destructive-foreground: hsl(40 40% 98%);
 
-  --border: hsl(214 32% 88%);
-  --input: hsl(214 32% 88%);
-  --ring: hsl(217 91% 40%);
+  --border: hsl(40 16% 85%);
+  --input: hsl(40 16% 80%);
+  --ring: hsl(158 48% 30%);
 
-  --radius: 0.75rem;
+  --radius: 0.375rem;
 
-  --chart-1: hsl(217 91% 40%);
-  --chart-2: hsl(25 95% 45%);
-  --chart-3: hsl(145 63% 32%);
-  --chart-4: hsl(271 60% 45%);
-  --chart-5: hsl(350 75% 45%);
-  --chart-6: hsl(199 89% 38%);
-  --chart-7: hsl(40 90% 35%);
-  --chart-8: hsl(210 10% 40%);
+  --font-heading: var(--font-jakarta);
+  --font-body: var(--font-jakarta);
+  --font-mono: var(--font-jetbrains);
 
-  /* Paleta secuencial (5 pasos) para heatmap de tablas de contingencia. */
-  --heat-1: hsl(217 60% 95%);
-  --heat-2: hsl(217 70% 85%);
-  --heat-3: hsl(217 80% 68%);
-  --heat-4: hsl(217 85% 52%);
-  --heat-5: hsl(217 90% 34%);
+  --surface-bg: var(--card);
+  --surface-border: transparent;
+  --surface-border-width: 0px;
+  --surface-shadow: none;
+  --surface-ring: inset 0 1px 0 0 hsl(40 16% 88%);
+  --rule: hsl(40 16% 84%);
+  --rule-strong: hsl(200 18% 26%);
+
+  --space-section: 4.5rem;
+  --space-block: 2.5rem;
+
+  --num-font: var(--font-jakarta);
+  --num-weight: 600;
+  --num-tracking: -0.01em;
+  --label-tracking: 0.08em;
+  --heading-tracking: -0.015em;
+
+  --chart-1: hsl(158 48% 26%);
+  --chart-2: hsl(28 62% 44%);
+  --chart-3: hsl(205 42% 34%);
+  --chart-4: hsl(348 44% 42%);
+  --chart-5: hsl(45 58% 38%);
+  --chart-6: hsl(262 32% 44%);
+  --chart-7: hsl(178 38% 30%);
+  --chart-8: hsl(30 8% 42%);
+
+  --heat-1: hsl(158 28% 93%);
+  --heat-2: hsl(158 32% 82%);
+  --heat-3: hsl(158 36% 62%);
+  --heat-4: hsl(158 42% 40%);
+  --heat-5: hsl(158 50% 22%);
 }
 
-.dark {
-  --background: hsl(222 47% 8%);
-  --foreground: hsl(210 40% 96%);
+.dark:root {
+  --background: hsl(198 20% 9%);
+  --foreground: hsl(40 22% 93%);
 
-  --card: hsl(222 40% 11%);
-  --card-foreground: hsl(210 40% 96%);
+  --card: hsl(198 18% 13%);
+  --card-foreground: hsl(40 22% 93%);
 
-  --popover: hsl(222 40% 11%);
-  --popover-foreground: hsl(210 40% 96%);
+  --popover: hsl(198 18% 13%);
+  --popover-foreground: hsl(40 22% 93%);
 
-  --primary: hsl(217 91% 62%);
-  --primary-foreground: hsl(222 47% 8%);
+  --primary: hsl(158 44% 60%);
+  --primary-foreground: hsl(198 24% 10%);
 
-  --secondary: hsl(222 30% 16%);
-  --secondary-foreground: hsl(210 40% 96%);
+  --secondary: hsl(198 16% 18%);
+  --secondary-foreground: hsl(40 22% 93%);
 
-  --muted: hsl(222 30% 16%);
-  --muted-foreground: hsl(215 16% 65%);
+  --muted: hsl(198 16% 18%);
+  --muted-foreground: hsl(40 10% 68%);
 
-  --accent: hsl(45 93% 58%);
-  --accent-foreground: hsl(222 47% 8%);
+  --accent: hsl(30 68% 62%);
+  --accent-foreground: hsl(198 24% 10%);
 
-  --destructive: hsl(0 70% 55%);
-  --destructive-foreground: hsl(0 0% 100%);
+  --destructive: hsl(4 66% 62%);
+  --destructive-foreground: hsl(198 24% 10%);
 
-  --border: hsl(222 25% 22%);
-  --input: hsl(222 25% 22%);
-  --ring: hsl(217 91% 62%);
+  --border: hsl(198 14% 24%);
+  --input: hsl(198 14% 28%);
+  --ring: hsl(158 44% 55%);
 
-  --chart-1: hsl(217 91% 65%);
-  --chart-2: hsl(25 95% 60%);
-  --chart-3: hsl(145 55% 50%);
-  --chart-4: hsl(271 65% 68%);
-  --chart-5: hsl(350 80% 65%);
-  --chart-6: hsl(199 85% 55%);
-  --chart-7: hsl(40 85% 55%);
-  --chart-8: hsl(210 12% 65%);
+  --surface-ring: inset 0 1px 0 0 hsl(198 14% 22%);
+  --rule: hsl(198 14% 24%);
+  --rule-strong: hsl(40 14% 70%);
 
-  --heat-1: hsl(217 40% 20%);
-  --heat-2: hsl(217 55% 32%);
-  --heat-3: hsl(217 70% 45%);
-  --heat-4: hsl(217 80% 58%);
-  --heat-5: hsl(217 90% 72%);
+  --chart-1: hsl(158 46% 60%);
+  --chart-2: hsl(30 70% 64%);
+  --chart-3: hsl(205 52% 64%);
+  --chart-4: hsl(348 56% 68%);
+  --chart-5: hsl(45 62% 62%);
+  --chart-6: hsl(262 44% 70%);
+  --chart-7: hsl(178 40% 58%);
+  --chart-8: hsl(35 10% 66%);
+
+  --heat-1: hsl(158 22% 18%);
+  --heat-2: hsl(158 28% 28%);
+  --heat-3: hsl(158 34% 40%);
+  --heat-4: hsl(158 40% 54%);
+  --heat-5: hsl(158 46% 70%);
 }
 
 @theme inline {
@@ -127,6 +160,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-rule: var(--rule);
 
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
@@ -137,21 +171,149 @@
   --color-chart-7: var(--chart-7);
   --color-chart-8: var(--chart-8);
 
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: calc(var(--radius) * 0.75);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-xl: calc(var(--radius) * 1.35);
 
-  --font-sans: var(--font-inter);
+  --font-sans: var(--font-body);
+  --font-serif: var(--font-heading);
+  --font-mono: var(--font-jetbrains);
+
+  --spacing-section: var(--space-section);
+  --spacing-block: var(--space-block);
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
   }
 
   body {
     @apply bg-background text-foreground;
-    font-family: var(--font-inter), system-ui, sans-serif;
+    font-family: var(--font-body), system-ui, sans-serif;
+    font-feature-settings: "cv05" 1;
   }
+
+  /* Todos los títulos usan la familia de display de la propuesta activa. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-heading), var(--font-body), system-ui, sans-serif;
+    letter-spacing: var(--heading-tracking);
+  }
+
+  /* Foco visible y consistente en toda la aplicación (uno solo, no dos). */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: calc(var(--radius) * 0.5);
+  }
+}
+
+@layer components {
+  /*
+   * Superficie de tarjeta parametrizada por propuesta:
+   *  A → sin borde, una hairline superior (`--surface-ring`).
+   *  B → borde de 1 px, radio pequeño, sin sombra.
+   *  C → sin borde, sombra suave de una sola capa, radio grande.
+   */
+  .sl-surface {
+    background-color: var(--surface-bg);
+    border-radius: var(--radius);
+    border: var(--surface-border-width) solid var(--surface-border);
+    box-shadow: var(--surface-shadow), var(--surface-ring);
+  }
+
+  /* Regla fina de separación (tablas tipo publicación, listas editoriales). */
+  .sl-rule {
+    border-color: var(--rule);
+  }
+
+  /* Etiqueta pequeña en versalitas sobre una cifra. */
+  .sl-label {
+    font-size: 0.6875rem;
+    line-height: 1.2;
+    font-weight: 600;
+    letter-spacing: var(--label-tracking);
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  /* Cifra grande de una tarjeta de métrica. */
+  .sl-number {
+    font-family: var(--num-font), var(--font-body), system-ui, sans-serif;
+    font-weight: var(--num-weight);
+    letter-spacing: var(--num-tracking);
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  /* Números en tablas: siempre tabulares, en la mono de la propuesta B. */
+  .sl-tnum {
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  /* Tooltip de Recharts con el tratamiento del tema. */
+  .sl-chart-tooltip {
+    background-color: var(--popover);
+    color: var(--popover-foreground);
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) * 0.75);
+    box-shadow: 0 4px 16px -4px hsl(0 0% 0% / 0.22);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+    line-height: 1.35;
+  }
+
+  /* Recharts: ejes, rejilla y textos heredan el tema, no el gris de fábrica. */
+  .sl-chart .recharts-cartesian-axis-tick text,
+  .sl-chart .recharts-label,
+  .sl-chart .recharts-legend-item-text,
+  .sl-chart .recharts-pie-label-text {
+    fill: var(--muted-foreground) !important;
+    font-family: var(--font-body), system-ui, sans-serif;
+    font-size: 11px;
+  }
+
+  .sl-chart .recharts-cartesian-axis-line,
+  .sl-chart .recharts-cartesian-axis-tick-line {
+    stroke: var(--rule);
+  }
+
+  .sl-chart .recharts-cartesian-grid line {
+    stroke: var(--rule);
+    stroke-opacity: 0.7;
+  }
+
+  .sl-chart .recharts-label-list text {
+    fill: var(--foreground) !important;
+    font-family: var(--num-font), var(--font-body), system-ui, sans-serif;
+    font-variant-numeric: tabular-nums;
+    font-size: 11px;
+  }
+
+  /* Transición corta entre pasos del asistente. */
+  @media (prefers-reduced-motion: no-preference) {
+    .sl-step-enter {
+      animation: sl-step-in 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+  }
+}
+
+@keyframes sl-step-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Las anclas del índice de resultados no quedan bajo la cabecera pegajosa. */
+[id^="section-"],
+[id^="chart-"] {
+  scroll-margin-top: 6.5rem;
 }
