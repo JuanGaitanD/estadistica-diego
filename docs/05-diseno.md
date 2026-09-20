@@ -1,5 +1,17 @@
 # StatLab — Dirección de diseño (para implementación con shadcn/ui)
 
+## Decisión final (2026-09-20)
+
+Tras evaluar tres propuestas conmutables (A "Editorial académico", B "Herramienta de datos moderna", C "Cálida y amigable") implementadas simultáneamente detrás de `data-design`, el dueño del producto decidió consolidar:
+
+- **Dirección visual: Propuesta A (Editorial académico)** — fondo hueso, verde bosque como color primario, tarjetas sin borde con una hairline superior (`--surface-ring`), tablas de estilo publicación con reglas finas (`--rule`), ritmo vertical amplio (`--space-section`, `--space-block`).
+- **Tipografía: Plus Jakarta Sans** (de la propuesta C) para títulos, cuerpo y UI, en vez de la pareja Source Serif 4 / Inter de la propuesta A original. Se conserva JetBrains Mono como monoespaciada para fórmulas, datos en bruto y cifras tabulares.
+- Las cifras grandes (tarjetas de métricas, franja de resultados) usan Plus Jakarta Sans en semibold (`--num-weight: 600`) con `font-variant-numeric: tabular-nums lining-nums` y `letter-spacing` ajustado (`--num-tracking: -0.01em`) para mantener la lectura de números propia de la propuesta A sin la serif.
+- El selector de propuestas (`design-switcher.tsx`), el atributo `data-design` y las variantes B y C se eliminaron del código: `globals.css` ahora define directamente `:root` y `.dark` con los tokens definitivos, y `layout.tsx` solo carga Plus Jakarta Sans y JetBrains Mono con `next/font`.
+- El ícono (`src/app/icon.svg`, `apple-icon.png`) usa los colores de la propuesta A y se conserva sin cambios.
+
+El resto de este documento (secciones 1 en adelante) es el registro histórico del proceso de diseño previo a esta decisión; se conserva como referencia pero ya no describe el estado actual del código.
+
 ## 1. Dirección visual elegida y por qué
 
 StatLab adopta un lenguaje visual de **"herramienta de datos" tipo SaaS técnico en modo claro**: fondo blanco/gris muy claro, tipografía sans-serif geométrica de alto contraste, mucho espacio en blanco, tarjetas con bordes sutiles (no sombras pesadas), y un único color de acento saturado reservado para acciones primarias y datos activos. Esta dirección se apoya en la evidencia agregada de 24 sitios de referencia consultados (79% usan fondo claro, 75% usan una sans-serif "grotesk"), y en el perfil de nuestro usuario: un profesor experto en estadística pero poco hábil con tecnología, que necesita reconocer de un vistazo qué paso está haciendo, qué significa cada número y cómo salir de un error. Por eso se prioriza texto grande (mínimo 16px en body, 14px solo para metadatos secundarios), un solo bloque de contenido por pantalla (nunca dos tareas compitiendo por atención), iconografía mínima y siempre acompañada de texto (nunca solo un ícono), y contraste WCAG AA verificado en cada combinación texto/fondo.
