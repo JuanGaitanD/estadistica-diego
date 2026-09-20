@@ -43,9 +43,10 @@ export function OptionCard({
     <label
       htmlFor={id}
       className={cn(
-        "border-border bg-card flex cursor-pointer flex-col gap-2 rounded-lg border p-4 transition-colors",
-        !disabled && "hover:border-primary/60",
-        checked && !disabled && "border-primary bg-primary/5",
+        "sl-surface flex min-h-11 cursor-pointer flex-col gap-2 p-4 transition-all",
+        "has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-background has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-offset-2",
+        !disabled && "hover:bg-secondary/40",
+        checked && !disabled && "bg-primary/[0.06] ring-primary ring-1 ring-inset",
         disabled && "cursor-not-allowed opacity-60",
         className,
       )}
@@ -69,9 +70,13 @@ export function OptionCard({
         )}
         {Icon ? <Icon className="text-muted-foreground size-5 shrink-0" /> : null}
         <div className="flex-1">
-          <span className="text-foreground block text-base font-medium">{title}</span>
+          <span className="text-foreground block text-[0.9375rem] leading-snug font-semibold">
+            {title}
+          </span>
           {description ? (
-            <span className="text-muted-foreground mt-0.5 block text-sm">{description}</span>
+            <span className="text-muted-foreground mt-1 block text-sm leading-relaxed">
+              {description}
+            </span>
           ) : null}
         </div>
       </div>

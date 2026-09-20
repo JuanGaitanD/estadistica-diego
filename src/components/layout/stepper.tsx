@@ -33,6 +33,10 @@ function statusFor(index: number, currentIndex: number): StepStatus {
 /**
  * Stepper horizontal (vertical/compacto en móvil), controlado por props
  * (docs/05-diseno.md #5a). Solo permite navegar hacia atrás con teclado/click.
+ *
+ * Detalle visual: la línea de conexión se dibuja entre círculos (no al borde
+ * del elemento de lista) y se tiñe con el color de acento en los tramos ya
+ * recorridos; encima, una etiqueta "Paso N de M" da contexto textual.
  */
 export function Stepper({ steps, currentIndex, onStepSelect, className }: StepperProps) {
   const canNavigateTo = (index: number) => index < currentIndex && Boolean(onStepSelect);
@@ -47,14 +51,31 @@ export function Stepper({ steps, currentIndex, onStepSelect, className }: Steppe
 
   return (
     <nav aria-label="Progreso del análisis" className={cn("w-full", className)}>
-      <ol className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-0">
+      <p className="sl-label mb-3">
+        Paso {currentIndex + 1} de {steps.length}
+        <span className="text-foreground/70 ml-2 normal-case">
+          · {steps[currentIndex]?.title ?? ""}
+        </span>
+      </p>
+      <ol className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-0">
         {steps.map((step, index) => {
           const status = statusFor(index, currentIndex);
           const navigable = canNavigateTo(index);
           const isLast = index === steps.length - 1;
 
           return (
-            <li key={step.id} className="flex flex-1 flex-col sm:items-center">
+            <li key={step.id} className="relative flex flex-1 flex-col sm:items-center">
+              {/* Línea de conexión: de este círculo al siguiente. */}
+              {!isLast ? (
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "absolute hidden sm:block",
+                    "top-5 right-[calc(-50%+1.5rem)] left-[calc(50%+1.5rem)] h-px",
+                    status === "completed" ? "bg-primary" : "bg-rule",
+                  )}
+                />
+              ) : null}
               <div className="flex w-full items-center gap-3 sm:w-auto sm:flex-col sm:gap-2">
                 <button
                   type="button"
@@ -64,38 +85,35 @@ export function Stepper({ steps, currentIndex, onStepSelect, className }: Steppe
                   onClick={() => navigable && onStepSelect?.(index)}
                   onKeyDown={(event) => handleKeyDown(event, index)}
                   className={cn(
-                    "flex size-8 shrink-0 items-center justify-center rounded-full border text-sm font-semibold transition-colors",
-                    "focus-visible:ring-ring focus-visible:ring-offset-background focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
-                    status === "completed" && "border-primary bg-primary text-primary-foreground",
-                    status === "current" && "border-primary bg-background text-primary",
-                    status === "pending" && "border-border bg-background text-muted-foreground",
+                    "relative z-10 flex size-10 shrink-0 items-center justify-center rounded-full border text-sm transition-all",
+                    "sl-number",
+                    status === "completed" &&
+                      "border-primary bg-primary text-primary-foreground hover:scale-105",
+                    status === "current" &&
+                      "border-primary text-primary bg-background ring-primary/20 ring-4",
+                    status === "pending" && "border-rule bg-background text-muted-foreground",
                     navigable ? "cursor-pointer" : "cursor-default",
                   )}
                 >
                   {status === "completed" ? (
-                    <Check className="size-4" aria-hidden="true" />
+                    <Check className="size-4" aria-hidden="true" strokeWidth={3} />
                   ) : (
                     index + 1
                   )}
                 </button>
                 <span
                   className={cn(
-                    "text-sm font-medium sm:text-center",
-                    status === "pending" ? "text-muted-foreground" : "text-foreground",
+                    "text-sm sm:text-center",
+                    status === "current"
+                      ? "text-foreground font-semibold"
+                      : status === "completed"
+                        ? "text-foreground/80 font-medium"
+                        : "text-muted-foreground font-medium",
                   )}
                 >
                   {step.title}
                 </span>
               </div>
-              {!isLast ? (
-                <div
-                  aria-hidden="true"
-                  className={cn(
-                    "my-2 ml-4 h-6 w-px sm:my-0 sm:mt-4 sm:ml-0 sm:h-px sm:w-full sm:flex-1 sm:self-start",
-                    status === "completed" ? "bg-primary" : "bg-border",
-                  )}
-                />
-              ) : null}
             </li>
           );
         })}

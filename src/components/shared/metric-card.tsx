@@ -27,26 +27,34 @@ export type MetricCardProps = (MetricCardAvailable | MetricCardUnavailable) & {
   className?: string;
 };
 
-/** Tarjeta de métrica de resultados (docs/05-diseno.md #5e). */
+/**
+ * Tarjeta de métrica de resultados (docs/05-diseno.md #5e).
+ *
+ * Orden de lectura fijo: etiqueta → cifra → contexto, con la cifra alineada
+ * al mismo punto en todas las tarjetas de una fila (`min-h` en la zona de
+ * etiqueta y `mt-auto` en el pie) para que la rejilla tenga ritmo aunque los
+ * nombres de las medidas ocupen una o dos líneas.
+ */
 export function MetricCard(props: MetricCardProps) {
   const { name, badge, meaning, purpose, formula, className } = props;
   const hasHelp = Boolean(meaning || purpose || formula);
 
   return (
     <div
-      className={cn("border-border bg-card flex flex-col gap-2 rounded-lg border p-4", className)}
+      className={cn(
+        "sl-surface group flex min-h-[8.5rem] flex-col gap-3 p-4 transition-colors sm:p-5",
+        className,
+      )}
     >
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
-          {name}
-        </span>
+      <div className="flex min-h-[2.1rem] items-start justify-between gap-2">
+        <span className="sl-label pt-0.5">{name}</span>
         {hasHelp ? (
           <Popover>
             <PopoverTrigger asChild>
               <button
                 type="button"
                 aria-label={`Qué significa ${name}`}
-                className="text-muted-foreground hover:text-foreground focus-visible:ring-ring inline-flex size-5 shrink-0 items-center justify-center rounded-full transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                className="text-muted-foreground/60 hover:text-foreground hover:bg-secondary -mt-1 -mr-1 inline-flex size-8 shrink-0 items-center justify-center rounded-full transition-colors"
               >
                 <HelpCircle className="size-4" aria-hidden="true" />
               </button>
@@ -78,21 +86,23 @@ export function MetricCard(props: MetricCardProps) {
       </div>
 
       {props.available === false ? (
-        <div>
-          <p className="text-muted-foreground text-sm font-medium">No disponible</p>
-          <p className="text-muted-foreground mt-0.5 text-sm">{props.reason}</p>
+        <div className="mt-auto">
+          <p className="text-muted-foreground/80 text-sm font-medium">No disponible</p>
+          <p className="text-muted-foreground mt-1 text-xs leading-relaxed">{props.reason}</p>
         </div>
       ) : (
-        <p className="text-foreground text-4xl font-bold tabular-nums">
+        <p className="sl-number text-foreground mt-auto text-[2rem] leading-none break-words">
           {props.value}
           {props.unit ? (
-            <span className="text-muted-foreground ml-1 text-lg font-medium">{props.unit}</span>
+            <span className="text-muted-foreground ml-1 align-baseline text-base font-medium">
+              {props.unit}
+            </span>
           ) : null}
         </p>
       )}
 
       {badge ? (
-        <Badge variant="secondary" className="w-fit">
+        <Badge variant="secondary" className="w-fit text-[0.6875rem] font-medium">
           {badge}
         </Badge>
       ) : null}

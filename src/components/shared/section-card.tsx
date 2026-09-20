@@ -7,6 +7,11 @@ export interface SectionCardProps {
   description?: string;
   actions?: ReactNode;
   children: ReactNode;
+  /**
+   * Densidad del relleno interior. "comfortable" (por defecto) para bloques de
+   * contenido; "compact" para agrupaciones densas dentro de un listado.
+   */
+  density?: "comfortable" | "compact";
   className?: string;
 }
 
@@ -16,14 +21,23 @@ export function SectionCard({
   description,
   actions,
   children,
+  density = "comfortable",
   className,
 }: SectionCardProps) {
   return (
-    <section className={cn("border-border bg-card rounded-lg border p-6", className)}>
-      <div className="mb-4 flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-card-foreground text-xl font-semibold">{title}</h2>
-          {description ? <p className="text-muted-foreground mt-1 text-sm">{description}</p> : null}
+    <section
+      className={cn(
+        "sl-surface",
+        density === "comfortable" ? "p-5 sm:p-7" : "p-4 sm:p-5",
+        className,
+      )}
+    >
+      <div className="border-rule mb-5 flex items-start justify-between gap-4 border-b pb-4">
+        <div className="min-w-0">
+          <h2 className="text-card-foreground text-lg leading-snug font-semibold">{title}</h2>
+          {description ? (
+            <p className="text-muted-foreground mt-1.5 text-sm leading-relaxed">{description}</p>
+          ) : null}
         </div>
         {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
       </div>

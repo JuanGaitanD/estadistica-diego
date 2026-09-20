@@ -34,7 +34,7 @@ export interface DataTableProps<TRow> {
 
 const alignClass: Record<ColumnAlign, string> = {
   left: "text-left",
-  right: "text-right tabular-nums",
+  right: "sl-tnum text-right",
   center: "text-center",
 };
 
@@ -63,13 +63,8 @@ export function DataTable<TRow>({
   };
 
   return (
-    <div
-      className={cn(
-        "border-border max-h-[28rem] w-full overflow-auto rounded-lg border",
-        className,
-      )}
-    >
-      <table className="w-full min-w-max border-collapse text-sm">
+    <div className={cn("sl-table-scroll -mx-1 w-full overflow-x-auto px-1", className)}>
+      <table className="w-full min-w-max border-collapse text-[0.8125rem]">
         {caption ? <caption className="sr-only">{caption}</caption> : null}
         <thead>
           <tr>
@@ -80,9 +75,11 @@ export function DataTable<TRow>({
                 onMouseEnter={() => onColumnHover?.(column.key)}
                 onMouseLeave={() => onColumnHover?.(null)}
                 className={cn(
-                  "border-border bg-muted text-muted-foreground sticky top-0 z-10 border-b px-3 py-2 font-semibold",
+                  "bg-card sticky top-0 z-10 px-3 py-2.5 align-bottom text-[0.6875rem] font-semibold tracking-[0.06em] whitespace-nowrap uppercase",
+                  "text-muted-foreground border-b-2",
                   alignClass[column.align ?? "left"],
                 )}
+                style={{ borderBottomColor: "var(--rule-strong)" }}
               >
                 {column.label}
               </th>
@@ -95,13 +92,17 @@ export function DataTable<TRow>({
               key={getRowKey ? getRowKey(row, rowIndex) : rowIndex}
               onMouseEnter={() => onRowHover?.(rowIndex)}
               onMouseLeave={() => onRowHover?.(null)}
-              className={cn(rowIndex % 2 === 1 && "bg-muted/40")}
+              className={cn(
+                "transition-colors",
+                rowIndex % 2 === 1 && "bg-muted/45",
+                "hover:bg-secondary/60",
+              )}
             >
               {columns.map((column) => (
                 <td
                   key={column.key}
                   className={cn(
-                    "border-border text-foreground border-b px-3 py-2",
+                    "sl-rule text-foreground border-b px-3 py-2.5",
                     alignClass[column.align ?? "left"],
                     getCellClassName?.(row, column, rowIndex),
                   )}
