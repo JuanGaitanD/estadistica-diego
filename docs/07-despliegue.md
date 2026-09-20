@@ -59,3 +59,7 @@ Antes de mezclar a `main` o de promover un despliegue a producción:
 - [ ] Las cabeceras de seguridad se verificaron con `curl` sobre el dominio final (paso 3).
 - [ ] El dominio `estadistica.juandgaitan.com` resuelve correctamente y sirve con TLS válido.
 - [ ] No quedan `console.log` ni `TODO` en el código que se está publicando.
+
+## Nota sobre la CSP de `vercel.json`
+
+Vercel valida `vercel.json` contra su esquema y rechaza claves desconocidas (por eso no hay comentarios dentro del archivo). La política `Content-Security-Policy` usa `script-src 'self' 'unsafe-inline'` porque Next.js inyecta scripts inline para la hidratación y el payload de RSC; en un sitio exportado estáticamente no hay nonces disponibles, así que la alternativa sería usar hashes. `connect-src 'self'` bloquea llamadas a APIs externas y deberá ampliarse cuando llegue la fase 2 con Gemini.
