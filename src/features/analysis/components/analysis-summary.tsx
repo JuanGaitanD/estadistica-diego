@@ -74,19 +74,21 @@ export function AnalysisSummary({
   return (
     <section id={SUMMARY_SECTION_ID} className="flex flex-col gap-4">
       <div>
-        <h1 className="text-foreground text-3xl font-bold">{title}</h1>
-        <p className="text-muted-foreground mt-1">
+        <p className="sl-label mb-2">Paso 4 · Resultados</p>
+        <h1 className="text-foreground text-[clamp(1.75rem,3.2vw,2.5rem)] leading-[1.1] font-semibold">
+          {title}
+        </h1>
+        <p className="text-muted-foreground mt-3 max-w-prose text-[0.9375rem] leading-relaxed">
           Revisa las tarjetas y las tablas. Puedes exportarlas cuando quieras.
         </p>
       </div>
 
-      <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-sm">
-        <Badge variant="secondary">{result.totalRows} fila(s) de datos</Badge>
-        <Badge variant="secondary">{result.variables.length} variable(s) analizada(s)</Badge>
-        {result.contingencies.length > 0 ? (
-          <Badge variant="secondary">{result.contingencies.length} cruce(s)</Badge>
-        ) : null}
-      </div>
+      <dl className="border-rule grid grid-cols-2 gap-x-6 gap-y-4 border-y py-4 sm:grid-cols-4">
+        <SummaryStat label="Filas de datos" value={result.totalRows} />
+        <SummaryStat label="Variables analizadas" value={result.variables.length} />
+        <SummaryStat label="Cruces" value={result.contingencies.length} />
+        <SummaryStat label="Avisos" value={real.length} />
+      </dl>
 
       {result.variables.length === 0 ? (
         <EmptyState
@@ -94,7 +96,7 @@ export function AnalysisSummary({
           description="Vuelve al paso anterior y elige al menos una variable para ver resultados."
         />
       ) : (
-        <ul className="flex flex-wrap gap-2">
+        <ul className="flex flex-wrap gap-1.5">
           {result.variables.map((variable) => (
             <li key={variable.variableId}>
               <Badge variant="outline">{variable.variableName}</Badge>
@@ -159,5 +161,15 @@ export function AnalysisSummary({
         </Alert>
       ) : null}
     </section>
+  );
+}
+
+/** Cifra del encabezado de resultados: etiqueta pequeña sobre el número. */
+function SummaryStat({ label, value }: { label: string; value: number }) {
+  return (
+    <div>
+      <dt className="sl-label">{label}</dt>
+      <dd className="sl-number text-foreground mt-1.5 text-2xl leading-none">{value}</dd>
+    </div>
   );
 }

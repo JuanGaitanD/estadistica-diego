@@ -220,10 +220,20 @@ export function VariableResults({ variable, decimals = 2 }: VariableResultsProps
 
   return (
     <article className="flex flex-col gap-6" data-variable-id={variable.variableId}>
-      <header className="flex flex-wrap items-center gap-3">
-        <h2 className="text-foreground text-2xl font-bold">{variable.variableName}</h2>
-        <Badge variant="secondary">{KIND_LABEL[variable.kind]}</Badge>
-        {grouped ? <Badge variant="outline">Agrupada en intervalos</Badge> : null}
+      <header className="border-rule flex flex-wrap items-end justify-between gap-3 border-b pb-3">
+        <div>
+          <p className="sl-label">Variable</p>
+          <h2
+            id={`titulo-${variable.variableId}`}
+            className="text-foreground mt-1.5 text-[1.75rem] leading-none font-semibold"
+          >
+            {variable.variableName}
+          </h2>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 pb-0.5">
+          <Badge variant="secondary">{KIND_LABEL[variable.kind]}</Badge>
+          {grouped ? <Badge variant="outline">Agrupada en intervalos</Badge> : null}
+        </div>
       </header>
 
       <div id={variableSectionId(variable.variableId, "resumen")}>
@@ -231,7 +241,7 @@ export function VariableResults({ variable, decimals = 2 }: VariableResultsProps
           title="Resumen"
           description="Lo esencial de la variable, con su explicación en cada tarjeta."
         >
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {analysis.summary.map((metric) => metricCard(metric, decimals))}
             {analysis.central?.metrics.map((metric) => metricCard(metric, decimals, "Promedios"))}
             {analysis.central?.groupedMean

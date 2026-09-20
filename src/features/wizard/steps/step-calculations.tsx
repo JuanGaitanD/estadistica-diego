@@ -97,20 +97,26 @@ export function StepCalculations() {
   );
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="gap-block flex flex-col">
       <StepHeader
+        eyebrow="Paso 3 · Cálculos y gráficas"
         title="¿Qué cálculos y gráficas necesitas?"
         subtitle="Marca las medidas que quieres ver en tus resultados; puedes cambiarlas después."
       />
 
-      <div>
-        <Button type="button" variant="secondary" onClick={() => selectUsual()}>
-          Seleccionar lo habitual
-        </Button>
-        <p className="text-muted-foreground mt-2 text-sm">
+      <div className="border-rule bg-muted/40 flex flex-wrap items-center justify-between gap-4 rounded-[var(--radius)] border p-4">
+        <p className="text-muted-foreground max-w-prose text-sm leading-relaxed">
           Marca el paquete de cálculos de siempre: frecuencias, moda, mediana, promedio, cuartiles y
           variabilidad, con las gráficas que apliquen.
         </p>
+        <Button
+          type="button"
+          variant="secondary"
+          className="h-10 shrink-0"
+          onClick={() => selectUsual()}
+        >
+          Seleccionar lo habitual
+        </Button>
       </div>
 
       <SectionCard title="Frecuencias" description="La tabla base de todo análisis descriptivo.">

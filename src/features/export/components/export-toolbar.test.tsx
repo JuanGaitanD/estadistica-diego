@@ -70,6 +70,6 @@ describe("ExportToolbar", () => {
         reportTitle="prueba"
       />,
     );
-    expect(screen.getByRole("button", { name: /Descargar gráficas/ })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /Todas las gráficas/ })).toBeDisabled();
   });
 });

@@ -47,7 +47,7 @@ describe("Wizard (flujo completo)", () => {
 
     expect(screen.getAllByText("Datos válidos (n)").length).toBeGreaterThan(0);
     expect(screen.getAllByRole("table").length).toBeGreaterThan(0);
-    expect(screen.getByRole("button", { name: /Exportar datos \(CSV\)/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Datos en CSV/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Cambiar selección" })).toBeInTheDocument();
   }, 30_000);
 

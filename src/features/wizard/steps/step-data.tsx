@@ -84,8 +84,9 @@ export function StepData() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="gap-block flex flex-col">
       <StepHeader
+        eyebrow="Paso 1 · Datos"
         title="¿Qué datos vamos a analizar?"
         subtitle="Ingresa los datos o adjunta un csv/excel: nosotros nos encargamos del resto."
       />
@@ -97,7 +98,7 @@ export function StepData() {
         </Alert>
       ) : null}
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid items-stretch gap-4 sm:grid-cols-2">
         <div
           onDragOver={(event) => {
             event.preventDefault();
@@ -105,12 +106,14 @@ export function StepData() {
           }}
           onDragLeave={() => setIsDragging(false)}
           onDrop={onDrop}
-          className={`border-border flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-6 text-center ${
-            isDragging ? "border-primary bg-primary/5" : ""
+          className={`border-rule bg-muted/25 flex min-h-56 flex-col items-center justify-center gap-2 rounded-[var(--radius)] border border-dashed p-6 text-center transition-colors ${
+            isDragging ? "border-primary bg-primary/[0.07]" : ""
           }`}
         >
-          <UploadCloud className="text-muted-foreground size-8" aria-hidden="true" />
-          <p className="text-foreground text-base font-medium">Arrastra tu archivo aquí</p>
+          <span className="bg-secondary text-muted-foreground mb-1 flex size-12 items-center justify-center rounded-full">
+            <UploadCloud className="size-5" aria-hidden="true" />
+          </span>
+          <p className="text-foreground text-[0.9375rem] font-semibold">Arrastra tu archivo aquí</p>
           <p className="text-muted-foreground text-sm">Aceptamos .csv, .xlsx y .xls</p>
           <Label htmlFor="archivo-datos" className="sr-only">
             Selecciona un archivo de datos
@@ -123,7 +126,12 @@ export function StepData() {
             className="sr-only"
             onChange={(event: ChangeEvent<HTMLInputElement>) => handleFiles(event.target.files)}
           />
-          <Button type="button" variant="outline" onClick={() => inputRef.current?.click()}>
+          <Button
+            type="button"
+            variant="outline"
+            className="mt-2"
+            onClick={() => inputRef.current?.click()}
+          >
             Seleccionar archivo
           </Button>
           {isImporting ? (
@@ -131,8 +139,8 @@ export function StepData() {
           ) : null}
         </div>
 
-        <div className="flex flex-col gap-3">
-          <Label htmlFor="datos-pegados" className="text-base">
+        <div className="flex min-h-56 flex-col gap-2.5">
+          <Label htmlFor="datos-pegados" className="text-[0.9375rem] font-semibold">
             O pega tus datos aquí
           </Label>
           <Textarea
@@ -141,7 +149,7 @@ export function StepData() {
             onChange={(event) => setPastedText(event.target.value)}
             rows={8}
             placeholder={"Nota,Genero\n4.5,Femenino\n3.8,Masculino"}
-            className="min-h-40 font-mono text-sm"
+            className="max-h-72 min-h-36 flex-1 resize-y font-mono text-[0.8125rem] leading-relaxed"
           />
           <div className="flex flex-wrap gap-2">
             <Button type="button" onClick={() => importText()}>

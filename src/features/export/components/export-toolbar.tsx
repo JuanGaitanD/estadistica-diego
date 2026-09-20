@@ -77,27 +77,45 @@ export function ExportToolbar({
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <Button type="button" variant="outline" disabled={!canExportData} onClick={handleExportCsv}>
-        Exportar datos (CSV)
-      </Button>
-      <Button type="button" variant="outline" disabled={!canExportData} onClick={handleExportXlsx}>
-        Exportar datos (Excel)
-      </Button>
-      <Button
-        type="button"
-        variant="outline"
-        disabled={isDownloadingCharts || chartElementIds.length === 0}
-        onClick={() => void handleDownloadAllCharts()}
-      >
-        {isDownloadingCharts ? "Descargando…" : "Descargar gráficas (todas)"}
-      </Button>
+    <div className="border-rule bg-muted/40 flex flex-wrap items-center gap-2 rounded-[var(--radius)] border p-2.5">
+      <span className="sl-label mr-1 ml-1.5 hidden sm:inline">Exportar</span>
       <ExportDialog
         reportTitle={reportTitle}
         analysisName={analysisName ?? reportTitle}
         sampleSize={sampleSize ?? 0}
         availableSections={availableSections}
       />
+      <span className="bg-rule mx-1 hidden h-6 w-px sm:block" aria-hidden="true" />
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="h-10"
+        disabled={!canExportData}
+        onClick={handleExportCsv}
+      >
+        Datos en CSV
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="h-10"
+        disabled={!canExportData}
+        onClick={handleExportXlsx}
+      >
+        Datos en Excel
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="h-10"
+        disabled={isDownloadingCharts || chartElementIds.length === 0}
+        onClick={() => void handleDownloadAllCharts()}
+      >
+        {isDownloadingCharts ? "Descargando…" : "Todas las gráficas"}
+      </Button>
     </div>
   );
 }

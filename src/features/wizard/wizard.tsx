@@ -9,6 +9,7 @@ import { useEffect, useRef } from "react";
 import { AppShell } from "@/components/layout/app-shell";
 import { Stepper } from "@/components/layout/stepper";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 import { WIZARD_STEPS, type StepIndex } from "./model/types";
 import { StepCalculations } from "./steps/step-calculations";
@@ -43,8 +44,10 @@ export function Wizard() {
     detectStoredDataset();
   }, [detectStoredDataset]);
 
-  // Accesibilidad: al cambiar de paso, el foco va al título de la pantalla.
+  // Accesibilidad: al cambiar de paso, el foco va al título de la pantalla y
+  // la vista vuelve arriba (antes se aterrizaba a media página).
   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "auto" });
     const heading = contentRef.current?.querySelector("h1");
     if (heading === null || heading === undefined) return;
     heading.setAttribute("tabindex", "-1");
@@ -55,8 +58,8 @@ export function Wizard() {
   const isLastStep = step === 3;
 
   return (
-    <AppShell>
-      <div className="flex flex-col gap-8 pb-28">
+    <AppShell width={isLastStep ? "wide" : "narrow"}>
+      <div className="flex flex-col gap-10 pb-24">
         <Stepper
           steps={STEPS}
           currentIndex={step}
@@ -64,7 +67,7 @@ export function Wizard() {
         />
 
         {step === 0 && dataset === null && hasStoredDataset ? (
-          <div className="border-border flex flex-wrap items-center justify-between gap-3 rounded-lg border p-4">
+          <div className="border-rule bg-muted/40 flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius)] border p-4">
             <p className="text-muted-foreground text-sm">
               Guardamos en este navegador los últimos datos que analizaste.
             </p>
@@ -74,33 +77,54 @@ export function Wizard() {
           </div>
         ) : null}
 
-        <div ref={contentRef}>
+        <div key={step} ref={contentRef} className="sl-step-enter">
           <StepContent step={step} />
         </div>
       </div>
 
-      <div className="border-border bg-background fixed inset-x-0 bottom-0 z-10 border-t">
-        <div className="mx-auto flex w-full max-w-3xl flex-col gap-2 px-4 py-3 sm:px-6">
+      <div className="border-rule bg-background/92 fixed inset-x-0 bottom-0 z-40 border-t backdrop-blur-sm">
+        <div
+          className={cn(
+            "mx-auto flex w-full flex-col gap-1.5 px-5 py-3 sm:px-8",
+            isLastStep ? "max-w-[84rem]" : "max-w-3xl",
+          )}
+        >
           <div className="flex items-center justify-between gap-4">
-            <Button type="button" variant="outline" disabled={step === 0} onClick={() => goBack()}>
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-11"
+              disabled={step === 0}
+              onClick={() => goBack()}
+            >
               Atrás
             </Button>
-            {!isLastStep ? (
-              <Button
-                type="button"
-                disabled={!validation.ok}
-                onClick={() => goNext()}
-                {...(!validation.ok ? { "aria-describedby": "motivo-continuar" } : {})}
-              >
-                Continuar
-              </Button>
-            ) : null}
+            <div className="flex min-w-0 items-center gap-4">
+              {!validation.ok && !isLastStep ? (
+                <p
+                  id="motivo-continuar"
+                  role="status"
+                  className="text-muted-foreground truncate text-right text-sm"
+                >
+                  {validation.message}
+                </p>
+              ) : null}
+              {!isLastStep ? (
+                <Button
+                  type="button"
+                  size="lg"
+                  className="h-11 px-7"
+                  disabled={!validation.ok}
+                  onClick={() => goNext()}
+                  {...(!validation.ok ? { "aria-describedby": "motivo-continuar" } : {})}
+                >
+                  Continuar
+                </Button>
+              ) : (
+                <span className="text-muted-foreground text-sm">Análisis completo</span>
+              )}
+            </div>
           </div>
-          {!validation.ok && !isLastStep ? (
-            <p id="motivo-continuar" role="status" className="text-muted-foreground text-sm">
-              {validation.message}
-            </p>
-          ) : null}
         </div>
       </div>
     </AppShell>

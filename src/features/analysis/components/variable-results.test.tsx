@@ -162,8 +162,11 @@ describe("AnalysisSummary", () => {
     render(<AnalysisSummary result={result} />);
 
     expect(screen.getByRole("heading", { name: "Aquí están tus resultados" })).toBeInTheDocument();
-    expect(screen.getByText("8 fila(s) de datos")).toBeInTheDocument();
-    expect(screen.getByText("2 variable(s) analizada(s)")).toBeInTheDocument();
+    // La cabecera resume el análisis con etiqueta + cifra (no con badges).
+    expect(screen.getByText("Filas de datos")).toBeInTheDocument();
+    expect(screen.getByText("8")).toBeInTheDocument();
+    expect(screen.getByText("Variables analizadas")).toBeInTheDocument();
+    expect(screen.getByText("2")).toBeInTheDocument();
     // Los cálculos que no aplican a una cualitativa no se listan uno a uno:
     // se resumen en una línea y el detalle va agrupado por variable.
     expect(screen.getByText("Cálculos que no aplicaban")).toBeInTheDocument();

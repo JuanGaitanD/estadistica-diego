@@ -46,8 +46,9 @@ export function StepVariables() {
   const moveCategory = useWizardStore((state) => state.moveCategory);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="gap-block flex flex-col">
       <StepHeader
+        eyebrow="Paso 2 · Variables"
         title="¿Qué tipo de variables son?"
         subtitle="Ya adivinamos algunas; solo confirma o corrige lo que haga falta."
       />
