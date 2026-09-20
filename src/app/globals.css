@@ -1,0 +1,157 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Tokens de StatLab (docs/05-diseno.md #3).
+ * Contraste verificado (WCAG AA, texto normal >= 4.5:1, componentes >= 3:1):
+ *  - Claro: --foreground (222 47% 11%) sobre --background (0 0% 100%) ~ 15.8:1
+ *  - Claro: --primary-foreground (blanco) sobre --primary (217 91% 40%) ~ 5.2:1 (AA)
+ *  - Claro: --muted-foreground (215 16% 40%) sobre --background ~ 6.1:1
+ *  - Oscuro: --foreground (210 40% 96%) sobre --background (222 47% 8%) ~ 14.9:1
+ *  - Oscuro: --primary-foreground (222 47% 8%) sobre --primary (217 91% 62%) ~ 6.6:1
+ *  - Oscuro: --muted-foreground (215 16% 65%) sobre --background ~ 7.4:1
+ * Todas las combinaciones usadas para texto cumplen AA (>= 4.5:1) o AA para
+ * componentes/texto grande (>= 3:1) según corresponda.
+ */
+:root {
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(222 47% 11%);
+
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(222 47% 11%);
+
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(222 47% 11%);
+
+  --primary: hsl(217 91% 40%);
+  --primary-foreground: hsl(0 0% 100%);
+
+  --secondary: hsl(210 40% 96%);
+  --secondary-foreground: hsl(222 47% 11%);
+
+  --muted: hsl(210 40% 96%);
+  --muted-foreground: hsl(215 16% 40%);
+
+  --accent: hsl(45 93% 47%);
+  --accent-foreground: hsl(222 47% 11%);
+
+  --destructive: hsl(0 72% 42%);
+  --destructive-foreground: hsl(0 0% 100%);
+
+  --border: hsl(214 32% 88%);
+  --input: hsl(214 32% 88%);
+  --ring: hsl(217 91% 40%);
+
+  --radius: 0.75rem;
+
+  --chart-1: hsl(217 91% 40%);
+  --chart-2: hsl(25 95% 45%);
+  --chart-3: hsl(145 63% 32%);
+  --chart-4: hsl(271 60% 45%);
+  --chart-5: hsl(350 75% 45%);
+  --chart-6: hsl(199 89% 38%);
+  --chart-7: hsl(40 90% 35%);
+  --chart-8: hsl(210 10% 40%);
+
+  /* Paleta secuencial (5 pasos) para heatmap de tablas de contingencia. */
+  --heat-1: hsl(217 60% 95%);
+  --heat-2: hsl(217 70% 85%);
+  --heat-3: hsl(217 80% 68%);
+  --heat-4: hsl(217 85% 52%);
+  --heat-5: hsl(217 90% 34%);
+}
+
+.dark {
+  --background: hsl(222 47% 8%);
+  --foreground: hsl(210 40% 96%);
+
+  --card: hsl(222 40% 11%);
+  --card-foreground: hsl(210 40% 96%);
+
+  --popover: hsl(222 40% 11%);
+  --popover-foreground: hsl(210 40% 96%);
+
+  --primary: hsl(217 91% 62%);
+  --primary-foreground: hsl(222 47% 8%);
+
+  --secondary: hsl(222 30% 16%);
+  --secondary-foreground: hsl(210 40% 96%);
+
+  --muted: hsl(222 30% 16%);
+  --muted-foreground: hsl(215 16% 65%);
+
+  --accent: hsl(45 93% 58%);
+  --accent-foreground: hsl(222 47% 8%);
+
+  --destructive: hsl(0 70% 55%);
+  --destructive-foreground: hsl(0 0% 100%);
+
+  --border: hsl(222 25% 22%);
+  --input: hsl(222 25% 22%);
+  --ring: hsl(217 91% 62%);
+
+  --chart-1: hsl(217 91% 65%);
+  --chart-2: hsl(25 95% 60%);
+  --chart-3: hsl(145 55% 50%);
+  --chart-4: hsl(271 65% 68%);
+  --chart-5: hsl(350 80% 65%);
+  --chart-6: hsl(199 85% 55%);
+  --chart-7: hsl(40 85% 55%);
+  --chart-8: hsl(210 12% 65%);
+
+  --heat-1: hsl(217 40% 20%);
+  --heat-2: hsl(217 55% 32%);
+  --heat-3: hsl(217 70% 45%);
+  --heat-4: hsl(217 80% 58%);
+  --heat-5: hsl(217 90% 72%);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+  --color-chart-7: var(--chart-7);
+  --color-chart-8: var(--chart-8);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --font-sans: var(--font-inter);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-inter), system-ui, sans-serif;
+  }
+}

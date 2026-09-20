@@ -1,0 +1,22 @@
+{
+  "_comment": "CSP con script-src 'self' 'unsafe-inline': Next.js inyecta scripts inline para hidratacion/RSC payload (self.__next_f.push). 'unsafe-inline' los permite, asi que la hidratacion no deberia romperse con output: export. Si en el futuro se quita 'unsafe-inline' habra que pasar a nonces (no disponibles en export estatico) o hashes. connect-src 'self' bloquea llamadas a APIs externas: ampliar cuando llegue la Fase 2 (Gemini).",
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=63072000; includeSubDomains; preload"
+        },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
+        { "key": "X-Frame-Options", "value": "DENY" }
+      ]
+    }
+  ]
+}
