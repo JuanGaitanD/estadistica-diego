@@ -5,8 +5,7 @@
       "name": "statlab-dev",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["dev"],
-      "port": 3210,
-      "autoPort": true
+      "port": 3000
     }
   ]
 }
