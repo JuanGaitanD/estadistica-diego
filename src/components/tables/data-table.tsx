@@ -34,6 +34,12 @@ export interface DataTableProps<TRow> {
   className?: string;
 }
 
+const headAlignClass: Record<ColumnAlign, string> = {
+  left: "text-left",
+  right: "text-right",
+  center: "text-center",
+};
+
 const alignClass: Record<ColumnAlign, string> = {
   left: "text-left",
   right: "sl-tnum text-right",
@@ -107,7 +113,7 @@ export function DataTable<TRow>({
                   className={cn(
                     "bg-card sticky top-0 z-10 px-3 py-2.5 align-bottom text-sm font-semibold whitespace-nowrap",
                     "text-muted-foreground border-b-foreground border-b-2",
-                    alignClass[column.align ?? "left"],
+                    headAlignClass[column.align ?? "left"],
                   )}
                 >
                   {column.label}
