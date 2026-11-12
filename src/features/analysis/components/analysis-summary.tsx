@@ -74,11 +74,8 @@ export function AnalysisSummary({
   return (
     <section id={SUMMARY_SECTION_ID} className="flex flex-col gap-4">
       <div>
-        <p className="sl-label mb-2">Paso 4 · Resultados</p>
-        <h1 className="text-foreground text-[clamp(1.75rem,3.2vw,2.5rem)] leading-[1.1] font-semibold">
-          {title}
-        </h1>
-        <p className="text-muted-foreground mt-3 max-w-prose text-[0.9375rem] leading-relaxed">
+        <h1 className="text-foreground text-[2.125rem] leading-[1.1] sm:text-[2.75rem]">{title}</h1>
+        <p className="text-muted-foreground mt-3 max-w-prose text-base">
           Revisa las tarjetas y las tablas. Puedes exportarlas cuando quieras.
         </p>
       </div>

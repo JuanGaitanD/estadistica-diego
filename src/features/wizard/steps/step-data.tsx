@@ -86,7 +86,6 @@ export function StepData() {
   return (
     <div className="gap-block flex flex-col">
       <StepHeader
-        eyebrow="Paso 1 · Datos"
         title="¿Qué datos vamos a analizar?"
         subtitle="Ingresa los datos o adjunta un csv/excel: nosotros nos encargamos del resto."
       />

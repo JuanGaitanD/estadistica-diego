@@ -332,6 +332,25 @@
   }
 }
 
+/* Palotes que se trazan (components/layout/tally-marks.tsx). Con movimiento reducido ya están dibujados. */
+@media (prefers-reduced-motion: no-preference) {
+  .sl-trazo {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: sl-trazo 120ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  .sl-trazo-cierre {
+    animation-duration: 320ms;
+  }
+}
+
+@keyframes sl-trazo {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
 /* Enlace para saltar al contenido: primer foco del documento, visible solo al enfocarlo. */
 .sl-salto {
   position: fixed;

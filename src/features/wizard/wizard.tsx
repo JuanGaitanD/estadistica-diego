@@ -8,6 +8,7 @@ import { useEffect, useRef } from "react";
 
 import { AppShell } from "@/components/layout/app-shell";
 import { Stepper } from "@/components/layout/stepper";
+import { TallyMarks } from "@/components/layout/tally-marks";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -82,7 +83,7 @@ export function Wizard() {
         </div>
       </div>
 
-      <div className="border-rule bg-background/92 fixed inset-x-0 bottom-0 z-40 border-t backdrop-blur-sm">
+      <div className="border-rule bg-secondary fixed inset-x-0 bottom-0 z-40 border-t">
         <div
           className={cn(
             "mx-auto flex w-full flex-col gap-1.5 px-5 py-3 sm:px-8",
@@ -98,7 +99,7 @@ export function Wizard() {
                 <p
                   id="motivo-continuar"
                   role="status"
-                  className="text-muted-foreground truncate text-right text-sm"
+                  className="text-muted-foreground line-clamp-2 min-w-0 text-right text-sm"
                 >
                   {validation.message}
                 </p>
@@ -114,7 +115,10 @@ export function Wizard() {
                   Continuar
                 </Button>
               ) : (
-                <span className="text-muted-foreground text-sm">Análisis completo</span>
+                <span className="text-muted-foreground flex items-center gap-2 text-sm">
+                  <TallyMarks count={4} closed animated className="text-primary" />
+                  Análisis completo
+                </span>
               )}
             </div>
           </div>

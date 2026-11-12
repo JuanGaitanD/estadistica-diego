@@ -48,7 +48,6 @@ export function StepVariables() {
   return (
     <div className="gap-block flex flex-col">
       <StepHeader
-        eyebrow="Paso 2 · Variables"
         title="¿Qué tipo de variables son?"
         subtitle="Ya adivinamos algunas; solo confirma o corrige lo que haga falta."
       />

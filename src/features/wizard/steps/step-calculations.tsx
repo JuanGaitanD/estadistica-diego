@@ -99,7 +99,6 @@ export function StepCalculations() {
   return (
     <div className="gap-block flex flex-col">
       <StepHeader
-        eyebrow="Paso 3 · Cálculos y gráficas"
         title="¿Qué cálculos y gráficas necesitas?"
         subtitle="Marca las medidas que quieres ver en tus resultados; puedes cambiarlas después."
       />

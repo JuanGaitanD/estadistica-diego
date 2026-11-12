@@ -67,7 +67,7 @@ export function AppShell({ children, width = "narrow" }: AppShellProps) {
 
 function AppHeader() {
   return (
-    <header className="border-rule bg-background/85 sticky top-0 z-30 border-b backdrop-blur-sm">
+    <header className="border-rule bg-background sticky top-0 z-30 border-b">
       <div className="mx-auto flex w-full max-w-[84rem] items-center justify-between gap-4 px-5 py-3 sm:px-8">
         <div className="flex items-center gap-3">
           <span className="text-primary flex items-center">

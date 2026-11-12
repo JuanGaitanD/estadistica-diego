@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 export interface StepHeaderProps {
   title: string;
   subtitle?: string;
-  /** Etiqueta breve en versalitas sobre el título (p. ej. "Paso 1 · Datos"). */
+  /** Etiqueta breve sobre el título. Los pasos ya no la usan: el stepper dice en qué paso estás. */
   eyebrow?: string;
   className?: string;
 }
@@ -13,13 +13,9 @@ export function StepHeader({ title, subtitle, eyebrow, className }: StepHeaderPr
   return (
     <div className={cn("flex flex-col", className)}>
       {eyebrow ? <p className="sl-label mb-2">{eyebrow}</p> : null}
-      <h1 className="text-foreground text-[clamp(1.75rem,3.2vw,2.5rem)] leading-[1.1] font-semibold">
-        {title}
-      </h1>
+      <h1 className="text-foreground text-[2.125rem] leading-[1.1] sm:text-[2.75rem]">{title}</h1>
       {subtitle ? (
-        <p className="text-muted-foreground mt-3 max-w-prose text-[0.9375rem] leading-relaxed">
-          {subtitle}
-        </p>
+        <p className="text-muted-foreground mt-3 max-w-prose text-base">{subtitle}</p>
       ) : null}
     </div>
   );
