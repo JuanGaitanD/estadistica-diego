@@ -1,4 +1,4 @@
-import { createElement, type CSSProperties } from "react";
+import type { CSSProperties } from "react";
 
 /**
  * Estilo común de las gráficas (docs/05-diseno.md §6).
@@ -70,12 +70,11 @@ export const TOOLTIP_LINE_PROPS = {
 
 /**
  * Leyenda debajo, en texto: Recharts tiñe el texto con el color de la serie, que
- * no llega a 4,5:1; el color queda solo en la muestra y el texto va en --foreground.
+ * no llega a 4,5:1; el color queda solo en la muestra y el texto va en --foreground
+ * (regla `.sl-chart .recharts-legend-item-text` en globals.css).
  */
 export const LEGEND_PROPS = {
   iconType: "circle",
   iconSize: 8,
   wrapperStyle: { fontSize: "0.875rem", paddingTop: "0.75rem" },
-  formatter: (value: unknown) =>
-    createElement("span", { style: { color: "var(--foreground)" } }, String(value)),
 } as const;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -64,6 +64,7 @@ export function DataTable<TRow>({
   className,
 }: DataTableProps<TRow>) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const captionId = useId();
   const [hasMoreRight, setHasMoreRight] = useState(false);
 
   useEffect(() => {
@@ -97,11 +98,15 @@ export function DataTable<TRow>({
         ref={scrollRef}
         role="region"
         tabIndex={0}
-        {...(caption ? { "aria-label": caption } : {})}
+        {...(caption ? { "aria-labelledby": captionId } : {})}
         className="sl-table-scroll -m-1 w-[calc(100%+0.5rem)] overflow-x-auto p-1"
       >
         <table className="w-full min-w-max border-collapse text-sm sm:text-base">
-          {caption ? <caption className="sr-only">{caption}</caption> : null}
+          {caption ? (
+            <caption id={captionId} className="sr-only">
+              {caption}
+            </caption>
+          ) : null}
           <thead>
             <tr>
               {columns.map((column) => (

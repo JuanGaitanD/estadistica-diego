@@ -38,11 +38,8 @@ export type MetricCardProps = (MetricCardAvailable | MetricCardUnavailable) & {
 export function MetricCard(props: MetricCardProps) {
   const { name, badge, meaning, purpose, formula, className } = props;
   const hasHelp = Boolean(meaning || purpose || formula);
-  // La moda llega como «3,75 (4 veces)»: la cifra va en mono grande y el conteo en texto secundario.
-  const countMatch =
-    props.available === false ? null : /^(.*\S)\s+(\(\d+ veces?\))$/.exec(props.value);
-  const valueMain = props.available === false ? "" : (countMatch?.[1] ?? props.value);
-  const valueCount = countMatch?.[2];
+  // La moda llega como «3,75 (4 veces)»: con conteo la cifra baja un paso de la escala para no partirse.
+  const hasCount = props.available !== false && / veces?\)$/.test(props.value);
 
   return (
     <div
@@ -96,16 +93,13 @@ export function MetricCard(props: MetricCardProps) {
           <p className="text-muted-foreground mt-1 text-sm leading-snug">{props.reason}</p>
         </div>
       ) : (
-        <p className="sl-number text-foreground self-end text-[1.75rem] leading-none break-words">
-          {valueMain}
-          {valueCount ? (
-            <>
-              {" "}
-              <span className="text-muted-foreground align-baseline text-sm font-medium">
-                {valueCount}
-              </span>
-            </>
-          ) : null}
+        <p
+          className={cn(
+            "sl-number text-foreground self-end leading-none break-words",
+            hasCount ? "text-[1.375rem]" : "text-[1.75rem]",
+          )}
+        >
+          {props.value}
           {props.unit ? (
             <span className="text-muted-foreground ml-1 align-baseline text-sm font-medium">
               {props.unit}

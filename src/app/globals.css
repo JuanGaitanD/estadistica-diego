@@ -482,6 +482,12 @@
     font-size: 12px;
   }
 
+  /* Leyenda (HTML): el texto va en --foreground; el color de la serie queda en la muestra. */
+  .sl-chart .recharts-legend-item-text {
+    color: var(--foreground) !important;
+    font-family: var(--font-body), system-ui, sans-serif;
+  }
+
   /* Etiquetas de texto de la circular: nunca con el color de la serie (3,99:1 en el ocre). */
   .sl-chart .recharts-pie-label-text {
     fill: var(--foreground) !important;
