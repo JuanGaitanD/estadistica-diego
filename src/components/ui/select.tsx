@@ -45,14 +45,18 @@ function NativeSelect({
   disabled,
   className,
 }: NativeSelectProps) {
-  const isPlaceholder = value === "" && placeholder !== undefined;
+  // Si el valor guardado ya no está entre las opciones (p. ej. la columna dejó de ser
+  // numérica), el control queda vacío en vez de mostrar la primera opción, que no es la elegida.
+  const known = items.some((item) => item.value === value);
+  const shownValue = known ? value : "";
+  const isPlaceholder = !known && placeholder !== undefined;
   return (
     <div data-slot="select" className={cn("relative w-fit", className)}>
       <select
         id={id}
         data-slot="select-trigger"
         data-placeholder={isPlaceholder ? "" : undefined}
-        value={value}
+        value={shownValue}
         disabled={disabled}
         onChange={(event) => onValueChange(event.target.value)}
         className="sl-select border-input bg-card text-foreground hover:border-muted-foreground disabled:bg-secondary disabled:text-muted-foreground data-[placeholder]:text-muted-foreground h-11 w-full min-w-0 cursor-pointer appearance-none rounded-md border py-1 pr-10 pl-3 text-base transition-[border-color] duration-[120ms] ease-[cubic-bezier(0.22,1,0.36,1)] disabled:cursor-not-allowed motion-reduce:transition-none"
@@ -61,6 +65,8 @@ function NativeSelect({
           <option value="" disabled>
             {placeholder}
           </option>
+        ) : !known ? (
+          <option value="" disabled hidden />
         ) : null}
         {items.map((item) => (
           <option key={item.value} value={item.value} disabled={item.disabled}>
