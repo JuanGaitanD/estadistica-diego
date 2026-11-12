@@ -85,7 +85,11 @@ pnpm dev --port 3101
 - `Button` admite `loading` (conserva cuerpo y ancho, `aria-busy`, ignora el clic). No se usa en «Descargar PNG» porque esa fila entra en la imagen exportada.
 - Con `next dev`, el bloque `nextjs-agent-rules` de `AGENTS.md` se regenera con cada `next dev`; Next 16.4.1 cambió su título a `##` y ese cambio se commiteó (`chore(next)`).
 
-## Revisión independiente (2026-11-12)
+## Revisión independiente de la ronda 2 (2026-11-12)
+
+Veredicto: apto para publicar, sin bloqueantes. Audit en verde (Next 16.4.1 era el mínimo: los avisos críticos llegan hasta 16.4.0); lint, formato en LF, tipos, 395 tests y build pasan; cálculos con cero diferencias y motor idéntico byte a byte; CSV, XLSX y PNG idénticos byte a byte y PDF con el mismo texto salvo la hora; sin peticiones externas con la CSP de `vercel.json`; 30 casos por navegador sin desborde ni errores, y la comparación píxel a píxel con `main` solo cambia el logo y el contorno del paso actual en `forced-colors`. P3 abiertos: la sonda `Function("")` de zod provoca la violación de CSP `eval` al cargar (ya ocurría; se quitaría con `z.config({ jitless: true })`); quedan en `public/` iconos de la plantilla de Next sin uso; `/favicon.ico` da 404 si se pide a mano (los navegadores usan los enlaces del HTML).
+
+## Revisión independiente de la ronda 1 (2026-11-12)
 
 Veredicto: apto con una corrección, ya aplicada en `fix(ui): dejar vacío el select cuando el valor guardado ya no es una opción` (el `select` mostraba la primera opción cuando el valor guardado dejaba de estar disponible, por ejemplo al pasar a cualitativa la columna de pesos; el cálculo no cambiaba, solo lo que se veía). Cálculos: motor idéntico byte a byte; por la interfaz solo las tres diferencias de texto declaradas, también con un conjunto de datos propio del revisor (negativos, repetidos, categórica, vacíos y cruce) comparado contra `main`. Lint, typecheck, test y build pasan; el formato pasa en LF (como lo ve el CI). CSV y XLSX exportados idénticos a los de `main`. Con las cabeceras de `vercel.json`, ninguna petición externa. Sin desborde en Chromium, Firefox y WebKit a 390 y 1440 px. Movimiento reducido, `forced-colors` y zoom al 200 % comprobados emulados.
 
