@@ -38,7 +38,18 @@
   --exito: #296944;
   --aviso: #875814;
   --aviso-suave: #fbedd1;
-  --sombra-flotante: 0 8px 24px -12px oklch(0.255 0.025 258 / 0.28);
+  --sombra-flotante: 0 8px 24px -12px rgb(27 35 47 / 0.28);
+
+  /*
+   * Equivalentes sRGB de lo que antes eran color-mix() y oklch(): el navegador
+   * que no los entienda (por debajo de Safari 16.2, Chrome 111, Firefox 113)
+   * sigue viendo la cuadrícula, la selección y el hover del botón destructivo.
+   */
+  --peligro-hover: #9e2e2b;
+  --seleccion: rgb(126 48 107 / 0.26);
+  --cuadricula-25: rgb(204 229 235 / 0.25);
+  --cuadricula-50: rgb(204 229 235 / 0.5);
+  --cuadricula-55: rgb(204 229 235 / 0.55);
 
   /* Mapeo a shadcn */
   --background: var(--fondo);
@@ -133,6 +144,11 @@
   --exito: #71c38f;
   --aviso: #e3b667;
   --aviso-suave: #3b2b0d;
+  --peligro-hover: #f48a7f;
+  --seleccion: rgb(226 159 206 / 0.26);
+  --cuadricula-25: rgb(36 54 59 / 0.25);
+  --cuadricula-50: rgb(36 54 59 / 0.5);
+  --cuadricula-55: rgb(36 54 59 / 0.55);
 
   --chart-1: #82b3e5;
   --chart-2: #e8a95c;
@@ -221,7 +237,7 @@
   }
 
   ::selection {
-    background-color: color-mix(in oklab, var(--accion) 26%, transparent);
+    background-color: var(--seleccion);
     color: inherit;
   }
 
@@ -277,6 +293,31 @@
   [data-slot="button"] {
     border: 1px solid ButtonText;
   }
+
+  /* Casillas, interruptores y selects: el borde ya no depende del color de marca; marcado = Highlight. */
+  [data-slot="checkbox"],
+  [data-slot="switch"],
+  [data-slot="radio-group-item"],
+  .sl-select {
+    border: 1px solid ButtonText;
+  }
+
+  [data-slot="checkbox"][data-state="checked"],
+  [data-slot="switch"][data-state="checked"] {
+    forced-color-adjust: none;
+    background-color: Highlight;
+    color: HighlightText;
+  }
+
+  [data-slot="switch-thumb"] {
+    forced-color-adjust: none;
+    background-color: ButtonText;
+  }
+
+  /* Paso actual del stepper y fila marcada: más que un tinte, un borde que sí se ve. */
+  [aria-current="step"] {
+    outline: 2px solid Highlight;
+  }
 }
 
 /*
@@ -315,9 +356,15 @@
     font-size: var(--t-cuerpo);
   }
 
-  .sl-select option:hover,
   .sl-select option:focus-visible {
     background: var(--fondo-alterno);
+  }
+
+  /* El hover solo en punteros que lo tienen: en táctil deja el estado pegado. */
+  @media (hover: hover) {
+    .sl-select option:hover {
+      background: var(--fondo-alterno);
+    }
   }
 
   .sl-select option:checked {
@@ -387,16 +434,8 @@
     background-image:
       linear-gradient(to right, var(--cuadricula) 1px, transparent 1px),
       linear-gradient(to bottom, var(--cuadricula) 1px, transparent 1px),
-      linear-gradient(
-        to right,
-        color-mix(in oklab, var(--cuadricula) 50%, transparent) 1px,
-        transparent 1px
-      ),
-      linear-gradient(
-        to bottom,
-        color-mix(in oklab, var(--cuadricula) 50%, transparent) 1px,
-        transparent 1px
-      );
+      linear-gradient(to right, var(--cuadricula-50) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--cuadricula-50) 1px, transparent 1px);
     background-size:
       40px 40px,
       40px 40px,
@@ -407,26 +446,10 @@
   .sl-milimetrado-tenue {
     background-color: var(--superficie);
     background-image:
-      linear-gradient(
-        to right,
-        color-mix(in oklab, var(--cuadricula) 55%, transparent) 1px,
-        transparent 1px
-      ),
-      linear-gradient(
-        to bottom,
-        color-mix(in oklab, var(--cuadricula) 55%, transparent) 1px,
-        transparent 1px
-      ),
-      linear-gradient(
-        to right,
-        color-mix(in oklab, var(--cuadricula) 25%, transparent) 1px,
-        transparent 1px
-      ),
-      linear-gradient(
-        to bottom,
-        color-mix(in oklab, var(--cuadricula) 25%, transparent) 1px,
-        transparent 1px
-      );
+      linear-gradient(to right, var(--cuadricula-55) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--cuadricula-55) 1px, transparent 1px),
+      linear-gradient(to right, var(--cuadricula-25) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--cuadricula-25) 1px, transparent 1px);
     background-size:
       40px 40px,
       40px 40px,

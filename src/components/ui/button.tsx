@@ -22,13 +22,13 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: [
-          "border-b-[3px] border-b-[var(--accion-canto)] bg-primary text-primary-foreground shadow-[inset_0_1px_0_oklch(1_0_0/0.18)]",
+          "border-b-[3px] border-b-[var(--accion-canto)] bg-primary text-primary-foreground shadow-[inset_0_1px_0_rgb(255_255_255/0.18)]",
           "hover:bg-[var(--accion-hover)] active:translate-y-[3px] active:border-b-transparent active:shadow-none",
           "disabled:translate-y-[3px] disabled:border-b-transparent disabled:bg-secondary disabled:text-muted-foreground disabled:shadow-none",
         ],
         destructive: [
-          "border-b-[3px] border-b-[var(--peligro-canto)] bg-destructive text-destructive-foreground shadow-[inset_0_1px_0_oklch(1_0_0/0.18)]",
-          "hover:bg-[color-mix(in_oklab,var(--peligro)_88%,var(--texto))] active:translate-y-[3px] active:border-b-transparent active:shadow-none",
+          "border-b-[3px] border-b-[var(--peligro-canto)] bg-destructive text-destructive-foreground shadow-[inset_0_1px_0_rgb(255_255_255/0.18)]",
+          "hover:bg-[var(--peligro-hover)] active:translate-y-[3px] active:border-b-transparent active:shadow-none",
           "disabled:translate-y-[3px] disabled:border-b-transparent disabled:bg-secondary disabled:text-muted-foreground disabled:shadow-none",
         ],
         outline: [

@@ -75,12 +75,13 @@ export function DataTable<TRow>({
     };
     update();
     element.addEventListener("scroll", update, { passive: true });
-    const observer = new ResizeObserver(update);
-    observer.observe(element);
-    if (element.firstElementChild) observer.observe(element.firstElementChild);
+    // Sin ResizeObserver (navegador muy viejo) el indicio de desplazamiento solo sigue al scroll.
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(update);
+    observer?.observe(element);
+    if (element.firstElementChild) observer?.observe(element.firstElementChild);
     return () => {
       element.removeEventListener("scroll", update);
-      observer.disconnect();
+      observer?.disconnect();
     };
   }, [rows.length, columns.length]);
 
