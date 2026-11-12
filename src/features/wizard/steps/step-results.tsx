@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import { ResultsNav, type ResultsNavGroup } from "@/components/layout/results-nav";
 import { EmptyState } from "@/components/shared/empty-state";
+import { TallyMarks } from "@/components/layout/tally-marks";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   AnalysisSummary,
@@ -182,15 +183,11 @@ export function StepResults() {
   if (result === null || isComputing) {
     return (
       <div className="flex flex-col gap-4" aria-busy="true">
-        <h1 className="text-foreground text-[clamp(1.75rem,3.2vw,2.5rem)] leading-tight font-semibold">
+        <h1 className="text-foreground text-[2.125rem] leading-tight sm:text-[2.75rem]">
           Calculando tus resultados…
         </h1>
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Skeleton className="h-28 w-full" />
-          <Skeleton className="h-28 w-full" />
-          <Skeleton className="h-28 w-full" />
-        </div>
-        <Skeleton className="h-72 w-full" />
+        <TallyMarks count={4} closed animated className="text-primary h-8 w-10" />
+        <Skeleton className="h-40 w-full" />
       </div>
     );
   }

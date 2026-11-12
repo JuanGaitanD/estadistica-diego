@@ -2,7 +2,7 @@
 
 /** Paso 1: "¿Qué datos vamos a analizar?" (RF-01 a RF-09). */
 import { useRef, useState, type ChangeEvent, type DragEvent } from "react";
-import { Info, UploadCloud } from "lucide-react";
+import { AlertCircle, Info, UploadCloud } from "lucide-react";
 
 import { StepHeader } from "@/components/layout/step-header";
 import { formatCellValue } from "@/components/shared/format";
@@ -93,6 +93,7 @@ export function StepData() {
 
       {importError !== null ? (
         <Alert variant="destructive" role="alert">
+          <AlertCircle aria-hidden="true" />
           <AlertTitle>No pudimos leer esos datos</AlertTitle>
           <AlertDescription>{importError}</AlertDescription>
         </Alert>

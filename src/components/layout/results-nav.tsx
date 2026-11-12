@@ -82,7 +82,7 @@ export function ResultsNav({ groups, className }: ResultsNavProps) {
           <div key={group.key}>
             <p className="text-foreground truncate text-sm font-semibold">{group.label}</p>
             {group.hint ? (
-              <p className="text-muted-foreground mt-0.5 text-xs">{group.hint}</p>
+              <p className="text-muted-foreground mt-0.5 text-sm">{group.hint}</p>
             ) : null}
             <ul className="border-rule mt-2 flex flex-col border-l">
               {group.links.map((link) => (
@@ -91,10 +91,10 @@ export function ResultsNav({ groups, className }: ResultsNavProps) {
                     href={`#${link.id}`}
                     aria-current={active === link.id ? "true" : undefined}
                     className={cn(
-                      "-ml-px flex min-h-9 items-center border-l-2 py-1.5 pl-3 text-sm transition-colors",
+                      "relative flex min-h-9 items-center py-1.5 pl-4 text-sm transition-colors",
                       active === link.id
-                        ? "border-primary text-foreground font-medium"
-                        : "text-muted-foreground hover:text-foreground border-transparent",
+                        ? "text-primary before:bg-primary font-semibold before:absolute before:left-1.5 before:h-4 before:w-0.5 before:rounded-full"
+                        : "text-muted-foreground hover:text-foreground",
                     )}
                   >
                     {link.label}
@@ -107,13 +107,13 @@ export function ResultsNav({ groups, className }: ResultsNavProps) {
       </div>
 
       {/* Móvil y tableta: tira de anclas de una línea. */}
-      <div className="border-rule bg-background/90 sticky top-[4.25rem] z-20 -mx-5 border-b px-5 py-2 backdrop-blur-sm lg:hidden">
+      <div className="border-rule bg-background sticky top-[4.25rem] z-20 -mx-5 border-b px-5 py-2 lg:hidden">
         <ul className="flex gap-1.5 overflow-x-auto pb-1">
           {groups.map((group) => (
             <li key={group.key} className="shrink-0">
               <a
                 href={`#${group.links[0]?.id ?? ""}`}
-                className="bg-secondary text-secondary-foreground hover:bg-primary hover:text-primary-foreground inline-flex min-h-10 items-center rounded-full px-3.5 text-sm font-medium transition-colors"
+                className="bg-secondary text-secondary-foreground hover:bg-accent inline-flex min-h-11 items-center rounded-md px-3.5 text-sm font-semibold transition-colors"
               >
                 {group.label}
               </a>

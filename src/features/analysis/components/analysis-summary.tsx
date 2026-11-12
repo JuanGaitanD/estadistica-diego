@@ -103,7 +103,7 @@ export function AnalysisSummary({
       )}
 
       {real.length > 0 ? (
-        <Alert>
+        <Alert variant="aviso">
           <AlertTriangle className="size-4" aria-hidden="true" />
           <AlertTitle>Revisa estos datos</AlertTitle>
           <AlertDescription>
@@ -115,7 +115,7 @@ export function AnalysisSummary({
           </AlertDescription>
         </Alert>
       ) : (
-        <Alert>
+        <Alert variant="info">
           <Info className="size-4" aria-hidden="true" />
           <AlertTitle>Todo en orden con tus datos</AlertTitle>
           <AlertDescription>
@@ -125,7 +125,7 @@ export function AnalysisSummary({
       )}
 
       {omittedCount > 0 ? (
-        <Alert>
+        <Alert variant="info">
           <Info className="size-4" aria-hidden="true" />
           <AlertTitle>Cálculos que no aplicaban</AlertTitle>
           <AlertDescription>
