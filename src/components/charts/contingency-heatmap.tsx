@@ -46,6 +46,7 @@ export function ContingencyHeatmap({
         className="flex h-full w-full flex-col gap-2 overflow-auto"
       >
         <table className="w-full border-collapse overflow-hidden rounded-[calc(var(--radius)*0.75)] text-[0.8125rem]">
+          <caption className="sr-only">{title}</caption>
           <thead>
             <tr>
               <th className="sl-rule border-b p-2.5 text-left" />
@@ -87,34 +88,36 @@ export function ContingencyHeatmap({
             ))}
           </tbody>
         </table>
-        <table className="sr-only">
-          <caption>
-            Datos de contingencia entre {data.rowVariableId} y {data.columnVariableId}
-          </caption>
-          <thead>
-            <tr>
-              <th>Fila</th>
-              <th>Columna</th>
-              <th>Frecuencia absoluta</th>
-              <th>Porcentaje del total</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.rowLabels.flatMap((rowLabel, rowIndex) =>
-              data.columnLabels.map((colLabel, colIndex) => {
-                const cell = data.cells[rowIndex]?.[colIndex];
-                return (
-                  <tr key={`${rowLabel}-${colLabel}`}>
-                    <td>{rowLabel}</td>
-                    <td>{colLabel}</td>
-                    <td>{formatNumber(cell?.absolute ?? 0, { decimals: 0 })}</td>
-                    <td>{formatPercent(cell?.totalPercent ?? 0, { alreadyScaled: true })}</td>
-                  </tr>
-                );
-              }),
-            )}
-          </tbody>
-        </table>
+        <div className="sr-only">
+          <table>
+            <caption>
+              Datos de contingencia entre {data.rowVariableId} y {data.columnVariableId}
+            </caption>
+            <thead>
+              <tr>
+                <th>Fila</th>
+                <th>Columna</th>
+                <th>Frecuencia absoluta</th>
+                <th>Porcentaje del total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.rowLabels.flatMap((rowLabel, rowIndex) =>
+                data.columnLabels.map((colLabel, colIndex) => {
+                  const cell = data.cells[rowIndex]?.[colIndex];
+                  return (
+                    <tr key={`${rowLabel}-${colLabel}`}>
+                      <td>{rowLabel}</td>
+                      <td>{colLabel}</td>
+                      <td>{formatNumber(cell?.absolute ?? 0, { decimals: 0 })}</td>
+                      <td>{formatPercent(cell?.totalPercent ?? 0, { alreadyScaled: true })}</td>
+                    </tr>
+                  );
+                }),
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </ChartContainer>
   );

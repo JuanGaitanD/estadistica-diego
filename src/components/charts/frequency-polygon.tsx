@@ -140,25 +140,27 @@ export function FrequencyPolygon({
             </Line>
           </LineChart>
         </ResponsiveContainer>
-        <table className="sr-only">
-          <caption>Datos del polígono de frecuencias de {data.variableId}</caption>
-          <thead>
-            <tr>
-              <th>Marca de clase</th>
-              <th>Frecuencia absoluta</th>
-              <th>Porcentaje</th>
-            </tr>
-          </thead>
-          <tbody>
-            {extended.map((point) => (
-              <tr key={`${point.x}-${point.label}`}>
-                <td>{formatNumber(point.x, { decimals: 2 })}</td>
-                <td>{formatNumber(point.absolute, { decimals: 0 })}</td>
-                <td>{formatPercent(point.percent)}</td>
+        <div className="sr-only">
+          <table>
+            <caption>Datos del polígono de frecuencias de {data.variableId}</caption>
+            <thead>
+              <tr>
+                <th>Marca de clase</th>
+                <th>Frecuencia absoluta</th>
+                <th>Porcentaje</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {extended.map((point) => (
+                <tr key={`${point.x}-${point.label}`}>
+                  <td>{formatNumber(point.x, { decimals: 2 })}</td>
+                  <td>{formatNumber(point.absolute, { decimals: 0 })}</td>
+                  <td>{formatPercent(point.percent)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </ChartContainer>
   );

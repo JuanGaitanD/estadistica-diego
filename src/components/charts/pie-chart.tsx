@@ -140,25 +140,27 @@ export function PieChart({
             <Legend {...LEGEND_PROPS} />
           </RePieChart>
         </ResponsiveContainer>
-        <table className="sr-only">
-          <caption>Datos del gráfico circular de {data.variableId}</caption>
-          <thead>
-            <tr>
-              <th>Categoría</th>
-              <th>Valor</th>
-              <th>Porcentaje</th>
-            </tr>
-          </thead>
-          <tbody>
-            {slices.map((slice) => (
-              <tr key={slice.label}>
-                <td>{slice.label}</td>
-                <td>{formatNumber(slice.value, { decimals: 0 })}</td>
-                <td>{formatPercent(slice.percent)}</td>
+        <div className="sr-only">
+          <table>
+            <caption>Datos del gráfico circular de {data.variableId}</caption>
+            <thead>
+              <tr>
+                <th>Categoría</th>
+                <th>Valor</th>
+                <th>Porcentaje</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {slices.map((slice) => (
+                <tr key={slice.label}>
+                  <td>{slice.label}</td>
+                  <td>{formatNumber(slice.value, { decimals: 0 })}</td>
+                  <td>{formatPercent(slice.percent)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </ChartContainer>
   );

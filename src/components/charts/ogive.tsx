@@ -146,27 +146,29 @@ export function Ogive({
             </Line>
           </LineChart>
         </ResponsiveContainer>
-        <table className="sr-only">
-          <caption>Datos de la ojiva de {data.variableId}</caption>
-          <thead>
-            <tr>
-              <th>Límite superior</th>
-              <th>{measureLabel}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {full.map((point) => (
-              <tr key={`${point.x}-${point.label}`}>
-                <td>{formatNumber(point.x, { decimals: 2 })}</td>
-                <td>
-                  {measure === "absolute"
-                    ? formatNumber(point.value, { decimals: 0 })
-                    : formatPercent(point.value, { alreadyScaled: true })}
-                </td>
+        <div className="sr-only">
+          <table>
+            <caption>Datos de la ojiva de {data.variableId}</caption>
+            <thead>
+              <tr>
+                <th>Límite superior</th>
+                <th>{measureLabel}</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {full.map((point) => (
+                <tr key={`${point.x}-${point.label}`}>
+                  <td>{formatNumber(point.x, { decimals: 2 })}</td>
+                  <td>
+                    {measure === "absolute"
+                      ? formatNumber(point.value, { decimals: 0 })
+                      : formatPercent(point.value, { alreadyScaled: true })}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </ChartContainer>
   );

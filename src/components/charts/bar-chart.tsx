@@ -152,25 +152,27 @@ export function BarChart({
             </Bar>
           </ReBarChart>
         </ResponsiveContainer>
-        <table className="sr-only">
-          <caption>Datos del gráfico de barras de {data.variableId}</caption>
-          <thead>
-            <tr>
-              <th>Categoría</th>
-              <th>{measureLabel(measure)}</th>
-              <th>Porcentaje</th>
-            </tr>
-          </thead>
-          <tbody>
-            {bars.map((bar) => (
-              <tr key={bar.label}>
-                <td>{bar.label}</td>
-                <td>{formatNumber(bar.value, { decimals: measure === "relative" ? 3 : 0 })}</td>
-                <td>{formatPercent(bar.percent)}</td>
+        <div className="sr-only">
+          <table>
+            <caption>Datos del gráfico de barras de {data.variableId}</caption>
+            <thead>
+              <tr>
+                <th>Categoría</th>
+                <th>{measureLabel(measure)}</th>
+                <th>Porcentaje</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {bars.map((bar) => (
+                <tr key={bar.label}>
+                  <td>{bar.label}</td>
+                  <td>{formatNumber(bar.value, { decimals: measure === "relative" ? 3 : 0 })}</td>
+                  <td>{formatPercent(bar.percent)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </ChartContainer>
   );
