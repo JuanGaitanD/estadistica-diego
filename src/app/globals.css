@@ -274,6 +274,64 @@
   }
 }
 
+/*
+ * Select dibujado (components/ui/select.tsx): donde el navegador admite
+ * appearance: base-select (Chromium 135+) la lista abierta también se dibuja;
+ * en el resto queda la lista nativa como respaldo. La flecha es la propia del
+ * componente, así que se oculta la del navegador.
+ */
+@supports (appearance: base-select) {
+  .sl-select,
+  .sl-select::picker(select) {
+    appearance: base-select;
+  }
+
+  .sl-select::picker-icon {
+    display: none;
+  }
+
+  .sl-select::picker(select) {
+    background: var(--superficie);
+    border: 1px solid var(--separador);
+    border-radius: var(--radius);
+    box-shadow: var(--sombra-flotante);
+    padding: 4px;
+    margin-block: 4px;
+  }
+
+  .sl-select option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    color: var(--texto);
+    font-size: var(--t-cuerpo);
+  }
+
+  .sl-select option:hover,
+  .sl-select option:focus-visible {
+    background: var(--fondo-alterno);
+  }
+
+  .sl-select option:checked {
+    background: var(--accion-suave);
+    font-weight: 600;
+  }
+
+  .sl-select option::checkmark {
+    content: "✓";
+    order: 1;
+    margin-left: auto;
+    color: var(--accion);
+  }
+
+  .sl-select option:disabled {
+    color: var(--texto-secundario);
+  }
+}
+
 /* Enlace para saltar al contenido: primer foco del documento, visible solo al enfocarlo. */
 .sl-salto {
   position: fixed;
