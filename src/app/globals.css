@@ -362,17 +362,10 @@
   top: 0.75rem;
   left: 0.75rem;
   z-index: 60;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
   clip-path: inset(50%);
-  white-space: nowrap;
 }
 
 .sl-salto:focus-visible {
-  width: auto;
-  height: 2.75rem;
-  overflow: visible;
   clip-path: none;
 }
 
