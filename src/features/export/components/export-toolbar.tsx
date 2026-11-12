@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Download } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -77,8 +78,8 @@ export function ExportToolbar({
   };
 
   return (
-    <div className="border-rule bg-muted/40 flex flex-wrap items-center gap-2 rounded-[var(--radius)] border p-2.5">
-      <span className="sl-label mr-1 ml-1.5 hidden sm:inline">Exportar</span>
+    <div className="border-rule bg-muted/40 grid grid-cols-2 gap-2 rounded-[var(--radius)] border p-2.5 sm:flex sm:flex-wrap sm:items-center">
+      <span className="sl-label col-span-2 mx-1.5 sm:col-span-1 sm:inline">Exportar</span>
       <ExportDialog
         reportTitle={reportTitle}
         analysisName={analysisName ?? reportTitle}
@@ -86,35 +87,29 @@ export function ExportToolbar({
         availableSections={availableSections}
       />
       <span className="bg-rule mx-1 hidden h-6 w-px sm:block" aria-hidden="true" />
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        className="h-10"
-        disabled={!canExportData}
-        onClick={handleExportCsv}
-      >
+      <Button type="button" variant="outline" disabled={!canExportData} onClick={handleExportCsv}>
+        <Download aria-hidden="true" />
         Datos en CSV
       </Button>
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        className="h-10"
-        disabled={!canExportData}
-        onClick={handleExportXlsx}
-      >
+      <Button type="button" variant="outline" disabled={!canExportData} onClick={handleExportXlsx}>
+        <Download aria-hidden="true" />
         Datos en Excel
       </Button>
       <Button
         type="button"
-        variant="ghost"
-        size="sm"
-        className="h-10"
-        disabled={isDownloadingCharts || chartElementIds.length === 0}
+        variant="outline"
+        loading={isDownloadingCharts}
+        disabled={chartElementIds.length === 0}
         onClick={() => void handleDownloadAllCharts()}
       >
-        {isDownloadingCharts ? "Descargando…" : "Todas las gráficas"}
+        {isDownloadingCharts ? (
+          "Descargando…"
+        ) : (
+          <>
+            <Download aria-hidden="true" />
+            Todas las gráficas
+          </>
+        )}
       </Button>
     </div>
   );

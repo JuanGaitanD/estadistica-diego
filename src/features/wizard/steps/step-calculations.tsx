@@ -111,7 +111,7 @@ export function StepCalculations() {
         </p>
         <Button
           type="button"
-          variant="secondary"
+          variant="outline"
           className="h-10 shrink-0"
           onClick={() => selectUsual()}
         >

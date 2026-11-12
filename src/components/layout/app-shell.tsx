@@ -123,7 +123,7 @@ function ThemeToggle() {
       type="button"
       variant="ghost"
       size="icon"
-      className="size-10 rounded-full"
+      className="text-foreground"
       aria-label={isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
       aria-pressed={isDark}
       onClick={() => setTheme(isDark ? "light" : "dark")}
@@ -137,7 +137,7 @@ function HelpSheet() {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button type="button" variant="ghost" className="h-10 rounded-full px-3.5">
+        <Button type="button" variant="ghost" className="text-foreground">
           <HelpCircle className="size-4" aria-hidden="true" />
           <span className="hidden sm:inline">Ayuda</span>
         </Button>

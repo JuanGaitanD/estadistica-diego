@@ -30,7 +30,7 @@ export function ChartDownloadButton({ elementId, filename }: ChartDownloadButton
       type="button"
       variant="ghost"
       size="sm"
-      disabled={isDownloading}
+      loading={isDownloading}
       onClick={() => void handleClick()}
     >
       Descargar PNG

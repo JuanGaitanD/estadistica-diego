@@ -283,7 +283,7 @@ export function StepResults() {
                     </Button>
                   </DialogClose>
                   <DialogClose asChild>
-                    <Button type="button" onClick={() => reset()}>
+                    <Button type="button" variant="destructive" onClick={() => reset()}>
                       Sí, empezar de cero
                     </Button>
                   </DialogClose>

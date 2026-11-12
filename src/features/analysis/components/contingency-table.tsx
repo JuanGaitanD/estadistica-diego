@@ -182,7 +182,7 @@ export function ContingencyTable({
                 key={option}
                 type="button"
                 size="sm"
-                variant={view === option ? "default" : "outline"}
+                variant="ghost"
                 aria-pressed={view === option}
                 onClick={() => setView(option)}
               >

@@ -90,13 +90,7 @@ export function Wizard() {
           )}
         >
           <div className="flex items-center justify-between gap-4">
-            <Button
-              type="button"
-              variant="ghost"
-              className="h-11"
-              disabled={step === 0}
-              onClick={() => goBack()}
-            >
+            <Button type="button" variant="outline" disabled={step === 0} onClick={() => goBack()}>
               Atrás
             </Button>
             <div className="flex min-w-0 items-center gap-4">
@@ -112,8 +106,7 @@ export function Wizard() {
               {!isLastStep ? (
                 <Button
                   type="button"
-                  size="lg"
-                  className="h-11 px-7"
+                  className="px-7"
                   disabled={!validation.ok}
                   onClick={() => goNext()}
                   {...(!validation.ok ? { "aria-describedby": "motivo-continuar" } : {})}

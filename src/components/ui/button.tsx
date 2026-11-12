@@ -1,30 +1,53 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "cn";
+import { Loader2 } from "lucide-react";
 import { Slot } from "radix-ui";
 
+/*
+ * Botón con cuerpo (docs/05-diseno.md): cara + canto de 3 px como border-bottom
+ * un paso más oscuro. El canto está dentro del alto total (44 px = 41 + 3), así
+ * que al hundirse (translateY 3 px y canto transparente) nada se mueve alrededor.
+ * `ghost` y `link` son terciarios planos: sin canto, mismo alto.
+ */
 const buttonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  [
+    "relative inline-flex shrink-0 items-center justify-center gap-2 rounded-md bg-clip-padding text-base font-semibold whitespace-nowrap",
+    "transition-[background-color,color,transform,border-color] duration-[90ms] ease-[cubic-bezier(0.22,1,0.36,1)]",
+    "disabled:pointer-events-none data-[loading=true]:pointer-events-none",
+    "motion-reduce:transition-none",
+    "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-5",
+  ],
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        destructive: "bg-destructive text-white hover:bg-destructive/90 dark:bg-destructive/60",
-        outline:
-          "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
-        link: "text-primary underline-offset-4 hover:underline",
+        default: [
+          "border-b-[3px] border-b-[var(--accion-canto)] bg-primary text-primary-foreground shadow-[inset_0_1px_0_oklch(1_0_0/0.18)]",
+          "hover:bg-[var(--accion-hover)] active:translate-y-[3px] active:border-b-transparent active:shadow-none",
+          "disabled:translate-y-[3px] disabled:border-b-transparent disabled:bg-secondary disabled:text-muted-foreground disabled:shadow-none",
+        ],
+        destructive: [
+          "border-b-[3px] border-b-[var(--peligro-canto)] bg-destructive text-destructive-foreground shadow-[inset_0_1px_0_oklch(1_0_0/0.18)]",
+          "hover:bg-[color-mix(in_oklab,var(--peligro)_88%,var(--texto))] active:translate-y-[3px] active:border-b-transparent active:shadow-none",
+          "disabled:translate-y-[3px] disabled:border-b-transparent disabled:bg-secondary disabled:text-muted-foreground disabled:shadow-none",
+        ],
+        outline: [
+          "border border-b-[3px] border-input bg-card text-foreground",
+          "hover:bg-secondary active:translate-y-[3px] active:border-b-transparent",
+          "disabled:translate-y-[3px] disabled:border-border disabled:border-b-transparent disabled:bg-secondary disabled:text-muted-foreground",
+        ],
+        ghost: [
+          "text-primary hover:bg-accent focus-visible:bg-accent active:bg-accent",
+          "aria-pressed:bg-primary aria-pressed:text-primary-foreground aria-pressed:hover:bg-[var(--accion-hover)]",
+          "disabled:text-muted-foreground",
+        ],
+        link: "text-primary hover:bg-accent focus-visible:bg-accent disabled:text-muted-foreground",
       },
       size: {
-        default: "h-9 px-4 py-2 has-[>svg]:px-3",
-        xs: "h-6 gap-1 rounded-md px-2 text-xs has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
-        sm: "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
-        lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
-        icon: "size-9",
-        "icon-xs": "size-6 rounded-md [&_svg:not([class*='size-'])]:size-3",
-        "icon-sm": "size-8",
-        "icon-lg": "size-10",
+        default: "h-11 px-5 has-[>svg]:px-4",
+        sm: "h-9 gap-1.5 px-3 text-sm has-[>svg]:px-2.5",
+        icon: "size-11",
+        "icon-sm": "size-9",
       },
     },
     defaultVariants: {
@@ -39,10 +62,15 @@ function Button({
   variant = "default",
   size = "default",
   asChild = false,
+  loading = false,
+  children,
+  onClick,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean;
+    /** Conserva cuerpo y ancho, muestra el indicador y no admite un segundo envío. */
+    loading?: boolean;
   }) {
   const Comp = asChild ? Slot.Root : "button";
 
@@ -51,9 +79,26 @@ function Button({
       data-slot="button"
       data-variant={variant}
       data-size={size}
+      data-loading={loading ? "true" : undefined}
+      aria-busy={loading ? true : undefined}
+      aria-disabled={loading ? true : undefined}
       className={cn(buttonVariants({ variant, size, className }))}
+      onClick={
+        loading ? (event: React.MouseEvent<HTMLButtonElement>) => event.preventDefault() : onClick
+      }
       {...props}
-    />
+    >
+      {asChild ? (
+        children
+      ) : (
+        <>
+          {loading ? (
+            <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
+          ) : null}
+          {children}
+        </>
+      )}
+    </Comp>
   );
 }
 

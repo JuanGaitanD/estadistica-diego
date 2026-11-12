@@ -120,7 +120,9 @@ export function ExportDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="default">Exportar PDF…</Button>
+        <Button variant="default" className="col-span-2 sm:col-span-1">
+          Exportar PDF…
+        </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -176,7 +178,8 @@ export function ExportDialog({
         <DialogFooter>
           <Button
             type="button"
-            disabled={!hasSelection || isGenerating}
+            loading={isGenerating}
+            disabled={!hasSelection}
             onClick={() => void handleGenerate()}
           >
             {isGenerating ? "Generando…" : "Generar PDF"}
