@@ -6,3 +6,4 @@ export * from "./frequency-polygon";
 export * from "./ogive";
 export * from "./contingency-heatmap";
 export * from "./chart-registry";
+export * from "./chart-thumbnail";

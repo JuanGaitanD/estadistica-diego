@@ -24,6 +24,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 
 import type { DecimalChoice } from "../model/types";
+import { isQuantitative } from "../model/validation";
 import { useWizardStore } from "../store/wizard-store";
 
 type PreviewRow = Readonly<Record<string, string>>;
@@ -68,7 +69,7 @@ export function StepData() {
     dataset?.columns.map((column) => ({
       key: column.variable.id,
       label: column.variable.name,
-      align: "left" as const,
+      align: isQuantitative(column.variable.kind) ? ("right" as const) : ("left" as const),
     })) ?? [];
 
   const previewRows: PreviewRow[] = [];
@@ -105,15 +106,15 @@ export function StepData() {
           }}
           onDragLeave={() => setIsDragging(false)}
           onDrop={onDrop}
-          className={`border-rule bg-muted/25 flex min-h-56 flex-col items-center justify-center gap-2 rounded-[var(--radius)] border border-dashed p-6 text-center transition-colors ${
-            isDragging ? "border-primary bg-primary/[0.07]" : ""
+          className={`sl-milimetrado border-input flex min-h-64 flex-col items-center justify-center gap-2 rounded-[var(--radius)] border border-dashed p-6 text-center transition-colors duration-[120ms] ${
+            isDragging ? "border-primary bg-accent" : ""
           }`}
         >
-          <span className="bg-secondary text-muted-foreground mb-1 flex size-12 items-center justify-center rounded-full">
-            <UploadCloud className="size-5" aria-hidden="true" />
-          </span>
-          <p className="text-foreground text-[0.9375rem] font-semibold">Arrastra tu archivo aquí</p>
-          <p className="text-muted-foreground text-sm">Aceptamos .csv, .xlsx y .xls</p>
+          <UploadCloud className="text-primary size-10" strokeWidth={1.5} aria-hidden="true" />
+          <p className="text-foreground text-lg font-semibold">Arrastra tu archivo aquí</p>
+          <p className="text-muted-foreground bg-card rounded-sm px-2 text-sm">
+            Aceptamos .csv, .xlsx y .xls
+          </p>
           <Label htmlFor="archivo-datos" className="sr-only">
             Selecciona un archivo de datos
           </Label>
@@ -129,26 +130,28 @@ export function StepData() {
             type="button"
             variant="outline"
             className="mt-2"
+            loading={isImporting}
             onClick={() => inputRef.current?.click()}
           >
             Seleccionar archivo
           </Button>
           {isImporting ? (
-            <p className="text-muted-foreground text-sm">Leyendo el archivo…</p>
+            <p className="text-muted-foreground bg-card rounded-sm px-2 text-sm">
+              Leyendo el archivo…
+            </p>
           ) : null}
         </div>
 
         <div className="flex min-h-56 flex-col gap-2.5">
-          <Label htmlFor="datos-pegados" className="text-[0.9375rem] font-semibold">
-            O pega tus datos aquí
-          </Label>
+          <Label htmlFor="datos-pegados">O pega tus datos aquí</Label>
           <Textarea
             id="datos-pegados"
             value={pastedText}
             onChange={(event) => setPastedText(event.target.value)}
             rows={8}
             placeholder={"Nota,Genero\n4.5,Femenino\n3.8,Masculino"}
-            className="max-h-72 min-h-36 flex-1 resize-y font-mono text-[0.8125rem] leading-relaxed"
+            className="sl-milimetrado-tenue max-h-72 min-h-36 flex-1 resize-y font-mono text-[0.9375rem] leading-relaxed"
+            {...(importError !== null ? { "aria-invalid": true } : {})}
           />
           <div className="flex flex-wrap gap-2">
             <Button type="button" onClick={() => importText()}>

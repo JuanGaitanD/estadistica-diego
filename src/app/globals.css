@@ -263,6 +263,11 @@
   box-shadow: 0 0 0 2px var(--fondo);
 }
 
+/* Los destinos de foco por código (título del paso, main) no dibujan anillo: no son controles. */
+[tabindex="-1"]:focus {
+  outline: none;
+}
+
 /* Alto contraste: las sombras desaparecen; el anillo va en outline y los botones llevan borde. */
 @media (forced-colors: active) {
   :where(a, button, input, select, textarea, summary, [tabindex], [role]):focus-visible {
@@ -370,6 +375,63 @@
     background-color: var(--surface-bg);
     border-radius: var(--radius);
     border: var(--hoja-borde);
+  }
+
+  /*
+   * Papel milimetrado: cuadrícula de 8 px y línea mayor cada 40 px en --cuadricula,
+   * hecha con degradados (sin imágenes). Solo bajo la zona de datos del paso 1 y
+   * en el trazado de las gráficas cartesianas.
+   */
+  .sl-milimetrado {
+    background-color: var(--superficie);
+    background-image:
+      linear-gradient(to right, var(--cuadricula) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--cuadricula) 1px, transparent 1px),
+      linear-gradient(
+        to right,
+        color-mix(in oklab, var(--cuadricula) 50%, transparent) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        to bottom,
+        color-mix(in oklab, var(--cuadricula) 50%, transparent) 1px,
+        transparent 1px
+      );
+    background-size:
+      40px 40px,
+      40px 40px,
+      8px 8px,
+      8px 8px;
+  }
+
+  .sl-milimetrado-tenue {
+    background-color: var(--superficie);
+    background-image:
+      linear-gradient(
+        to right,
+        color-mix(in oklab, var(--cuadricula) 55%, transparent) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        to bottom,
+        color-mix(in oklab, var(--cuadricula) 55%, transparent) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        to right,
+        color-mix(in oklab, var(--cuadricula) 25%, transparent) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        to bottom,
+        color-mix(in oklab, var(--cuadricula) 25%, transparent) 1px,
+        transparent 1px
+      );
+    background-size:
+      40px 40px,
+      40px 40px,
+      8px 8px,
+      8px 8px;
   }
 
   /* Regla fina de separación (tablas tipo publicación, listas editoriales). */

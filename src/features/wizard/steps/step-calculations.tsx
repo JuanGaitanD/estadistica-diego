@@ -2,7 +2,7 @@
 
 /** Paso 3: "¿Qué cálculos y gráficas necesitas?" (RF-13 a RF-25). */
 import { StepHeader } from "@/components/layout/step-header";
-import { appliesTo, CHART_REGISTRY, type ChartKind } from "@/components/charts";
+import { appliesTo, CHART_REGISTRY, CHART_THUMBNAILS, type ChartKind } from "@/components/charts";
 import { OptionCard } from "@/components/shared/option-card";
 import { SectionCard } from "@/components/shared/section-card";
 import { Button } from "@/components/ui/button";
@@ -103,23 +103,18 @@ export function StepCalculations() {
         subtitle="Marca las medidas que quieres ver en tus resultados; puedes cambiarlas después."
       />
 
-      <div className="border-rule bg-muted/40 flex flex-wrap items-center justify-between gap-4 rounded-[var(--radius)] border p-4">
+      <div className="border-rule bg-secondary flex flex-wrap items-center justify-between gap-4 rounded-[var(--radius)] border p-4">
         <p className="text-muted-foreground max-w-prose text-sm leading-relaxed">
           Marca el paquete de cálculos de siempre: frecuencias, moda, mediana, promedio, cuartiles y
           variabilidad, con las gráficas que apliquen.
         </p>
-        <Button
-          type="button"
-          variant="outline"
-          className="h-10 shrink-0"
-          onClick={() => selectUsual()}
-        >
+        <Button type="button" variant="outline" className="shrink-0" onClick={() => selectUsual()}>
           Seleccionar lo habitual
         </Button>
       </div>
 
       <SectionCard title="Frecuencias" description="La tabla base de todo análisis descriptivo.">
-        <div className="flex flex-col gap-3">
+        <div className="-mx-3 flex flex-col">
           {option(
             "calc-frecuencias",
             "Tabla de frecuencias",
@@ -129,7 +124,7 @@ export function StepCalculations() {
             state("frecuencias"),
           )}
 
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 px-3 pb-3 pl-11">
             <Label htmlFor="modo-relativo">Cómo mostrar la proporción</Label>
             <Select
               value={calculation.relativeMode}
@@ -166,7 +161,7 @@ export function StepCalculations() {
           )}
 
           {calculation.grouped ? (
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 px-3 pb-3 pl-11">
               <Label htmlFor="regla-k">Regla para el número de intervalos (K)</Label>
               <Select
                 value={calculation.rule}
@@ -204,7 +199,7 @@ export function StepCalculations() {
       </SectionCard>
 
       <SectionCard title="Tendencia central" description="Dónde se concentran los datos.">
-        <div className="flex flex-col gap-3">
+        <div className="-mx-3 flex flex-col">
           {option(
             "calc-moda",
             "Moda",
@@ -238,7 +233,7 @@ export function StepCalculations() {
             state("media-ponderada"),
           )}
           {calculation.weighted ? (
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 px-3 pb-3 pl-11">
               <Label htmlFor="columna-pesos">Columna que trae los pesos</Label>
               <Select
                 value={calculation.weightsVariableId ?? ""}
@@ -277,7 +272,7 @@ export function StepCalculations() {
       </SectionCard>
 
       <SectionCard title="Posición" description="Dónde queda un dato respecto al grupo.">
-        <div className="flex flex-col gap-3">
+        <div className="-mx-3 flex flex-col">
           {option(
             "calc-cuartiles",
             "Cuartiles (Q1, Q2, Q3)",
@@ -287,7 +282,7 @@ export function StepCalculations() {
             state("cuantiles"),
           )}
           {calculation.quartiles ? (
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 px-3 pb-3 pl-11">
               <Label htmlFor="metodo-cuartiles">Método de cuartiles</Label>
               <Select
                 value={calculation.quartileMethod}
@@ -322,7 +317,7 @@ export function StepCalculations() {
             state("cuantiles"),
           )}
           {calculation.percentiles ? (
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 px-3 pb-3 pl-11">
               <Label htmlFor="lista-percentiles">Percentiles (separados por comas)</Label>
               <Input
                 id="lista-percentiles"
@@ -345,7 +340,7 @@ export function StepCalculations() {
       </SectionCard>
 
       <SectionCard title="Variabilidad" description="Qué tan dispersos están los datos.">
-        <div className="flex flex-col gap-3">
+        <div className="-mx-3 flex flex-col">
           {option(
             "calc-rango",
             "Rango",
@@ -393,7 +388,7 @@ export function StepCalculations() {
         title="Tabla de contingencia"
         description="Cruza dos variables para explorar si están relacionadas."
       >
-        <div className="flex flex-col gap-3">
+        <div className="-mx-3 flex flex-col">
           {option(
             "calc-contingencia",
             "Cruzar dos variables",
@@ -403,7 +398,7 @@ export function StepCalculations() {
             state("contingencia"),
           )}
           {calculation.contingency ? (
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4 px-3 pb-3 pl-11 sm:grid-cols-2">
               <div className="flex flex-col gap-2">
                 <Label htmlFor="contingencia-fila">Variable de las filas</Label>
                 <Select
@@ -461,7 +456,7 @@ export function StepCalculations() {
             return (
               <div key={column.id} className="flex flex-col gap-3">
                 <h3 className="text-foreground text-base font-semibold">{column.name}</h3>
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="-mx-3 grid sm:grid-cols-2">
                   {CHART_KINDS.map((kind) => {
                     const verdict = appliesTo(kind, column.kind, grouped);
                     const entry = CHART_REGISTRY[kind];
@@ -470,6 +465,8 @@ export function StepCalculations() {
                         key={kind}
                         id={`grafica-${column.id}-${kind}`}
                         title={entry.label}
+                        icon={CHART_THUMBNAILS[kind]}
+                        className="sm:nth-2:border-t-0"
                         description={entry.description}
                         checked={selected.includes(kind) && verdict.ok}
                         onCheckedChange={(value) => toggleChart(column.id, kind, value)}
