@@ -47,13 +47,20 @@ const HEAT_STEPS = 5;
  * Color secuencial (heatmap) para t en [0, 1]. Mapea a --heat-1..--heat-5.
  */
 export function sequentialColor(t: number): string {
-  const clamped = Math.min(1, Math.max(0, t));
-  const step = Math.min(HEAT_STEPS, Math.max(1, Math.ceil(clamped * HEAT_STEPS) || 1));
-  return `var(--heat-${step})`;
+  return `var(--heat-${heatStep(t)})`;
 }
 
-/** Texto legible (oscuro/claro) recomendado sobre un paso de heatmap dado. */
-export function heatTextClassName(t: number): string {
+/** Paso (1 a 5) de la escala secuencial al que cae `t`. */
+function heatStep(t: number): number {
   const clamped = Math.min(1, Math.max(0, t));
-  return clamped >= 0.7 ? "text-white" : "text-foreground";
+  return Math.min(HEAT_STEPS, Math.max(1, Math.ceil(clamped * HEAT_STEPS) || 1));
+}
+
+/**
+ * Texto legible recomendado sobre un paso de heatmap. Se elige por paso, no por
+ * umbral: pasos 1 a 3 llevan el texto del tema (>= 5,5:1) y los pasos 4 y 5 el
+ * color `--sobre-calor` (superficie en claro, fondo en oscuro; >= 5,3:1).
+ */
+export function heatTextClassName(t: number): string {
+  return heatStep(t) >= 4 ? "text-[var(--sobre-calor)]" : "text-foreground";
 }

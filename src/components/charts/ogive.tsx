@@ -103,7 +103,7 @@ export function Ogive({
                 value="Límite superior de clase"
                 offset={-15}
                 position="insideBottom"
-                style={{ fontSize: 11 }}
+                style={{ fontSize: 12 }}
               />
             </XAxis>
             <YAxis type="number" {...AXIS_PROPS} width={48}>
@@ -111,7 +111,7 @@ export function Ogive({
                 value={measureLabel}
                 angle={-90}
                 position="insideLeft"
-                style={{ fontSize: 11 }}
+                style={{ fontSize: 12 }}
               />
             </YAxis>
             <Tooltip
@@ -129,8 +129,8 @@ export function Ogive({
               name={measureLabel}
               stroke={categoricalColorFor(data.variableId)}
               strokeWidth={2.25}
-              dot={{ r: 3.5, strokeWidth: 2, stroke: "var(--card)" }}
-              activeDot={{ r: 5.5, strokeWidth: 2, stroke: "var(--card)" }}
+              dot={{ r: 4, strokeWidth: 2, stroke: "var(--card)" }}
+              activeDot={{ r: 6, strokeWidth: 2, stroke: "var(--card)" }}
               isAnimationActive={false}
             >
               <LabelList

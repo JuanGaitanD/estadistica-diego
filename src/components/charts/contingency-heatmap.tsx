@@ -45,7 +45,7 @@ export function ContingencyHeatmap({
         aria-label={`Mapa de calor de contingencia entre ${data.rowVariableId} y ${data.columnVariableId}, total = ${data.grandTotal}`}
         className="flex h-full w-full flex-col gap-2 overflow-auto"
       >
-        <table className="w-full border-collapse overflow-hidden rounded-[calc(var(--radius)*0.75)] text-[0.8125rem]">
+        <table className="w-full border-collapse overflow-hidden rounded-[calc(var(--radius)*0.75)] text-sm">
           <caption className="sr-only">{title}</caption>
           <thead>
             <tr>
@@ -53,7 +53,7 @@ export function ContingencyHeatmap({
               {data.columnLabels.map((label) => (
                 <th
                   key={label}
-                  className="sl-rule text-muted-foreground border-b p-2.5 text-center text-[0.6875rem] font-semibold tracking-[0.06em] uppercase"
+                  className="sl-rule text-muted-foreground border-b p-2.5 text-center text-sm font-semibold"
                 >
                   {label}
                 </th>
@@ -63,7 +63,7 @@ export function ContingencyHeatmap({
           <tbody>
             {data.rowLabels.map((rowLabel, rowIndex) => (
               <tr key={rowLabel}>
-                <th className="text-muted-foreground p-2.5 text-left text-[0.6875rem] font-semibold tracking-[0.06em] uppercase">
+                <th className="text-muted-foreground p-2.5 text-left text-sm font-semibold">
                   {rowLabel}
                 </th>
                 {data.columnLabels.map((_, colIndex) => {

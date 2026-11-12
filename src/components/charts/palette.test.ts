@@ -4,6 +4,7 @@ import {
   categoricalColorFor,
   colorIndexFor,
   getCategoricalColor,
+  heatTextClassName,
   sequentialColor,
 } from "@/components/charts/palette";
 
@@ -30,6 +31,13 @@ describe("palette", () => {
     // Se vuelve a pedir en orden inverso: debe dar el mismo resultado por clave.
     expect(categoricalColorFor("Azul")).toBe(colorB);
     expect(categoricalColorFor("Rojo")).toBe(colorA);
+  });
+
+  it("heatTextClassName elige el texto por paso: pasos 1 a 3 en --foreground, 4 y 5 en --sobre-calor", () => {
+    expect(heatTextClassName(0)).toBe("text-foreground");
+    expect(heatTextClassName(0.6)).toBe("text-foreground");
+    expect(heatTextClassName(0.61)).toBe("text-[var(--sobre-calor)]");
+    expect(heatTextClassName(1)).toBe("text-[var(--sobre-calor)]");
   });
 
   it("sequentialColor mapea 0..1 a los 5 pasos de --heat-n", () => {

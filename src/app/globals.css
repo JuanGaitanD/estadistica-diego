@@ -473,24 +473,35 @@
     line-height: 1.35;
   }
 
-  /* Recharts: ejes, rejilla y textos heredan el tema, no el gris de fábrica. */
+  /* Recharts: ejes y textos en Atkinson Mono 12 px; rejilla de papel milimetrado. */
   .sl-chart .recharts-cartesian-axis-tick text,
   .sl-chart .recharts-label,
-  .sl-chart .recharts-legend-item-text,
-  .sl-chart .recharts-pie-label-text {
+  .sl-chart .recharts-legend-item-text {
     fill: var(--muted-foreground) !important;
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 12px;
+  }
+
+  /* Etiquetas de texto de la circular: nunca con el color de la serie (3,99:1 en el ocre). */
+  .sl-chart .recharts-pie-label-text {
+    fill: var(--foreground) !important;
     font-family: var(--font-mono), ui-monospace, monospace;
     font-size: 12px;
   }
 
   .sl-chart .recharts-cartesian-axis-line,
   .sl-chart .recharts-cartesian-axis-tick-line {
-    stroke: var(--rule);
+    stroke: var(--separador);
   }
 
   .sl-chart .recharts-cartesian-grid line {
-    stroke: var(--rule);
-    stroke-opacity: 0.7;
+    stroke: var(--cuadricula);
+    stroke-opacity: 1;
+  }
+
+  .sl-chart .recharts-cartesian-grid-horizontal line:nth-child(odd),
+  .sl-chart .recharts-cartesian-grid-vertical line:nth-child(odd) {
+    stroke-opacity: 0.55;
   }
 
   .sl-chart .recharts-label-list text {

@@ -39,7 +39,8 @@ export function MetricCard(props: MetricCardProps) {
   const { name, badge, meaning, purpose, formula, className } = props;
   const hasHelp = Boolean(meaning || purpose || formula);
   // La moda llega como «3,75 (4 veces)»: la cifra va en mono grande y el conteo en texto secundario.
-  const countMatch = props.available === false ? null : /^(.*\S)\s+(\(\d+ veces?\))$/.exec(props.value);
+  const countMatch =
+    props.available === false ? null : /^(.*\S)\s+(\(\d+ veces?\))$/.exec(props.value);
   const valueMain = props.available === false ? "" : (countMatch?.[1] ?? props.value);
   const valueCount = countMatch?.[2];
 

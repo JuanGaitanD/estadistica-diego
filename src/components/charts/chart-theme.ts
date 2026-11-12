@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import { createElement, type CSSProperties } from "react";
 
 /**
  * Estilo común de las gráficas (docs/05-diseno.md §6).
@@ -11,18 +11,17 @@ import type { CSSProperties } from "react";
  * (`.sl-chart` en globals.css); aquí solo va lo que Recharts exige por props.
  */
 
-/** Rejilla: solo líneas horizontales, continuas y discretas. */
+/** Rejilla de papel milimetrado: líneas continuas en los dos ejes con --cuadricula (CSS). */
 export const GRID_PROPS = {
-  vertical: false,
+  vertical: true,
   strokeDasharray: "0",
-  strokeOpacity: 0.65,
 } as const;
 
 /** Ejes: sin línea de dominio pesada, tipografía y color desde CSS. */
 export const AXIS_PROPS = {
   tickLine: false,
-  axisLine: false,
-  tick: { fontSize: 11 },
+  axisLine: true,
+  tick: { fontSize: 12 },
   tickMargin: 8,
 } as const;
 
@@ -30,11 +29,11 @@ export const AXIS_PROPS = {
 export const TOOLTIP_CONTENT_STYLE: CSSProperties = {
   backgroundColor: "var(--popover)",
   color: "var(--popover-foreground)",
-  border: "1px solid var(--border)",
-  borderRadius: "calc(var(--radius) * 0.75)",
-  boxShadow: "0 4px 16px -4px rgb(0 0 0 / 0.22)",
+  border: "1px solid var(--separador)",
+  borderRadius: "var(--radius)",
+  boxShadow: "var(--sombra-flotante)",
   padding: "0.5rem 0.75rem",
-  fontSize: "0.8125rem",
+  fontSize: "0.875rem",
   lineHeight: 1.35,
 };
 
@@ -69,9 +68,14 @@ export const TOOLTIP_LINE_PROPS = {
   cursor: TOOLTIP_LINE_CURSOR,
 } as const;
 
-/** Leyenda discreta, alineada abajo y sin los cuadraditos de fábrica. */
+/**
+ * Leyenda debajo, en texto: Recharts tiñe el texto con el color de la serie, que
+ * no llega a 4,5:1; el color queda solo en la muestra y el texto va en --foreground.
+ */
 export const LEGEND_PROPS = {
   iconType: "circle",
   iconSize: 8,
-  wrapperStyle: { fontSize: "0.75rem", paddingTop: "0.75rem" },
+  wrapperStyle: { fontSize: "0.875rem", paddingTop: "0.75rem" },
+  formatter: (value: unknown) =>
+    createElement("span", { style: { color: "var(--foreground)" } }, String(value)),
 } as const;
