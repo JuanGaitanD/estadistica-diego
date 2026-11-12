@@ -62,6 +62,7 @@ export function StepVariables() {
                 <Input
                   id={`nombre-${column.id}`}
                   value={column.name}
+                  placeholder="Ej.: Estatura"
                   onChange={(event) => renameColumn(column.id, event.target.value)}
                 />
               </div>

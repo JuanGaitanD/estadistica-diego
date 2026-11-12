@@ -193,6 +193,7 @@ export function StepCalculations() {
                     min={2}
                     max={30}
                     value={calculation.manualK}
+                    placeholder="5"
                     onChange={(event) => patch({ manualK: Number(event.target.value) })}
                     className="w-full sm:w-32"
                   />
@@ -327,6 +328,7 @@ export function StepCalculations() {
               <Input
                 id="lista-percentiles"
                 value={calculation.percentilesText}
+                placeholder="10, 90"
                 onChange={(event) => patch({ percentilesText: event.target.value })}
                 className="w-full sm:w-80"
                 {...(percentilesError !== null

@@ -9,7 +9,10 @@ export interface HelpHintProps {
   className?: string;
 }
 
-/** Ícono ⓘ con tooltip accesible, para aclaraciones breves en lenguaje llano. */
+/**
+ * Ícono ⓘ con tooltip accesible, para aclaraciones breves en lenguaje llano.
+ * Caja de 24×24 y área táctil de 44×44 (pseudo-elemento) con puntero grueso.
+ */
 export function HelpHint({ label, className }: HelpHintProps) {
   return (
     <Tooltip>
@@ -17,7 +20,7 @@ export function HelpHint({ label, className }: HelpHintProps) {
         <button
           type="button"
           className={cn(
-            "text-muted-foreground hover:text-foreground inline-flex size-5 shrink-0 items-center justify-center rounded-full transition-colors",
+            "text-muted-foreground hover:text-foreground relative inline-flex size-6 shrink-0 items-center justify-center rounded-md transition-colors pointer-coarse:after:absolute pointer-coarse:after:-inset-2.5",
             className,
           )}
           aria-label={label}
