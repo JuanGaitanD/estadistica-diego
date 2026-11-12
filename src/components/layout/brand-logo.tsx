@@ -5,12 +5,10 @@ export interface BrandLogoProps {
 }
 
 /**
- * Logotipo de StatLab: tres barras ascendentes con un punto de tendencia.
- *
- * Se dibuja íntegramente con `currentColor`, de modo que hereda el color del
- * contenedor y funciona en monocromo y a 16 px. El punto usa `var(--primary)`
- * con `currentColor` de reserva, así que se adapta a las propuestas A, B y C.
- * Es decorativo: el nombre accesible lo aporta el texto "StatLab" contiguo.
+ * Logotipo de StatLab: los palotes de conteo (cuatro rayas y la quinta cruzada)
+ * sobre una placa de tinta ciruela. Es el mismo dibujo que `app/icon1.svg`, el
+ * favicon y el icono de iOS, con los colores de la acción para que siga el
+ * tema. Es decorativo: el nombre accesible lo aporta el texto "StatLab" contiguo.
  */
 export function BrandLogo({ className }: BrandLogoProps) {
   return (
@@ -20,12 +18,11 @@ export function BrandLogo({ className }: BrandLogoProps) {
       aria-hidden="true"
       focusable="false"
     >
-      <g fill="currentColor">
-        <rect x="3" y="19" width="6" height="8" rx="1.5" opacity="0.55" />
-        <rect x="12" y="13" width="6" height="14" rx="1.5" opacity="0.78" />
-        <rect x="21" y="7" width="6" height="20" rx="1.5" />
+      <rect width="32" height="32" rx="7" fill="var(--accion)" />
+      <g fill="none" stroke="var(--sobre-accion)" strokeLinecap="round">
+        <path d="M7.5 6.5v19M12.8 6.5v19M18.2 6.5v19M23.5 6.5v19" strokeWidth="3" />
+        <path d="M4.5 22.5 27.5 9.5" strokeWidth="2.6" />
       </g>
-      <circle cx="24" cy="4" r="3" fill="var(--primary, currentColor)" />
     </svg>
   );
 }
