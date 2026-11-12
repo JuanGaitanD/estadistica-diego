@@ -2,3 +2,6 @@ allowBuilds:
   msw: false
   unrs-resolver: false
   core-js: false
+overrides:
+  dompurify: ^3.4.17
+  source-map-js: ^1.2.2
