@@ -99,6 +99,7 @@ export function ExportToolbar({
         type="button"
         variant="outline"
         loading={isDownloadingCharts}
+        className="col-span-2 sm:col-span-1"
         disabled={chartElementIds.length === 0}
         onClick={() => void handleDownloadAllCharts()}
       >

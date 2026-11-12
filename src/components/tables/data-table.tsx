@@ -101,7 +101,7 @@ export function DataTable<TRow>({
         {...(caption ? { "aria-labelledby": captionId } : {})}
         className="sl-table-scroll -m-1 w-[calc(100%+0.5rem)] overflow-x-auto p-1"
       >
-        <table className="w-full min-w-max border-collapse text-sm sm:text-base">
+        <table className="w-full border-collapse text-sm sm:text-base">
           {caption ? (
             <caption id={captionId} className="sr-only">
               {caption}
