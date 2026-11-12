@@ -147,7 +147,7 @@ export function Ogive({
           </LineChart>
         </ResponsiveContainer>
         <div className="sr-only">
-          <table>
+          <table className="w-px table-fixed">
             <caption>Datos de la ojiva de {data.variableId}</caption>
             <thead>
               <tr>

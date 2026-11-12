@@ -89,7 +89,7 @@ export function ContingencyHeatmap({
           </tbody>
         </table>
         <div className="sr-only">
-          <table>
+          <table className="w-px table-fixed">
             <caption>
               Datos de contingencia entre {data.rowVariableId} y {data.columnVariableId}
             </caption>

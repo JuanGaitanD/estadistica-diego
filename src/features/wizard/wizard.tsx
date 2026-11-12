@@ -40,7 +40,7 @@ export function Wizard() {
   const dataset = useWizardStore((state) => state.dataset);
 
   const contentRef = useRef<HTMLDivElement>(null);
-  const isFirstRender = useRef(true);
+  const lastStep = useRef(step);
 
   useEffect(() => {
     detectStoredDataset();
@@ -50,10 +50,8 @@ export function Wizard() {
   // la vista vuelve arriba (antes se aterrizaba a media página).
   useEffect(() => {
     // En la primera carga el foco queda al inicio del documento: así «Saltar al contenido» es el primero.
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
+    if (lastStep.current === step) return;
+    lastStep.current = step;
     window.scrollTo({ top: 0, behavior: "auto" });
     const heading = contentRef.current?.querySelector("h1");
     if (heading === null || heading === undefined) return;

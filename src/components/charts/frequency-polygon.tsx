@@ -141,7 +141,7 @@ export function FrequencyPolygon({
           </LineChart>
         </ResponsiveContainer>
         <div className="sr-only">
-          <table>
+          <table className="w-px table-fixed">
             <caption>Datos del polígono de frecuencias de {data.variableId}</caption>
             <thead>
               <tr>

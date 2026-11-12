@@ -153,7 +153,7 @@ export function BarChart({
           </ReBarChart>
         </ResponsiveContainer>
         <div className="sr-only">
-          <table>
+          <table className="w-px table-fixed">
             <caption>Datos del gráfico de barras de {data.variableId}</caption>
             <thead>
               <tr>

@@ -141,7 +141,7 @@ export function PieChart({
           </RePieChart>
         </ResponsiveContainer>
         <div className="sr-only">
-          <table>
+          <table className="w-px table-fixed">
             <caption>Datos del gráfico circular de {data.variableId}</caption>
             <thead>
               <tr>
