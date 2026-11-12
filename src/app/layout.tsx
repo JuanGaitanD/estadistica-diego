@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import { Atkinson_Hyperlegible_Mono, Atkinson_Hyperlegible_Next } from "next/font/google";
 
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
@@ -7,21 +7,23 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 
 import "./globals.css";
 
-/** Sans de títulos, cuerpo y UI de StatLab. */
-const jakarta = Plus_Jakarta_Sans({
-  variable: "--font-jakarta",
-  subsets: ["latin"],
+/** Texto de StatLab: títulos, cuerpo, etiquetas y botones. Autoalojada en el build. */
+const atkinson = Atkinson_Hyperlegible_Next({
+  variable: "--font-atkinson",
+  subsets: ["latin", "latin-ext"],
   display: "swap",
+  adjustFontFallback: false,
 });
 
-/** Monoespaciada para cifras tabulares, fórmulas y datos en bruto. */
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-jetbrains",
-  subsets: ["latin"],
+/** Misma familia en monoespaciada: cifras de resultados, datos pegados y fórmulas. */
+const atkinsonMono = Atkinson_Hyperlegible_Mono({
+  variable: "--font-atkinson-mono",
+  subsets: ["latin", "latin-ext"],
   display: "swap",
+  adjustFontFallback: false,
 });
 
-const FONT_VARIABLES = [jakarta.variable, jetbrainsMono.variable].join(" ");
+const FONT_VARIABLES = [atkinson.variable, atkinsonMono.variable].join(" ");
 
 export const metadata: Metadata = {
   title: "StatLab",

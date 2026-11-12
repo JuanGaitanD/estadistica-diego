@@ -64,9 +64,20 @@
   /* Formas: controles 4 px, hojas 8 px, píldora solo en chips */
   --radius: 0.5rem;
 
-  --font-heading: var(--font-jakarta);
-  --font-body: var(--font-jakarta);
-  --font-mono: var(--font-jetbrains);
+  /* Atkinson Hyperlegible Next (texto) y Mono (cifras), autoalojadas con next/font */
+  --font-heading: var(--font-atkinson);
+  --font-body: var(--font-atkinson);
+  --font-mono: var(--font-atkinson-mono);
+
+  /* Escala fija en rem: ningún tamaño funcional bajo 12 px */
+  --t-nota: 0.75rem;
+  --t-sec: 0.875rem;
+  --t-cuerpo: 1rem;
+  --t-subtitulo: 1.125rem;
+  --t-seccion: 1.375rem;
+  --t-cifra: 1.75rem;
+  --t-titulo-movil: 2.125rem;
+  --t-titulo: 2.75rem;
 
   /* Hoja: borde de 1 px sobre el fondo, sin sombra */
   --surface-bg: var(--superficie);
@@ -77,10 +88,9 @@
   --space-section: 4rem;
   --space-block: 2rem;
 
-  --num-font: var(--font-jakarta);
+  --num-font: var(--font-mono);
   --num-weight: 600;
-  --num-tracking: -0.01em;
-  --label-tracking: 0.08em;
+  --num-tracking: 0;
   --heading-tracking: -0.015em;
 
   /* Paleta de datos: lápices de colores */
@@ -186,7 +196,7 @@
 
   --font-sans: var(--font-body);
   --font-serif: var(--font-heading);
-  --font-mono: var(--font-jetbrains);
+  --font-mono: var(--font-atkinson-mono);
 
   --spacing-section: var(--space-section);
   --spacing-block: var(--space-block);
@@ -200,7 +210,19 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-body), system-ui, sans-serif;
-    font-feature-settings: "cv05" 1;
+    font-size: var(--t-cuerpo);
+    line-height: 1.55;
+    caret-color: var(--accion);
+  }
+
+  html {
+    accent-color: var(--accion);
+    scrollbar-color: var(--borde-campo) transparent;
+  }
+
+  ::selection {
+    background-color: color-mix(in oklab, var(--accion) 26%, transparent);
+    color: inherit;
   }
 
   /* Todos los títulos usan la familia de display de la propuesta activa. */
@@ -210,6 +232,8 @@
   h4 {
     font-family: var(--font-heading), var(--font-body), system-ui, sans-serif;
     letter-spacing: var(--heading-tracking);
+    font-weight: 750;
+    line-height: 1.1;
   }
 
   /* Foco visible y consistente en toda la aplicación (uno solo, no dos). */
@@ -233,13 +257,11 @@
     border-color: var(--rule);
   }
 
-  /* Etiqueta pequeña en versalitas sobre una cifra. */
+  /* Etiqueta de métrica, de tabla y del índice: texto normal, 14 px, peso 600. */
   .sl-label {
-    font-size: 0.6875rem;
-    line-height: 1.2;
+    font-size: var(--t-sec);
+    line-height: 1.3;
     font-weight: 600;
-    letter-spacing: var(--label-tracking);
-    text-transform: uppercase;
     color: var(--muted-foreground);
   }
 
@@ -248,12 +270,13 @@
     font-family: var(--num-font), var(--font-body), system-ui, sans-serif;
     font-weight: var(--num-weight);
     letter-spacing: var(--num-tracking);
-    font-variant-numeric: tabular-nums lining-nums;
+    font-variant-numeric: tabular-nums slashed-zero;
   }
 
-  /* Números en tablas: siempre tabulares, en la mono de la propuesta B. */
+  /* Números en tablas: siempre tabulares y en la mono de la familia. */
   .sl-tnum {
-    font-variant-numeric: tabular-nums lining-nums;
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-variant-numeric: tabular-nums slashed-zero;
   }
 
   /* Tooltip de Recharts con el tratamiento del tema. */
@@ -274,8 +297,8 @@
   .sl-chart .recharts-legend-item-text,
   .sl-chart .recharts-pie-label-text {
     fill: var(--muted-foreground) !important;
-    font-family: var(--font-body), system-ui, sans-serif;
-    font-size: 11px;
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 12px;
   }
 
   .sl-chart .recharts-cartesian-axis-line,
@@ -290,9 +313,9 @@
 
   .sl-chart .recharts-label-list text {
     fill: var(--foreground) !important;
-    font-family: var(--num-font), var(--font-body), system-ui, sans-serif;
-    font-variant-numeric: tabular-nums;
-    font-size: 11px;
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-variant-numeric: tabular-nums slashed-zero;
+    font-size: 12px;
   }
 
   /* Transición corta entre pasos del asistente. */
