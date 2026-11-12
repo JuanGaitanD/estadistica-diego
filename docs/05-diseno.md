@@ -1,5 +1,27 @@
 # StatLab — Dirección de diseño (para implementación con shadcn/ui)
 
+## Decisión final (2026-11-12): cuaderno de laboratorio de estadística
+
+Esta decisión **sustituye a la de 2026-09-20** en todo lo visual (color, tipografía, forma, profundidad, componentes y firma). La anterior se conserva abajo, tal cual, como histórico. No cambian la estructura del asistente, los textos de las pantallas, los cálculos ni la exportación.
+
+**Por qué cambia.** El verde bosque sobre fondo hueso quedaba demasiado cerca del lenguaje de otro producto de la misma familia y caía en «fondo crema con un acento». La auditoría de 48 pantallas (8 estados × 3 anchos × 2 temas) encontró además fallos reales: texto del mapa de calor con 1,7–3,8:1, desborde horizontal de 72 px a 390 px en resultados (las tablas `sr-only` de las gráficas), halo de foco semitransparente que no llegaba a 3:1, objetivos de 20 px (ⓘ, interruptor), etiquetas de 11 px en mayúsculas y un `select` sin respaldo nativo.
+
+**Producto.** Calculadora de estadística descriptiva para un profesor experto y poco hábil con la tecnología, proyectada en un aula o usada en el celular por sus estudiantes. Su mundo: el cuaderno cuadriculado y el papel milimetrado, los **palotes de conteo** con los que se hace a mano una tabla de frecuencias, las guías de taller impresas en esténcil morado y el bolígrafo rojo de corrección.
+
+- **Color.** Neutros fríos de papel cuadriculado (matiz 215, fondo `#f1f7f8`, hoja `#fbfdfe`), tinta y texto en grafito azulado (`#1b232f`, 15,5:1). **Acción en ciruela de esténcil `#7e306b`** (texto sobre acción 8,1:1); peligro en rojo de corrección, éxito en verde botella solo como estado y aviso en ocre. Un solo color vivo en la interfaz. Se descartó el granate (se confundiría con el rojo de corrección) y el azul petróleo (cercano a otros productos). Paleta de datos de «lápices de colores» (`--chart-1…8`, todas ≥ 3:1) y secuencial del mapa de calor en un solo matiz azul tinta, con el color del texto elegido **por paso** y no por umbral (`--sobre-calor`). Los roles propios (`--fondo`, `--superficie`, `--accion`…) se mapean a los nombres de shadcn en `globals.css`.
+- **Tipografía.** **Atkinson Hyperlegible Next** (texto) y **Atkinson Hyperlegible Mono** (todas las cifras de resultados, datos pegados y fórmulas), cargadas con `next/font/google` (autoalojadas en el build: la CSP de `vercel.json` exige `font-src 'self'`). La familia se diseñó para distinguir 0/O, 1/l/I y 5/S, lo que importa con un proyector. Escala fija en rem de 8 tamaños, ninguno funcional bajo 12 px; etiquetas y encabezados de tabla sin mayúsculas sostenidas.
+- **Forma y profundidad.** Controles de 4 px, hojas de 8 px, píldora solo en chips. Una sola receta: hoja con borde de 1 px `--separador` sobre el fondo, sin sombra (es la que mejor se imprime en el PDF); sombra única solo en capas flotantes.
+- **Componentes.** Botón **con cuerpo** (cara y canto de 3 px que se hunde al pulsar, secundario con otro material, destructivo para «Sí, empezar de cero», terciario plano; estado cargando con `aria-busy`). **Foco con anillo doble** (hueco del color del fondo + anillo `--foco`, 14,6:1) en una sola regla global, con `forced-colors`, y enlace «Saltar al contenido» como primer foco. Campos de 44 px con placeholders de ejemplo, casillas de 24 px operables, interruptor 44×24, ayuda ⓘ de 24 px (44 px con puntero grueso). Opciones del paso 3 como filas de lista con miniatura de gráfica, no tarjetas iguales de icono + título + texto.
+- **`select` dibujado con respaldo nativo.** Por debajo es un `<select>` nativo con el control cerrado dibujado igual en todos los navegadores. La lista abierta se dibuja con `appearance: base-select` solo donde existe (Chromium 135+); Firefox, Safari y móviles ven la lista nativa, que es el respaldo y lo que se espera en táctil. La API compuesta (`Select`, `SelectTrigger`, `SelectValue`, `SelectContent`, `SelectItem`) se conserva.
+- **Firma: palotes de conteo.** El stepper cuenta el progreso en palotes y al llegar a Resultados traza la quinta raya diagonal; la carga los dibuja uno a uno; el estado vacío muestra un grupo incompleto; la zona de datos del paso 1 y el trazado de las gráficas llevan **papel milimétrico** (cuadrícula de 8 px y línea mayor cada 40 px, hecha con degradados). Con `prefers-reduced-motion` los palotes aparecen ya dibujados.
+- **Movimiento.** Respuesta de 90–120 ms con curva `cubic-bezier(0.22, 1, 0.36, 1)`, la entrada de paso existente y el trazo de la quinta raya; sin desplazamiento ni trazo con movimiento reducido.
+
+**Zonas que no se tocaron:** motor de cálculo (`src/core`), casos de uso, modelos, stores, parsers, exportación y formato de números. Los resultados numéricos son idénticos a los de antes del rediseño (ver `HANDOFF.md`, «Cómo verificar»).
+
+---
+
+## Decisión anterior (2026-09-20, histórica)
+
 ## Decisión final (2026-09-20)
 
 Tras evaluar tres propuestas conmutables (A "Editorial académico", B "Herramienta de datos moderna", C "Cálida y amigable") implementadas simultáneamente detrás de `data-design`, el dueño del producto decidió consolidar:
@@ -10,7 +32,7 @@ Tras evaluar tres propuestas conmutables (A "Editorial académico", B "Herramien
 - El selector de propuestas (`design-switcher.tsx`), el atributo `data-design` y las variantes B y C se eliminaron del código: `globals.css` ahora define directamente `:root` y `.dark` con los tokens definitivos, y `layout.tsx` solo carga Plus Jakarta Sans y JetBrains Mono con `next/font`.
 - El ícono (`src/app/icon.svg`, `apple-icon.png`) usa los colores de la propuesta A y se conserva sin cambios.
 
-El resto de este documento (secciones 1 en adelante) es el registro histórico del proceso de diseño previo a esta decisión; se conserva como referencia pero ya no describe el estado actual del código.
+El resto de este documento (secciones 1 en adelante) es el registro histórico del proceso de diseño previo a esta decisión; se conserva como referencia pero ya no describe el estado actual del código. Desde 2026-11-12 tampoco esta decisión describe el aspecto vigente: manda la de arriba.
 
 ## 1. Dirección visual elegida y por qué
 
