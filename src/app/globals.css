@@ -235,13 +235,56 @@
     font-weight: 750;
     line-height: 1.1;
   }
+}
 
-  /* Foco visible y consistente en toda la aplicación (uno solo, no dos). */
-  :focus-visible {
-    outline: 2px solid var(--ring);
-    outline-offset: 2px;
-    border-radius: calc(var(--radius) * 0.5);
+/*
+ * Foco con teclado: un solo anillo doble para toda la interfaz. Hueco del color
+ * del fondo pegado al control y anillo de --foco por fuera (14,6:1 en claro,
+ * 14,8:1 en oscuro). Va fuera de las capas para que ninguna utilidad
+ * (sombras, outline-*) lo anule. Se dibuja con outline y box-shadow: no mueve
+ * ni cambia el tamaño del control.
+ */
+:where(
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  summary,
+  [tabindex]:not([tabindex="-1"]),
+  [role="checkbox"],
+  [role="switch"],
+  [role="radio"],
+  [role="combobox"],
+  [role="tab"]
+):focus-visible {
+  outline: 2px solid var(--foco);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--fondo);
+}
+
+/* Alto contraste: las sombras desaparecen; el anillo va en outline y los botones llevan borde. */
+@media (forced-colors: active) {
+  :where(a, button, input, select, textarea, summary, [tabindex], [role]):focus-visible {
+    outline-color: Highlight;
   }
+
+  [data-slot="button"] {
+    border: 1px solid ButtonText;
+  }
+}
+
+/* Enlace para saltar al contenido: primer foco del documento, visible solo al enfocarlo. */
+.sl-salto {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 60;
+  transform: translateY(-200%);
+}
+
+.sl-salto:focus-visible {
+  transform: none;
 }
 
 @layer components {

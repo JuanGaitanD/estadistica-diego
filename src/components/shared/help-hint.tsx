@@ -17,7 +17,7 @@ export function HelpHint({ label, className }: HelpHintProps) {
         <button
           type="button"
           className={cn(
-            "text-muted-foreground hover:text-foreground focus-visible:ring-ring inline-flex size-5 shrink-0 items-center justify-center rounded-full transition-colors focus-visible:ring-2 focus-visible:outline-none",
+            "text-muted-foreground hover:text-foreground inline-flex size-5 shrink-0 items-center justify-center rounded-full transition-colors",
             className,
           )}
           aria-label={label}

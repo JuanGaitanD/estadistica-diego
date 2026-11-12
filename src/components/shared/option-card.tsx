@@ -44,7 +44,7 @@ export function OptionCard({
       htmlFor={id}
       className={cn(
         "sl-surface flex min-h-11 cursor-pointer flex-col gap-2 p-4 transition-all",
-        "has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-background has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-offset-2",
+        "has-[:focus-visible]:outline-ring has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 [&_[data-slot=checkbox]:focus-visible]:shadow-none [&_[data-slot=checkbox]:focus-visible]:outline-none [&_[data-slot=radio-group-item]:focus-visible]:shadow-none [&_[data-slot=radio-group-item]:focus-visible]:outline-none",
         !disabled && "hover:bg-secondary/40",
         checked && !disabled && "bg-primary/[0.06] ring-primary ring-1 ring-inset",
         disabled && "cursor-not-allowed opacity-60",

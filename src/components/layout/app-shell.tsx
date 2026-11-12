@@ -5,7 +5,7 @@ import { useSyncExternalStore } from "react";
 import { HelpCircle, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
@@ -45,9 +45,15 @@ export interface AppShellProps {
 export function AppShell({ children, width = "narrow" }: AppShellProps) {
   return (
     <div className="flex min-h-full flex-col">
+      <a href="#contenido" className={cn(buttonVariants({ variant: "outline" }), "sl-salto")}>
+        Saltar al contenido
+      </a>
       <AppHeader />
       <main
+        id="contenido"
+        tabIndex={-1}
         className={cn(
+          "outline-none",
           "mx-auto flex w-full flex-1 flex-col px-5 pt-10 pb-6 sm:px-8",
           WIDTH_CLASS[width],
         )}
