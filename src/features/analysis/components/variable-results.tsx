@@ -225,7 +225,7 @@ export function VariableResults({ variable, decimals = 2 }: VariableResultsProps
           <p className="sl-label">Variable</p>
           <h2
             id={`titulo-${variable.variableId}`}
-            className="text-foreground mt-1.5 text-[1.75rem] leading-none font-semibold"
+            className="text-foreground mt-1.5 text-[1.375rem] leading-none"
           >
             {variable.variableName}
           </h2>
@@ -323,7 +323,9 @@ export function VariableResults({ variable, decimals = 2 }: VariableResultsProps
               rows={toDisplayRows(frequency.rows, frequency.n)}
               caption={`Tabla de frecuencias de ${variable.variableName}`}
               getRowKey={(row) => row.key}
-              getCellClassName={(row) => (row.isTotal ? "bg-muted font-semibold" : undefined)}
+              getCellClassName={(row) =>
+                row.isTotal ? "bg-secondary border-t-2 border-t-foreground font-bold" : undefined
+              }
             />
             {grouped && frequency.k !== undefined ? (
               <p className="text-muted-foreground mt-3 flex flex-wrap items-center gap-1.5 text-sm">

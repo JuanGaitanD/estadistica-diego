@@ -12,9 +12,9 @@ import { contingencySectionId } from "../use-cases/sections";
 import { explanationText } from "./metric-explanation";
 
 /** Clase aplicada a la celda máxima de la fila o columna bajo el cursor. */
-export const EXTREME_MAX_CLASS = "bg-primary/20 ring-primary ring-1 ring-inset";
+export const EXTREME_MAX_CLASS = "bg-accent ring-primary ring-2 ring-inset";
 /** Clase aplicada a la celda mínima de la fila o columna bajo el cursor. */
-export const EXTREME_MIN_CLASS = "bg-accent/30 ring-accent-foreground/40 ring-1 ring-inset";
+export const EXTREME_MIN_CLASS = "bg-aviso-suave ring-aviso ring-1 ring-inset";
 
 /** Qué se muestra en cada celda. */
 export type ContingencyView = "conteo" | "fila" | "columna" | "total";

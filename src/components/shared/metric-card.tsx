@@ -38,23 +38,27 @@ export type MetricCardProps = (MetricCardAvailable | MetricCardUnavailable) & {
 export function MetricCard(props: MetricCardProps) {
   const { name, badge, meaning, purpose, formula, className } = props;
   const hasHelp = Boolean(meaning || purpose || formula);
+  // La moda llega como «3,75 (4 veces)»: la cifra va en mono grande y el conteo en texto secundario.
+  const countMatch = props.available === false ? null : /^(.*\S)\s+(\(\d+ veces?\))$/.exec(props.value);
+  const valueMain = props.available === false ? "" : (countMatch?.[1] ?? props.value);
+  const valueCount = countMatch?.[2];
 
   return (
     <div
       className={cn(
-        "sl-surface group flex min-h-[8.5rem] flex-col gap-3 p-4 transition-colors sm:p-5",
+        "sl-surface group grid min-h-[8.5rem] grid-rows-[auto_1fr_auto] gap-3 p-4 sm:p-5",
         className,
       )}
     >
       <div className="flex min-h-[2.1rem] items-start justify-between gap-2">
-        <span className="sl-label pt-0.5">{name}</span>
+        <span className="sl-label pt-2">{name}</span>
         {hasHelp ? (
           <Popover>
             <PopoverTrigger asChild>
               <button
                 type="button"
                 aria-label={`Qué significa ${name}`}
-                className="text-muted-foreground/60 hover:text-foreground hover:bg-secondary -mt-1 -mr-1 inline-flex size-8 shrink-0 items-center justify-center rounded-full transition-colors"
+                className="text-muted-foreground hover:text-foreground hover:bg-accent -mt-1 -mr-2 inline-flex size-9 shrink-0 items-center justify-center rounded-md transition-colors"
               >
                 <HelpCircle className="size-4" aria-hidden="true" />
               </button>
@@ -86,23 +90,32 @@ export function MetricCard(props: MetricCardProps) {
       </div>
 
       {props.available === false ? (
-        <div className="mt-auto">
-          <p className="text-muted-foreground/80 text-sm font-medium">No disponible</p>
-          <p className="text-muted-foreground mt-1 text-xs leading-relaxed">{props.reason}</p>
+        <div className="self-end">
+          <p className="text-foreground text-base font-semibold">No disponible</p>
+          <p className="text-muted-foreground mt-1 text-sm leading-snug">{props.reason}</p>
         </div>
       ) : (
-        <p className="sl-number text-foreground mt-auto text-[2rem] leading-none break-words">
-          {props.value}
+        <p className="sl-number text-foreground self-end text-[1.75rem] leading-none break-words">
+          {valueMain}
+          {valueCount ? (
+            <>
+              {" "}
+              <span className="text-muted-foreground align-baseline text-sm font-medium">
+                {valueCount}
+              </span>
+            </>
+          ) : null}
           {props.unit ? (
-            <span className="text-muted-foreground ml-1 align-baseline text-base font-medium">
+            <span className="text-muted-foreground ml-1 align-baseline text-sm font-medium">
               {props.unit}
             </span>
           ) : null}
         </p>
       )}
 
+      {!badge ? <span aria-hidden="true" className="h-6" /> : null}
       {badge ? (
-        <Badge variant="secondary" className="w-fit text-[0.6875rem] font-medium">
+        <Badge variant="secondary" className="w-fit font-medium">
           {badge}
         </Badge>
       ) : null}
