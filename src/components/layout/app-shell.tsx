@@ -137,7 +137,7 @@ function HelpSheet() {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button type="button" variant="ghost" className="text-foreground">
+        <Button type="button" variant="ghost" className="text-foreground" aria-label="Ayuda">
           <HelpCircle className="size-4" aria-hidden="true" />
           <span className="hidden sm:inline">Ayuda</span>
         </Button>
