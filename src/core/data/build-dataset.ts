@@ -1,7 +1,7 @@
 import { assertWithinCellLimit } from "./limits";
 import { DEFAULT_MISSING_CONFIG, isMissingToken } from "./missing";
 import { inferVariableKind } from "./infer-kind";
-import { parseLocaleNumber } from "./parse-number";
+import { detectColumnDecimal, parseLocaleNumber } from "./parse-number";
 import type {
   CellValue,
   Column,
@@ -77,6 +77,16 @@ export function buildDataset(
 
     let missingCount = 0;
     let ambiguousDecimals = false;
+    // En "Automático" las celdas ambiguas (`4.125`) se resuelven con el resto de la columna.
+    const columnDecimal =
+      options.numberFormat === undefined
+        ? detectColumnDecimal(
+            rawColumn.filter(
+              (raw): raw is string =>
+                typeof raw === "string" && !isMissingToken(raw, missingConfig),
+            ),
+          )
+        : undefined;
 
     const values: CellValue[] = rawColumn.map((raw) => {
       if (raw === null) {
@@ -92,7 +102,7 @@ export function buildDataset(
 
       const looksNumeric = /^-?[\d.,]+$/.test(raw.trim()) && /\d/.test(raw);
       if (looksNumeric) {
-        const parsed = parseLocaleNumber(raw, options.numberFormat);
+        const parsed = parseLocaleNumber(raw, options.numberFormat, columnDecimal);
         if (parsed.value !== null) {
           if (parsed.ambiguous) ambiguousDecimals = true;
           return parsed.value;
