@@ -24,7 +24,7 @@ src/
       variable.ts          Variable, VariableKind
       infer-kind.ts        inferencia de tipo de variable
       parse-text.ts        parseo de texto separado por comas/saltos/;/tab
-      parse-number.ts      número con coma o punto decimal, miles
+      parse-number.ts      número con coma o punto decimal, miles; resuelve `4.125` con la columna
       missing.ts           detección y política de valores faltantes
       palette.ts           mapa determinista variable+categoria -> color
   infrastructure/

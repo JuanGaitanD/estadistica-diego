@@ -62,4 +62,6 @@ Antes de mezclar a `main` o de promover un despliegue a producción:
 
 ## Nota sobre la CSP de `vercel.json`
 
+**Sin `unsafe-eval`, y sin violaciones.** Zod sondeaba `new Function("")` al cargar y el navegador lo registraba como violación de `script-src`. Desde la ronda 3 va con `jitless` (`src/lib/zod-config.ts`, importado antes de `zod` en cada archivo de esquemas): al cargar, al recorrer el asistente y al generar el PDF no hay violaciones. Si se añade un esquema nuevo, importa ese módulo primero.
+
 Vercel valida `vercel.json` contra su esquema y rechaza claves desconocidas (por eso no hay comentarios dentro del archivo). La política `Content-Security-Policy` usa `script-src 'self' 'unsafe-inline'` porque Next.js inyecta scripts inline para la hidratación y el payload de RSC; en un sitio exportado estáticamente no hay nonces disponibles, así que la alternativa sería usar hashes. `connect-src 'self'` bloquea llamadas a APIs externas y deberá ampliarse cuando llegue la fase 2 con Gemini.

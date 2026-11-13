@@ -288,6 +288,7 @@ Componentes shadcn: `Card` para cada métrica (con `Tooltip` o `Popover` "¿Qué
 - **Mapa variable→color fijo**: cada categoría de una variable recibe un color de `--chart-1` a `--chart-8` asignado por orden de aparición y se mantiene igual en pastel, barras, polígono y ojiva dentro de la misma sesión de resultados (usar un `Map<categoria, colorToken>` generado una vez al calcular).
 - Cada segmento/barra/punto muestra **valor absoluto y porcentaje** (ej. "23 (18.4%)") directamente como etiqueta o en tooltip al pasar el cursor; nunca solo color sin número.
 - Leyenda siempre visible fuera del área de dibujo (no flotante sobre los datos), con el mismo orden que la tabla de frecuencias.
+- **Exportación en modo oscuro (2026-11-12)**: el PNG (y la gráfica que va al PDF) se captura con el fondo que la gráfica ya tiene en pantalla, no con blanco fijo; en claro el fondo es `#ffffff`. Así el texto claro del tema oscuro nunca queda sobre blanco.
 - Tamaño mínimo de gráfica: 320×280px en móvil, 480×360px en escritorio; texto de ejes y etiquetas nunca menor a 12px.
 - Aplicación por tipo de variable:
   - **Cualitativa nominal/ordinal**: gráfica de pastel, gráfica de barras.

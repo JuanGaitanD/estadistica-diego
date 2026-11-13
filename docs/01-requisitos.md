@@ -77,7 +77,7 @@ Regla de UI: las opciones no aplicables **no se ocultan**; aparecen deshabilitad
 - **RF-06** El sistema infiere el tipo de cada variable y muestra una vista previa editable donde el usuario confirma o corrige tipo, nombre y, si es ordinal, el orden de las categorías.
 - **RF-07** Se detectan y reportan valores faltantes (celda vacía, `NA`, `N/A`, `null`, `-`, `.`, `#N/A`). Política por defecto: **exclusión por variable** (pairwise); en contingencia se excluye la fila si falta cualquiera de las dos variables cruzadas. La política es visible y conmutable a "excluir fila completa".
 - **RF-08** Límite de tamaño: hasta 100 000 celdas sin degradación perceptible; por encima se avisa y se ofrece continuar.
-- **RF-09** Se detecta el separador decimal (coma o punto) y los separadores de miles; el usuario puede forzar la configuración regional.
+- **RF-09** Se detecta el separador decimal (coma o punto) y los separadores de miles; el usuario puede forzar la configuración regional. En «Automático», un número con un único separador y exactamente tres cifras detrás (`4.125`) se resuelve con el resto de la columna: decimal si otras celdas usan ese símbolo como decimal, miles si usan el otro; sin pruebas se lee como miles y se avisa.
 
 ### Flujo (wizard)
 
