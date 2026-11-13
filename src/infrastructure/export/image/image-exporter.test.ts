@@ -37,6 +37,41 @@ describe("captureElementAsPng", () => {
     expect(result).toBe(blob);
   });
 
+  it("en el tema oscuro usa el fondo del propio elemento y no blanco", async () => {
+    toBlobMock.mockResolvedValue(new Blob(["x"]));
+    document.documentElement.classList.add("dark");
+    const element = document.createElement("div");
+    element.style.backgroundColor = "rgb(25, 31, 37)";
+    document.body.appendChild(element);
+    try {
+      await captureElementAsPng(element);
+    } finally {
+      document.documentElement.classList.remove("dark");
+      element.remove();
+    }
+
+    expect(toBlobMock).toHaveBeenCalledWith(element, {
+      pixelRatio: 2,
+      backgroundColor: "rgb(25, 31, 37)",
+    });
+  });
+
+  it("en el tema oscuro vuelve al blanco si el elemento no tiene fondo propio", async () => {
+    toBlobMock.mockResolvedValue(new Blob(["x"]));
+    document.documentElement.classList.add("dark");
+    const element = document.createElement("div");
+    try {
+      await captureElementAsPng(element);
+    } finally {
+      document.documentElement.classList.remove("dark");
+    }
+
+    expect(toBlobMock).toHaveBeenCalledWith(element, {
+      pixelRatio: 2,
+      backgroundColor: "#ffffff",
+    });
+  });
+
   it("permite sobrescribir pixelRatio y backgroundColor", async () => {
     toBlobMock.mockResolvedValue(new Blob(["x"]));
     const element = document.createElement("div");
