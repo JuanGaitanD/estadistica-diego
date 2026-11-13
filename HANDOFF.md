@@ -13,6 +13,7 @@ Juan pidió que este pendiente **se quede anotado**. La ronda 3 cerró lo marcad
 - «Close» en inglés en los diálogos y la hoja de ayuda: ahora «Cerrar».
 - Decimal «Automático» que leía `4.125` como 4125: se resuelve con el resto de la columna (queda un caso sin resolver, abajo).
 - Iconos de la plantilla de Next en `public/`: borrados.
+- El botón «Ayuda» no tenía nombre accesible a 390 px (solo icono): ahora `aria-label="Ayuda"`.
 
 **Hallazgos P3 de la revisión del rediseño (siguen abiertos)**
 
@@ -29,6 +30,8 @@ Juan pidió que este pendiente **se quede anotado**. La ronda 3 cerró lo marcad
 - El esqueleto de carga parpadea aunque se pida movimiento reducido.
 - En `notas.xlsx`, elegir «Otra hoja» no cambia la vista previa.
 - No hay `wigi.json`: el repo no lo tiene y no se creó.
+- El PNG exportado incluye dentro de la imagen el enlace «Descargar PNG». Se arregla excluyéndolo con la opción `filter` de `html-to-image`; no se hizo en la ronda 3 para que el PNG en claro siguiera idéntico byte a byte.
+- **Revisión de la ronda 3, para decidir:** con decimal «Automático», una sola celda que use el punto como decimal (`1.5`) hace que las celdas de tres cifras de la misma columna (`1.500`, `2.000`) se lean como decimales (1,5 y 2) **sin aviso**; antes eran 1500 y 2000 con aviso. Solo afecta a columnas que mezclan las dos convenciones. Mejora posible: un aviso informativo cuando la columna decide una celda dudosa. Además, celdas con varios puntos (`1.234.567`, cédulas con puntos) ahora son números y no texto, de modo que una columna de identificadores así pasa de categórica a cuantitativa.
 
 ## Ronda 3 (2026-11-12)
 
