@@ -4,6 +4,7 @@
  * Todos los mensajes están en español y en lenguaje llano: son los que ve la
  * persona usuaria bajo el botón "Continuar" cuando no puede avanzar.
  */
+import "@/lib/zod-config";
 import { z } from "zod";
 
 import type { VariableKind } from "@/core/data";

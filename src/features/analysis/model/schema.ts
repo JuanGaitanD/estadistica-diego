@@ -2,6 +2,7 @@
  * Validación con zod de la petición de análisis (RF-12: mensajes en español y sin
  * jerga técnica). `src/features` sí puede depender de zod; `src/core` no.
  */
+import "@/lib/zod-config";
 import { z } from "zod";
 
 import type { AnalysisRequest } from "./types";
