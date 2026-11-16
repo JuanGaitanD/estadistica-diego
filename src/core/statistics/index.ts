@@ -85,7 +85,15 @@ export {
 } from "./variability";
 export type { OutlierReport, VariabilityParams } from "./variability";
 
-export { kurtosis, percentileOfValue, skewness, SHAPE_REASONS, zScores } from "./shape";
+export {
+  boxPlotSummary,
+  kurtosis,
+  percentileOfValue,
+  skewness,
+  SHAPE_REASONS,
+  zScores,
+} from "./shape";
+export type { BoxPlotSummary } from "./shape";
 
 export { computeContingencyTable } from "./contingency";
 export type { ContingencyParams } from "./contingency";

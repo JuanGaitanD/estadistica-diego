@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import { quantile, sortAscending } from "../numeric";
-import { kurtosis, percentileOfValue, SHAPE_REASONS, skewness, zScores } from "./shape";
+import {
+  boxPlotSummary,
+  kurtosis,
+  percentileOfValue,
+  SHAPE_REASONS,
+  skewness,
+  zScores,
+} from "./shape";
 
 // Ejemplo de la ayuda de Excel para COEFICIENTE.ASIMETRIA y CURTOSIS.
 const EXCEL = [3, 4, 5, 2, 3, 4, 5, 6, 4, 7];
@@ -70,5 +77,28 @@ describe("percentileOfValue", () => {
   it("devuelve null fuera de los datos", () => {
     expect(percentileOfValue(sorted, 1)).toBeNull();
     expect(percentileOfValue(sorted, 8)).toBeNull();
+  });
+});
+
+describe("boxPlotSummary", () => {
+  it("lleva los bigotes hasta el último dato que no es atípico", () => {
+    const box = boxPlotSummary([1, 2, 3, 4, 5, 6, 7, 8, 30]);
+    expect(box).toMatchObject({ min: 1, q1: 3, median: 5, q3: 7, max: 30 });
+    expect(box?.lowerWhisker).toBe(1);
+    expect(box?.upperWhisker).toBe(8);
+    expect(box?.outliers).toEqual([30]);
+  });
+
+  it("caso de la §7: Y = 3, 3, 4, 5, 5", () => {
+    expect(boxPlotSummary([3, 3, 4, 5, 5])).toEqual({
+      min: 3,
+      q1: 3,
+      median: 4,
+      q3: 5,
+      max: 5,
+      lowerWhisker: 3,
+      upperWhisker: 5,
+      outliers: [],
+    });
   });
 });

@@ -1,8 +1,9 @@
 import { makeMetric, unavailableMetric } from "../metric";
-import { checkSample, REASONS } from "../numeric";
+import { checkSample, quantile, REASONS } from "../numeric";
 import { neumaierSum } from "../numeric/sum";
 import { welford } from "../numeric/welford";
 import type { Metric } from "../types";
+import { TUKEY_FACTOR } from "../variability/variability";
 
 /** Motivos propios de las medidas de forma. */
 export const SHAPE_REASONS = {
@@ -99,4 +100,47 @@ export function percentileOfValue(sorted: readonly number[], x: number): number 
   const lower = sorted[below - 1] ?? min;
   const upper = sorted[below] ?? max;
   return (below - 1 + (x - lower) / (upper - lower)) / (n - 1);
+}
+
+/** Los cinco números del diagrama de caja y bigotes, con los atípicos aparte. */
+export interface BoxPlotSummary {
+  readonly min: number;
+  readonly q1: number;
+  readonly median: number;
+  readonly q3: number;
+  readonly max: number;
+  /** Extremo del bigote: el dato más bajo que no es atípico. */
+  readonly lowerWhisker: number;
+  /** Extremo del bigote: el dato más alto que no es atípico. */
+  readonly upperWhisker: number;
+  readonly outliers: readonly number[];
+}
+
+/**
+ * Resumen para el diagrama de caja (Tukey): cuartiles R-7 y bigotes hasta el
+ * último dato dentro de Q1 − 1,5·RIC y Q3 + 1,5·RIC; lo que queda fuera son
+ * los atípicos, igual que en `detectOutliers`.
+ *
+ * @param sorted - Muestra ordenada ascendentemente.
+ */
+export function boxPlotSummary(sorted: readonly number[]): BoxPlotSummary | null {
+  const n = sorted.length;
+  if (n === 0 || !checkSample(sorted, 1).ok) return null;
+  const q1 = quantile(sorted, 0.25) ?? 0;
+  const median = quantile(sorted, 0.5) ?? 0;
+  const q3 = quantile(sorted, 0.75) ?? 0;
+  const iqr = q3 - q1;
+  const low = q1 - TUKEY_FACTOR * iqr;
+  const high = q3 + TUKEY_FACTOR * iqr;
+  const inside = sorted.filter((x) => x >= low && x <= high);
+  return {
+    min: sorted[0] ?? 0,
+    q1,
+    median,
+    q3,
+    max: sorted[n - 1] ?? 0,
+    lowerWhisker: inside[0] ?? q1,
+    upperWhisker: inside[inside.length - 1] ?? q3,
+    outliers: sorted.filter((x) => x < low || x > high),
+  };
 }

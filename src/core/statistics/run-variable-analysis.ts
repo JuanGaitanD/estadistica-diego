@@ -17,7 +17,7 @@ import {
 import { makeMetric, unavailableMetric } from "./metric";
 import { isFiniteNumber, sortAscending, REASONS } from "./numeric";
 import { computePosition, DEFAULT_POSITION_OPTIONS } from "./position/position";
-import { kurtosis, skewness } from "./shape/shape";
+import { boxPlotSummary, kurtosis, skewness } from "./shape/shape";
 import type {
   CentralTendencyOptions,
   FrequencyOptions,
@@ -227,6 +227,7 @@ export function runVariableAnalysis(input: VariableAnalysisInput): VariableAnaly
       );
   const steps = quantitative ? quantitativeSteps(sortedNumbers, groupedTable) : [];
   const shape = quantitative ? [skewness(sortedNumbers), kurtosis(sortedNumbers)] : undefined;
+  const box = quantitative ? boxPlotSummary(sortedNumbers) : null;
 
   return {
     variableId: input.variableId,
@@ -241,6 +242,7 @@ export function runVariableAnalysis(input: VariableAnalysisInput): VariableAnaly
     ...(position !== undefined ? { position } : {}),
     ...(variability !== undefined ? { variability } : {}),
     ...(shape !== undefined ? { shape } : {}),
+    ...(box !== null ? { box } : {}),
     notes,
   };
 }

@@ -7,6 +7,8 @@
  * limpios y no conoce el modelo de datos.
  */
 
+import type { BoxPlotSummary } from "./shape/shape";
+
 /** Tipo de variable, en los mismos términos que `core/data`. */
 export type VariableKind = "nominal" | "ordinal" | "discreta" | "continua";
 
@@ -245,6 +247,8 @@ export interface VariableAnalysisResult {
   readonly variability?: VariabilityResult;
   /** Forma: asimetría y curtosis (solo cuantitativas). */
   readonly shape?: readonly Metric[];
+  /** Cinco números y atípicos para el diagrama de caja (solo cuantitativas). */
+  readonly box?: BoxPlotSummary;
   /** Advertencias en español para el usuario. */
   readonly notes: readonly string[];
   /** Qué dicen estos datos, en lenguaje llano (RF-37). */
