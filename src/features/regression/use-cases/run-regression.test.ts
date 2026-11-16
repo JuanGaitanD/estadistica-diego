@@ -38,3 +38,17 @@ describe("regressionWorkbook", () => {
     expect(sheet?.rows).toHaveLength(12);
   });
 });
+
+describe("correlationMatrix", () => {
+  it("diagonal 1 y simétrica", async () => {
+    const { correlationMatrix } = await import("./correlation-matrix");
+    const matrix = correlationMatrix([
+      { id: "x", name: "Horas", values: [1, 2, 3, 4, 5] },
+      { id: "y", name: "Nota", values: [3, 3, 4, 5, 5] },
+      { id: "z", name: "Fija", values: [2, 2, 2, 2, 2] },
+    ]);
+    expect(matrix.columns).toEqual(["", "Horas", "Nota", "Fija"]);
+    expect(matrix.rows[0]).toEqual(["Horas", "1", "0,95", "—"]);
+    expect(matrix.rows[1]?.[1]).toBe("0,95");
+  });
+});

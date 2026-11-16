@@ -26,6 +26,7 @@ import { captureChartAsDataUrl, ChartDownloadButton, CopyButton } from "@/featur
 import { AddToReportButton } from "@/features/report";
 import { downloadBlob, exportDatasetToXlsx, tableToTsv } from "@/infrastructure/export";
 
+import { correlationMatrix } from "../use-cases/correlation-matrix";
 import { regressionWorkbook } from "../use-cases/regression-workbook";
 import {
   coefficientTable,
@@ -306,6 +307,35 @@ export function RegressionPanel({ columns }: RegressionPanelProps) {
                 />
               </SectionCard>
             </div>
+          ) : null}
+
+          {columns.length >= 3 ? (
+            <SectionCard
+              className="min-w-0"
+              title="Matriz de correlación"
+              description="El r de Pearson de cada pareja de variables numéricas: cerca de 1 o de −1, se mueven juntas; cerca de 0, no."
+              actions={
+                <CopyButton
+                  what="la matriz de correlación"
+                  getText={() => {
+                    const matrix = correlationMatrix(columns);
+                    return tableToTsv(matrix.columns, matrix.rows);
+                  }}
+                />
+              }
+            >
+              {(() => {
+                const matrix = textTable(correlationMatrix(columns));
+                return (
+                  <DataTable
+                    columns={matrix.columns}
+                    rows={matrix.rows}
+                    caption="Matriz de correlación de Pearson"
+                    getRowKey={(row) => row[0] ?? ""}
+                  />
+                );
+              })()}
+            </SectionCard>
           ) : null}
 
           <ResidualChart
