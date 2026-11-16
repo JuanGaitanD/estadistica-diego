@@ -56,9 +56,9 @@ export function ReportView({ sampleSize, onExplore }: ReportViewProps) {
     }
   };
 
-  const exportXlsx = (): void => {
+  const exportXlsx = async (): Promise<void> => {
     try {
-      downloadBlob(exportDatasetToXlsx(reportToXlsxTables(snapshot)), `${fileBase()}.xlsx`);
+      downloadBlob(await exportDatasetToXlsx(reportToXlsxTables(snapshot)), `${fileBase()}.xlsx`);
     } catch {
       toast.error("No se pudo generar el Excel.");
     }

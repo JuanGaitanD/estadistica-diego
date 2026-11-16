@@ -19,20 +19,20 @@ const baseSpec: ReportPdfSpec = {
 };
 
 describe("buildReportPdfDocument", () => {
-  it("genera al menos la portada", () => {
-    const doc = buildReportPdfDocument(baseSpec);
+  it("genera al menos la portada", async () => {
+    const doc = await buildReportPdfDocument(baseSpec);
     expect(doc.getNumberOfPages()).toBeGreaterThanOrEqual(1);
   });
 
-  it("incluye acentos y ñ en la portada sin lanzar errores", () => {
+  it("incluye acentos y ñ en la portada sin lanzar errores", async () => {
     const spec: ReportPdfSpec = {
       ...baseSpec,
       analysisName: "Distribución de tamaño según año — ¿cuántos?",
     };
-    expect(() => buildReportPdfDocument(spec)).not.toThrow();
+    await expect(buildReportPdfDocument(spec)).resolves.toBeDefined();
   });
 
-  it("dibuja una sección de tipo texto", () => {
+  it("dibuja una sección de tipo texto", async () => {
     const sections: ReportSection[] = [
       {
         kind: "text",
@@ -40,11 +40,11 @@ describe("buildReportPdfDocument", () => {
         paragraphs: ["Párrafo de prueba con ñ y acentos: á é í ó ú."],
       },
     ];
-    const doc = buildReportPdfDocument({ ...baseSpec, sections });
+    const doc = await buildReportPdfDocument({ ...baseSpec, sections });
     expect(doc.getNumberOfPages()).toBeGreaterThanOrEqual(2);
   });
 
-  it("dibuja una sección de métricas, respetando explanation ausente", () => {
+  it("dibuja una sección de métricas, respetando explanation ausente", async () => {
     const sections: ReportSection[] = [
       {
         kind: "metrics",
@@ -55,10 +55,10 @@ describe("buildReportPdfDocument", () => {
         ],
       },
     ];
-    expect(() => buildReportPdfDocument({ ...baseSpec, sections })).not.toThrow();
+    await expect(buildReportPdfDocument({ ...baseSpec, sections })).resolves.toBeDefined();
   });
 
-  it("pagina correctamente una tabla con muchas filas", () => {
+  it("pagina correctamente una tabla con muchas filas", async () => {
     const rows: (readonly (string | number)[])[] = Array.from({ length: 120 }, (_, i) => [
       i + 1,
       `valor-${i + 1}`,
@@ -66,26 +66,26 @@ describe("buildReportPdfDocument", () => {
     const sections: ReportSection[] = [
       { kind: "table", title: "Frecuencias", columns: ["n", "valor"], rows, note: "n = 120" },
     ];
-    const doc = buildReportPdfDocument({ ...baseSpec, sections });
+    const doc = await buildReportPdfDocument({ ...baseSpec, sections });
     // Con márgenes de 15mm en A4 y filas de 6mm caben ~44 filas por página;
     // 120 filas deberían forzar varias páginas adicionales a la portada.
     expect(doc.getNumberOfPages()).toBeGreaterThan(2);
   });
 
-  it("dibuja una sección de imagen ajustada al ancho útil", () => {
+  it("dibuja una sección de imagen ajustada al ancho útil", async () => {
     const sections: ReportSection[] = [
       { kind: "image", title: "Gráfica", dataUrl: TINY_PNG_DATA_URL, caption: "Figura 1" },
     ];
-    expect(() => buildReportPdfDocument({ ...baseSpec, sections })).not.toThrow();
+    await expect(buildReportPdfDocument({ ...baseSpec, sections })).resolves.toBeDefined();
   });
 
-  it("agrega múltiples secciones en el orden dado", () => {
+  it("agrega múltiples secciones en el orden dado", async () => {
     const sections: ReportSection[] = [
       { kind: "text", title: "Uno", paragraphs: ["a"] },
       { kind: "metrics", title: "Dos", items: [{ label: "x", value: "1" }] },
       { kind: "image", title: "Tres", dataUrl: TINY_PNG_DATA_URL },
     ];
-    expect(() => buildReportPdfDocument({ ...baseSpec, sections })).not.toThrow();
+    await expect(buildReportPdfDocument({ ...baseSpec, sections })).resolves.toBeDefined();
   });
 });
 
@@ -125,8 +125,8 @@ function solidPngDataUrl(size: number): string {
 }
 
 describe("peso del PDF (RF-56)", () => {
-  it("comprime las imágenes: una gráfica de 600×600 px no ocupa sus píxeles crudos", () => {
-    const doc = buildReportPdfDocument({
+  it("comprime las imágenes: una gráfica de 600×600 px no ocupa sus píxeles crudos", async () => {
+    const doc = await buildReportPdfDocument({
       ...baseSpec,
       sections: [{ kind: "image", title: "Gráfica", dataUrl: solidPngDataUrl(600) }],
     });

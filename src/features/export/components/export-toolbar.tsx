@@ -50,10 +50,10 @@ export function ExportToolbar({
     }
   };
 
-  const handleExportXlsx = (): void => {
+  const handleExportXlsx = async (): Promise<void> => {
     if (dataset === undefined) return;
     try {
-      const blob = exportDatasetToXlsx(dataset);
+      const blob = await exportDatasetToXlsx(dataset);
       downloadBlob(blob, `${reportTitle}.xlsx`);
       toast.success("Datos exportados en Excel");
     } catch {

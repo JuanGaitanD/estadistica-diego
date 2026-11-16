@@ -1,4 +1,4 @@
-import * as XLSX from "xlsx";
+// SheetJS se carga al exportar, no al abrir la app.
 import type { Dataset } from "@/core/data";
 
 /**
@@ -60,7 +60,10 @@ function isDataset(input: Dataset | readonly ExportableTable[]): input is Datase
   return !Array.isArray(input);
 }
 
-export function exportDatasetToXlsx(input: Dataset | readonly ExportableTable[]): Blob {
+export async function exportDatasetToXlsx(
+  input: Dataset | readonly ExportableTable[],
+): Promise<Blob> {
+  const XLSX = await import("xlsx");
   const tables: readonly ExportableTable[] = isDataset(input) ? [datasetToTable(input)] : input;
   const workbook = XLSX.utils.book_new();
   const usedNames = new Set<string>();

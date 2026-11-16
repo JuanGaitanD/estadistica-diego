@@ -357,9 +357,11 @@ export function RegressionPanel({ columns }: RegressionPanelProps) {
             <Button
               type="button"
               variant="outline"
-              onClick={() =>
+              onClick={async () =>
                 downloadBlob(
-                  exportDatasetToXlsx(regressionWorkbook(model, analysis.xName, analysis.yName)),
+                  await exportDatasetToXlsx(
+                    regressionWorkbook(model, analysis.xName, analysis.yName),
+                  ),
                   `statlab_regresion_${analysis.yName}_${analysis.xName}.xlsx`,
                 )
               }
