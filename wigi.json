@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "nombre": "statlab",
+  "tipo": "front-web",
+  "plataforma": "react",
+  "framework": "next",
+  "idioma": "es",
+  "lenguaje": "typescript",
+  "runtime": { "nombre": "node", "version": "22", "fuente": ".nvmrc" },
+  "gestor": "pnpm",
+  "comandos": {
+    "instalar": "pnpm install --frozen-lockfile",
+    "dev": "pnpm dev --port {puerto}",
+    "lint": "pnpm lint",
+    "formato": "pnpm format:check",
+    "tipos": "pnpm typecheck",
+    "test": "pnpm test",
+    "build": "pnpm build",
+    "verificar": "pnpm check"
+  },
+  "patrones": {
+    "tests": ["*.test.*"],
+    "casosDeTest": ["^\s*(it|test)(\.each)?\("],
+    "lockfiles": ["pnpm-lock.yaml"],
+    "componentes": ["src/components/**/*.tsx", "src/features/**/components/**/*.tsx"],
+    "aliasImports": { "@/": "src/" }
+  },
+  "arquitectura": {
+    "estilo": "hexagonal",
+    "capas": ["core", "infrastructure", "features", "components", "app"],
+    "reglaDependencia": "eslint:no-restricted-imports",
+    "logicaDeNegocioEn": "src/core"
+  },
+  "git": {
+    "ramaProduccion": "main",
+    "ambitosCommit": ["core", "data", "ui", "export", "plan", "handoff", "next", "deps", "ci", "docs"],
+    "hooks": "ninguno",
+    "proveedor": "github"
+  },
+  "ci": { "checks": ["lint", "formato", "tipos", "test", "build"] }
+}
