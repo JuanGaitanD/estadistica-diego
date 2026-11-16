@@ -95,7 +95,8 @@ export {
 } from "./shape";
 export type { BoxPlotSummary } from "./shape";
 
-export { lnGamma, regularizedBeta, tCdf, tQuantile, tTwoTailedP } from "./distributions";
+export * from "./distributions";
+export * from "./inference";
 
 export {
   averageRanks,
