@@ -194,10 +194,17 @@ export function confusionMatrix(model: LogisticRegression, threshold = 0.5): Con
   };
 }
 
-const times = (or: number): string =>
+const times = (or: number, yes: string): string =>
   or >= 1
-    ? `multiplica por ${formatValue(or, 2)} los momios (las probabilidades a favor)`
-    : `reduce los momios a ${formatValue(or * 100, 0)} % de lo que eran`;
+    ? `multiplica por ${formatValue(or, 2)} los momios de «${yes}» (las probabilidades a favor)`
+    : `reduce los momios de «${yes}» al ${formatValue(or * 100, 0)} % de lo que eran`;
+
+/** e^b legible: los valores enormes no se leen como cifra. */
+export function formatOdds(value: number): string {
+  if (!Number.isFinite(value) || value > 10000) return "más de 10.000";
+  if (value < 0.0001) return "casi 0";
+  return formatValue(value, 3);
+}
 
 /** Lectura en llano de la logística. */
 export function interpretLogistic(
@@ -208,8 +215,8 @@ export function interpretLogistic(
   const details = model.coefficients.slice(1).map((c) => {
     const p = c.p < SIGNIFICANCE ? `p = ${formatP(c.p)}` : `p = ${formatP(c.p)}; podría ser azar`;
     return c.dummy !== undefined
-      ? `Ser «${c.dummy.category}» en lugar de «${c.dummy.reference}» ${times(c.oddsRatio)} de «${yesLabel}» (${p}).`
-      : `Cada unidad más de ${c.name} ${times(c.oddsRatio)} de «${yesLabel}» (${p}).`;
+      ? `Ser «${c.dummy.category}» en lugar de «${c.dummy.reference}» ${times(c.oddsRatio, yesLabel)} (${p}).`
+      : `Cada unidad más de ${c.name} ${times(c.oddsRatio, yesLabel)} (${p}).`;
   });
   details.push(
     `Con el umbral de ${formatShare(confusion.threshold)}, acierta el ${formatShare(confusion.accuracy)} de los casos: reconoce el ${formatShare(confusion.sensitivity)} de los «${yesLabel}» reales (sensibilidad) y el ${formatShare(confusion.specificity)} de los demás (especificidad).`,
@@ -224,7 +231,7 @@ export function interpretLogistic(
   const minority = Math.min(...[1, 0].map((v) => model.y.filter((y) => y === v).length));
   if (minority < 10 * model.k) {
     caveats.push(
-      `El grupo menos frecuente tiene ${formatCount(minority)} casos: con menos de 10 por variable el modelo es inestable.`,
+      `La respuesta menos frecuente tiene ${formatCount(minority)} casos para ${formatCount(model.k)} términos: lo recomendable es al menos 10 por término; el modelo puede ser inestable.`,
     );
   }
   caveats.push(
@@ -235,7 +242,7 @@ export function interpretLogistic(
     best === undefined
       ? `El modelo estima la probabilidad de «${yesLabel}».`
       : best.p < SIGNIFICANCE
-        ? `${best.dummy ? `Ser «${best.dummy.category}»` : `Cada unidad más de ${best.name}`} ${times(best.oddsRatio)} de «${yesLabel}»; el modelo acierta el ${formatShare(confusion.accuracy)} de los casos.`
+        ? `${best.dummy ? `Ser «${best.dummy.category}»` : `Cada unidad más de ${best.name}`} ${times(best.oddsRatio, yesLabel)}; el modelo acierta el ${formatShare(confusion.accuracy)} de los casos.`
         : `Ninguna variable cambia de forma clara la probabilidad de «${yesLabel}» (el efecto más claro tiene p = ${formatP(best.p)}); el modelo acierta el ${formatShare(confusion.accuracy)} de los casos.`;
   return { headline, details, caveats };
 }
@@ -266,14 +273,14 @@ export function logisticSteps(model: LogisticRegression, confusion: Confusion): 
       text: "La razón de momios e^b dice por cuánto se multiplican los momios de «sí» por cada unidad más de la variable; 1 significa «no cambia».",
       table: {
         columns: ["Término", "b", "Error estándar", "z", "Valor p", "e^b", "IC 95 % de e^b"],
-        rows: model.coefficients.map((c) => [
+        rows: model.coefficients.map((c, j) => [
           c.name,
           f4(c.estimate),
           f4(c.se),
           formatValue(c.z, 3),
           formatP(c.p),
-          formatValue(c.oddsRatio, 3),
-          `${formatValue(c.lower, 3)} a ${formatValue(c.upper, 3)}`,
+          j === 0 ? "—" : formatOdds(c.oddsRatio),
+          j === 0 ? "—" : `${formatOdds(c.lower)} a ${formatOdds(c.upper)}`,
         ]),
       },
     },

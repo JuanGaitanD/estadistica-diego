@@ -29,6 +29,7 @@ export type {
 } from "./multiple";
 export {
   confusionMatrix,
+  formatOdds,
   interpretLogistic,
   LOGISTIC_REASONS,
   logisticRegression,

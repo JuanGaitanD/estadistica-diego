@@ -207,6 +207,12 @@ export function compareDegrees(
   return rows;
 }
 
+/** «A», «A y B», «A, B y C». */
+const listOf = (items: readonly string[]): string =>
+  items.length === 1
+    ? items[0]!
+    : `Juntas, ${items.slice(0, -1).join(", ")} y ${items[items.length - 1]}`;
+
 const pPhrase = (p: number): string =>
   p < SIGNIFICANCE ? `p = ${formatP(p)}` : `p = ${formatP(p)}; podría ser azar`;
 
@@ -229,7 +235,7 @@ export function interpretMultiple(
   const headline =
     degree !== undefined
       ? `Una curva de grado ${degree} explica el ${formatShare(Math.max(0, model.adjustedR2))} de la variación de ${yName} (R² ajustado). ${fitSentence}`
-      : `Juntas, ${variables.join(", ")} explican el ${formatShare(Math.max(0, model.adjustedR2))} de la variación de ${yName} (R² ajustado). ${fitSentence}`;
+      : `${listOf(variables)} ${variables.length === 1 ? "explica" : "explican"} el ${formatShare(Math.max(0, model.adjustedR2))} de la variación de ${yName} (R² ajustado). ${fitSentence}`;
 
   const details: string[] = [];
   if (degree !== undefined) {
