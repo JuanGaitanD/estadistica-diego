@@ -1,11 +1,29 @@
 import * as XLSX from "xlsx";
 import type { Dataset } from "@/core/data";
 
+/**
+ * Celda con fórmula viva. La fórmula va en la sintaxis interna de Excel
+ * (nombres en inglés y comas, `SLOPE(B2:B6,A2:A6)`); Excel la muestra
+ * traducida (`=PENDIENTE(B2:B6;A2:A6)`). `value` es el resultado ya
+ * calculado, para que el libro se lea bien antes de recalcular.
+ */
+export interface FormulaCell {
+  readonly formula: string;
+  readonly value?: number;
+}
+
+/** Valor de una celda exportable. */
+export type ExportCell = string | number | null | FormulaCell;
+
 /** Tabla genérica exportable como una hoja de cálculo. */
 export interface ExportableTable {
   readonly title: string;
   readonly columns: readonly string[];
-  readonly rows: readonly (readonly (string | number | null)[])[];
+  readonly rows: readonly (readonly ExportCell[])[];
+}
+
+function isFormula(cell: ExportCell): cell is FormulaCell {
+  return typeof cell === "object" && cell !== null;
 }
 
 function sanitizeSheetName(name: string, used: Set<string>): string {
@@ -51,9 +69,20 @@ export function exportDatasetToXlsx(input: Dataset | readonly ExportableTable[])
     const sheetName = sanitizeSheetName(table.title, usedNames);
     const aoa: (string | number | null)[][] = [
       [...table.columns],
-      ...table.rows.map((r) => [...r]),
+      ...table.rows.map((r) => r.map((cell) => (isFormula(cell) ? null : cell))),
     ];
     const sheet = XLSX.utils.aoa_to_sheet(aoa);
+    table.rows.forEach((row, rowIndex) =>
+      row.forEach((cell, columnIndex) => {
+        if (!isFormula(cell)) return;
+        const address = XLSX.utils.encode_cell({ r: rowIndex + 1, c: columnIndex });
+        sheet[address] = {
+          t: "n",
+          f: cell.formula,
+          ...(cell.value !== undefined ? { v: cell.value } : {}),
+        };
+      }),
+    );
     XLSX.utils.book_append_sheet(workbook, sheet, sheetName);
   }
 
