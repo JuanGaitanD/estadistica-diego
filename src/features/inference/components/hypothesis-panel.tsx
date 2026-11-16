@@ -313,6 +313,10 @@ export function HypothesisPanel({ columns }: { columns: readonly AnalysisColumn[
   } else {
     if (groupColumn === undefined || otherColumn === undefined || groups.length < 2) {
       needs("Hace falta una variable con el resultado (sí/no) y otra que separe dos grupos.");
+    } else if (groupColumn.id === otherColumn.id) {
+      needs(
+        "Elige dos variables distintas: una separa los grupos y la otra es el resultado (sí/no).",
+      );
     } else if (chosenA === chosenB) {
       needs("Elige dos grupos distintos.");
     } else {

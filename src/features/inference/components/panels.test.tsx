@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { EstimationPanel } from "./estimation-panel";
@@ -59,5 +59,21 @@ describe("HypothesisPanel", () => {
     );
     expect(screen.getByText(/Qué dice la prueba: ANOVA de un factor/)).toBeTruthy();
     expect(screen.getByText("¿Qué grupos difieren? (Tukey)")).toBeTruthy();
+  });
+});
+
+describe("HypothesisPanel · dos proporciones", () => {
+  it("no compara una variable consigo misma", () => {
+    const { container } = render(
+      <HypothesisPanel
+        columns={[{ id: "g", name: "Grupo", quantitative: false, values: ["A", "B", "A", "B"] }]}
+      />,
+    );
+    // Radix Select no se abre en jsdom: se cambia el select nativo que sincroniza.
+    const goal = [...container.querySelectorAll("select")].find((select) =>
+      [...select.options].some((option) => option.value === "dos-proporciones"),
+    )!;
+    fireEvent.change(goal, { target: { value: "dos-proporciones" } });
+    expect(screen.getByText(/Elige dos variables distintas/)).toBeTruthy();
   });
 });
