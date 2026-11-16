@@ -210,7 +210,7 @@ export function GuidedBar() {
             <p className="flex items-center gap-2 font-semibold" role="status">
               <span
                 aria-hidden="true"
-                className={cn("inline-block size-3 rounded-full", LIGHT_CLASS[light])}
+                className={cn("block h-3 w-3 flex-none rounded-full", LIGHT_CLASS[light])}
               />
               {LIGHT_TEXT[light]} ({done} de {type.checks.length})
             </p>
