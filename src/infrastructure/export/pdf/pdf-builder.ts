@@ -191,7 +191,16 @@ function drawImageSection(
   const imageHeight = (properties.height / properties.width) * imageWidth;
 
   ensureSpace(doc, cursor, imageHeight);
-  doc.addImage(section.dataUrl, format, MARGIN_MM, cursor.y, imageWidth, imageHeight);
+  doc.addImage(
+    section.dataUrl,
+    format,
+    MARGIN_MM,
+    cursor.y,
+    imageWidth,
+    imageHeight,
+    undefined,
+    "FAST",
+  );
   cursor.y += imageHeight + 4;
 
   if (section.caption) {
@@ -242,7 +251,9 @@ function drawFooters(doc: jsPDF, generatedAt: Date): void {
  * (ej. `doc.getNumberOfPages()`).
  */
 export function buildReportPdfDocument(spec: ReportPdfSpec): jsPDF {
-  const doc = new jsPDF({ format: PAGE_FORMAT, unit: "mm" });
+  // `compress` comprime los flujos de página y "FAST" en addImage comprime las
+  // imágenes: sin ambos, cada gráfica se guardaba como píxeles crudos (~40 MB).
+  const doc = new jsPDF({ format: PAGE_FORMAT, unit: "mm", compress: true });
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
 
