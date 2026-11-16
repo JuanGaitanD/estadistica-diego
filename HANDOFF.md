@@ -15,7 +15,16 @@ Plan aprobado por Juan el 2026-11-16: `docs/09-plan-plataforma.md` (alcance M0�
 | FL · Landing en `/` y la app en `/app` (pedida por Juan el 2026-11-16) | **Cerrada** (2026-11-16) |
 | F2 · Descriptiva completa y explicable                                 | **Cerrada** (2026-11-16) |
 | F3 · Regresión simple y correlación                                    | **Cerrada** (2026-11-16) |
-| F4–F7                                                                  | Pendientes (sigue F4)    |
+| F4 · Probabilidad e intervalos                                         | **Cerrada** (2026-11-16) |
+| F5–F7                                                                  | Pendientes (sigue F5)    |
+
+### F4 · qué quedó
+
+- **Motor** (`src/core/statistics/distributions`, `inference`): normal (Φ por gamma incompleta, cuantil de Acklam con un paso de Halley), t, chi-cuadrado, F, binomial y Poisson con densidad, CDF y cuantiles; probados contra valores de R y Excel. Calculadora `describeProbability` (menor, mayor, entre; en discretas incluye los extremos) con interpretación en «de cada 100» y pasos (estandarizar, fórmula de la binomial o Poisson, F(x) con su fórmula de Excel). IC de la media (t), de una proporción (Wilson), de la diferencia de medias (Welch) y de proporciones (Newcombe), tamaño de muestra para media y proporción, y puntos Q-Q con las posiciones de `qqnorm`.
+- **Interpretación con la redacción correcta:** «Con un método que acierta el 95 % de las veces, el promedio de … está entre … y …», con advertencias (n < 30, asimetría fuerte, el intervalo no es para cada caso). Con los datos de ejemplo da 3,43 a 4,05, como en el plan.
+- **Pantalla** (`src/features/inference`, desde Analizar): «¿Qué tan probable es…?» (seis distribuciones, tomar media y desviación de una variable, área sombreada) y «¿Qué puedo decir de toda la población?» (promedio con Q-Q de normalidad, porcentaje de una categoría, diferencia de promedios entre dos grupos, cuántos datos necesito; confianza 90, 95 o 99 %). Todo con «Añadir al informe».
+- **No hecho:** la simulación del límite central y el IC de la diferencia de proporciones en pantalla (el motor ya lo tiene).
+- Verificación: 543 tests, tipos, lint y `pnpm build` en verde; paneles revisados a 1440 y 390 px sin desborde.
 
 ### F3 · qué quedó
 
@@ -156,7 +165,7 @@ Cambios de texto/estructura declarados: desaparece el eyebrow duplicado «Paso N
 En el repo:
 
 ```bash
-pnpm check     # lint + format:check + typecheck + test (525 tests)
+pnpm check     # lint + format:check + typecheck + test (543 tests)
 pnpm build     # export estático a out/
 pnpm dev --port 3101
 ```
