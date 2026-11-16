@@ -98,24 +98,7 @@ export type { BoxPlotSummary } from "./shape";
 export * from "./distributions";
 export * from "./inference";
 
-export {
-  averageRanks,
-  completePairs,
-  CONFIDENCE,
-  pearson,
-  predict,
-  REGRESSION_REASONS,
-  simpleRegression,
-  spearman,
-} from "./regression";
-export type {
-  Correlation,
-  Interval,
-  Prediction,
-  RegressionFailure,
-  RegressionRow,
-  SimpleRegression,
-} from "./regression";
+export * from "./regression";
 
 export { computeContingencyTable } from "./contingency";
 export type { ContingencyParams } from "./contingency";
