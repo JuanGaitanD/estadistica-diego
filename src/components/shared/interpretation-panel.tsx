@@ -1,3 +1,4 @@
+import { ChevronRight } from "lucide-react";
 import type { ReactNode } from "react";
 
 import type { CalculationStep, Interpretation } from "@/core/statistics";
@@ -71,7 +72,11 @@ export function InterpretationPanel({
 export function StepsDisclosure({ steps }: { steps: readonly CalculationStep[] }) {
   return (
     <details className="border-rule group mt-5 border-t pt-4">
-      <summary className="text-primary w-fit cursor-pointer text-sm font-semibold">
+      <summary className="text-primary hover:bg-accent -mx-2 flex min-h-11 w-fit cursor-pointer items-center gap-1 rounded-md px-2 text-sm font-semibold [&::-webkit-details-marker]:hidden">
+        <ChevronRight
+          aria-hidden="true"
+          className="size-4 transition-transform duration-100 group-open:rotate-90 motion-reduce:transition-none"
+        />
         Ver cómo se calculó
       </summary>
       <ol className="mt-4 flex flex-col gap-5">
