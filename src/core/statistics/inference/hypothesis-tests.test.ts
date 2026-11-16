@@ -127,3 +127,20 @@ describe("chi-cuadrado de independencia", () => {
     expect(r.interpretation.caveats[0]).toContain("Fisher");
   });
 });
+
+describe("datos sin variación (criterio de t.test de R)", () => {
+  it("no prueba ni estima con datos esencialmente constantes", async () => {
+    const { meanInterval, meanDifferenceInterval } = await import("./intervals");
+    expect(
+      twoSampleT(
+        { label: "A", values: [0.1, 0.1, 0.1] },
+        { label: "B", values: [0.3, 0.3, 0.3] },
+        "x",
+      ),
+    ).toBeNull();
+    expect(meanInterval([4, 4, 4], "x")).toBeNull();
+    expect(meanDifferenceInterval([5, 5, 5], [3, 3, 3], "A", "B", "x")).toBeNull();
+    expect(pairedT([1.1, 2.2, 3.3], [1.2, 2.3, 3.4], "antes", "después")).toBeNull();
+    expect(oneSampleT([0.1, 0.1, 0.1], 0, "x")).toBeNull();
+  });
+});

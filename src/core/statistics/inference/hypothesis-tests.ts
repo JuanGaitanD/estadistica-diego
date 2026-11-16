@@ -3,6 +3,7 @@ import type { DistributionSpec } from "../distributions/probability";
 import { tTwoTailedP } from "../distributions/student-t";
 import { studentizedRangeCdf } from "../distributions/studentized-range";
 import { formatCount, formatShare, formatValue, narrativeDecimals } from "../interpretation/text";
+import { negligibleSpread } from "../numeric/compare";
 import { neumaierSum } from "../numeric/sum";
 import { skewness } from "../shape/shape";
 import type { CalculationStep, Interpretation, StepTable } from "../types";
@@ -165,8 +166,8 @@ export function oneSampleT(
   const n = values.length;
   if (n < 2) return null;
   const { mean, sd } = meanSd(values);
-  if (sd === 0) return null;
   const se = sd / Math.sqrt(n);
+  if (negligibleSpread(se, mean, mu0)) return null;
   const t = (mean - mu0) / se;
   const df = n - 1;
   const p = tTwoTailedP(t, df);
@@ -242,7 +243,7 @@ export function twoSampleT(
     df = (v1 + v2) ** 2 / (v1 ** 2 / (n1 - 1) + v2 ** 2 / (n2 - 1));
     seFormula = `EE = √(s₁²/n₁ + s₂²/n₂) = √(${formatValue(s1.sd, d + 1)}²/${n1} + ${formatValue(s2.sd, d + 1)}²/${n2}) = ${formatValue(se, d + 2)}; gl de Welch = ${formatValue(df, 2)}`;
   }
-  if (se === 0) return null;
+  if (negligibleSpread(se, s1.mean, s2.mean)) return null;
   const diff = s1.mean - s2.mean;
   const t = diff / se;
   const p = tTwoTailedP(t, df);
@@ -307,8 +308,10 @@ export function pairedT(
   const n = differences.length;
   if (n < 2) return null;
   const { mean, sd } = meanSd(differences);
-  if (sd === 0) return null;
   const se = sd / Math.sqrt(n);
+  const scale = (values: readonly number[]) =>
+    values.length === 0 ? 0 : neumaierSum(values) / values.length;
+  if (negligibleSpread(se, mean, scale(before), scale(after))) return null;
   const t = mean / se;
   const df = n - 1;
   const p = tTwoTailedP(t, df);

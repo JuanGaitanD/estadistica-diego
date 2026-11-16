@@ -125,7 +125,7 @@ export function EstimationPanel({ columns }: { columns: readonly AnalysisColumn[
       const shape = describeShape(sorted);
       body =
         ci === null ? (
-          <Empty>Hacen falta al menos 2 datos numéricos.</Empty>
+          <Empty>Hacen falta al menos 2 datos numéricos que no sean todos iguales.</Empty>
         ) : (
           <>
             <IntervalResult title={`Promedio de ${numericColumn.name}`} ci={ci} />
@@ -188,7 +188,7 @@ export function EstimationPanel({ columns }: { columns: readonly AnalysisColumn[
       );
       body =
         ci === null ? (
-          <Empty>Cada grupo necesita al menos 2 datos.</Empty>
+          <Empty>Cada grupo necesita al menos 2 datos y que no sean todos iguales.</Empty>
         ) : (
           <IntervalResult
             title={`Diferencia de ${numericColumn.name}: «${chosenA}» − «${chosenB}»`}

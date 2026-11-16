@@ -1,6 +1,7 @@
 import { standardNormalQuantile } from "../distributions/continuous";
 import { tQuantile } from "../distributions/student-t";
 import { formatCount, formatShare, formatValue, narrativeDecimals } from "../interpretation/text";
+import { negligibleSpread } from "../numeric/compare";
 import { neumaierSum } from "../numeric/sum";
 import { welford } from "../numeric/welford";
 import { skewness } from "../shape/shape";
@@ -33,6 +34,8 @@ export function meanInterval(
   const mean = neumaierSum(values) / n;
   const sd = Math.sqrt(stats.m2 / (n - 1));
   const se = sd / Math.sqrt(n);
+  // Sin variación no hay incertidumbre que estimar: el intervalo sería un punto.
+  if (negligibleSpread(se, mean)) return null;
   const t = tQuantile(1 - (1 - level) / 2, n - 1);
   const margin = t * se;
   const d = narrativeDecimals(values);
@@ -162,6 +165,7 @@ export function meanDifferenceInterval(
   const qa = va / a.length;
   const qb = vb / b.length;
   const se = Math.sqrt(qa + qb);
+  if (negligibleSpread(se, ma, mb)) return null;
   const df = (qa + qb) ** 2 / (qa ** 2 / (a.length - 1) + qb ** 2 / (b.length - 1));
   const t = tQuantile(1 - (1 - level) / 2, df);
   const diff = ma - mb;

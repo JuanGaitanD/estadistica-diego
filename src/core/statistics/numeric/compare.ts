@@ -47,3 +47,12 @@ export function epsEq(a: number, b: number, epsilon: number = DEFAULT_EPSILON): 
   if (a === b) return true;
   return Math.abs(a - b) <= epsilon * Math.max(1, Math.abs(a), Math.abs(b));
 }
+
+/**
+ * `true` si un error estándar es despreciable frente a los promedios: los
+ * datos son «esencialmente constantes» y una prueba o un intervalo darían
+ * resultados absurdos (mismo criterio que `t.test` de R).
+ */
+export function negligibleSpread(se: number, ...means: readonly number[]): boolean {
+  return !(se > 10 * Number.EPSILON * Math.max(...means.map(Math.abs), 0));
+}
