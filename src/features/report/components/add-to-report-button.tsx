@@ -15,6 +15,7 @@ export interface AddToReportButtonProps {
   readonly what: string;
   /** Texto visible del botón. */
   readonly label?: string;
+  readonly className?: string;
 }
 
 /** «Añadir al informe» (RF-43). */
@@ -22,6 +23,7 @@ export function AddToReportButton({
   build,
   what,
   label = "Añadir al informe",
+  className,
 }: AddToReportButtonProps) {
   const add = useReportStore((state) => state.add);
   const [state, setState] = useState<"idle" | "busy" | "done">("idle");
@@ -45,6 +47,7 @@ export function AddToReportButton({
       size="sm"
       loading={state === "busy"}
       aria-label={`Añadir ${what} al informe`}
+      {...(className !== undefined ? { className } : {})}
       onClick={() => void handleClick()}
     >
       {state === "done" ? <Check aria-hidden="true" /> : <FilePlus2 aria-hidden="true" />}

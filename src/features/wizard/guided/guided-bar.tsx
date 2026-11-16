@@ -89,14 +89,14 @@ export function GuidedBar() {
 
   return (
     <section aria-label="Modo guiado" className="sl-surface flex flex-col gap-5 p-5 sm:p-6">
-      <div className="flex items-start justify-between gap-3">
-        <div>
+      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1">
+        <div className="min-w-0">
           <p className="sl-label">Modo guiado · CRISP-DM</p>
           <h2 className="text-lg font-semibold">
             Fase {guided.phase + 1} de 6: {phase.title}
           </h2>
         </div>
-        <Button type="button" variant="ghost" className="-mr-3 shrink-0" onClick={guided.stop}>
+        <Button type="button" variant="ghost" className="-ml-4 sm:ml-0" onClick={guided.stop}>
           <X aria-hidden="true" />
           Salir del modo guiado
         </Button>
@@ -239,6 +239,7 @@ export function GuidedBar() {
           <AddToReportButton
             what="el recorrido CRISP-DM"
             label="Añadir el recorrido CRISP-DM al informe"
+            className="h-auto min-h-11 max-w-full py-2 text-left whitespace-normal"
             build={summary}
           />
         </div>
@@ -255,7 +256,11 @@ export function GuidedBar() {
           Fase anterior
         </Button>
         {guided.phase < 5 ? (
-          <Button type="button" onClick={() => go(guided.phase + 1)}>
+          <Button
+            type="button"
+            className="h-auto min-h-11 max-w-full py-2 text-left whitespace-normal"
+            onClick={() => go(guided.phase + 1)}
+          >
             Siguiente: {PHASES[guided.phase + 1]!.title}
             <ArrowRight aria-hidden="true" />
           </Button>
