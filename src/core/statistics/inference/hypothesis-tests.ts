@@ -483,7 +483,8 @@ export function oneWayAnova(
   });
   const ssb = neumaierSum(stats.map((s) => s.n * (s.mean - grand) ** 2));
   const ssw = neumaierSum(stats.map((s) => s.ss));
-  if (ssw === 0) return null;
+  // Grupos sin variación interna (con margen para el redondeo): F no tiene sentido.
+  if (ssw <= 1e-24 * neumaierSum(all.map((v) => v * v)) || ssw === 0) return null;
   const dfb = k - 1;
   const dfw = n - k;
   const msb = ssb / dfb;
