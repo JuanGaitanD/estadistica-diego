@@ -56,7 +56,7 @@ export function interpretRegression(
     model.pB1 < ALPHA
       ? `Es muy poco probable que una pendiente así salga por azar si en realidad no hubiera relación (valor p ${pText(model.pB1)}).`
       : `Con estos datos no se puede descartar que la pendiente sea solo azar (valor p ${pText(model.pB1)}, mayor que 0,05).`,
-    `En promedio, la recta se equivoca en unas ${compact(model.standardError)} unidades de ${yName} (error estándar de la estimación).`,
+    `La recta suele equivocarse en unas ${compact(model.standardError)} unidades de ${yName} (error estándar de la estimación).`,
   ];
   const zeroInside = model.minX <= 0 && model.maxX >= 0;
   if (zeroInside) {

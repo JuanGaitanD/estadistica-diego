@@ -101,10 +101,10 @@ export function interpretQuantitative(sorted: readonly number[]): Interpretation
           ? "una variación moderada"
           : "mucha variación: los datos son bastante distintos entre sí";
     details.push(
-      `En promedio, cada dato se aleja ${f(sd)} del promedio (desviación estándar), el ${formatValue(cv, 1)} % del promedio: hay ${level}.`,
+      `Los datos suelen alejarse unos ${f(sd)} del promedio (desviación estándar), el ${formatValue(cv, 1)} % del promedio: hay ${level}.`,
     );
   } else {
-    details.push(`En promedio, cada dato se aleja ${f(sd)} del promedio (desviación estándar).`);
+    details.push(`Los datos suelen alejarse unos ${f(sd)} del promedio (desviación estándar).`);
   }
 
   const shape = describeShape(sorted);

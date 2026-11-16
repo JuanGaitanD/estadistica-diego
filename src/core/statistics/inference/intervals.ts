@@ -185,7 +185,7 @@ export function meanDifferenceInterval(
         `En la muestra: «${nameA}» ${f(ma)} y «${nameB}» ${f(mb)}; diferencia ${f(diff)}.`,
         crosses
           ? "El intervalo incluye el 0: con estos datos no se puede afirmar que los promedios sean distintos en la población."
-          : `El intervalo no incluye el 0: el promedio de «${diff > 0 ? nameA : nameB}» es mayor también en la población.`,
+          : `El intervalo no incluye el 0: hay evidencia de que el promedio de «${diff > 0 ? nameA : nameB}» es mayor en la población.`,
       ],
       caveats: ["Se usa el método de Welch, que no supone que los dos grupos varíen igual."],
     },
@@ -237,7 +237,7 @@ export function proportionDifferenceInterval(
         `En la muestra: «${nameA}» ${formatShare(p1)} y «${nameB}» ${formatShare(p2)}.`,
         lower <= 0 && upper >= 0
           ? "El intervalo incluye el 0: no se puede afirmar que los porcentajes sean distintos en la población."
-          : "El intervalo no incluye el 0: la diferencia se sostiene en la población.",
+          : "El intervalo no incluye el 0: hay evidencia de que la diferencia existe en la población.",
       ],
       caveats: [],
     },
