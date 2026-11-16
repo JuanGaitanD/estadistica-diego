@@ -61,6 +61,9 @@ export function formatP(p: number): string {
 
 const pText = (p: number): string => (p < 0.001 ? "p < 0,001" : `p = ${formatValue(p, 3)}`);
 
+/** Valor p con 4 decimales para el paso a paso, sin «0,0000». */
+const p4 = (p: number): string => (p < 0.0001 ? "< 0,0001" : `= ${formatValue(p, 4)}`);
+
 function sizeBy(value: number, cuts: readonly [number, number, number]): EffectSize["size"] {
   const v = Math.abs(value);
   if (v < cuts[0]) return "muy pequeño";
@@ -137,7 +140,7 @@ function fiveSteps(script: Script): CalculationStep[] {
       text: reject
         ? "El valor p es menor que α: se rechaza H₀."
         : "El valor p no es menor que α: no se rechaza H₀ (lo que no prueba que H₀ sea cierta).",
-      formula: `${pText(script.p)} ${reject ? "<" : "≥"} α = ${a} → ${reject ? "se rechaza H₀" : "no se rechaza H₀"}`,
+      formula: `${pText(script.p)} y α = ${a} → ${reject ? "p < α: se rechaza H₀" : "p ≥ α: no se rechaza H₀"}`,
     },
   ];
 }
@@ -198,7 +201,7 @@ export function oneSampleT(
         text: `Cuántos errores estándar separan el promedio de la muestra del valor de H₀, con n − 1 = ${formatCount(df)} grados de libertad.`,
         formula: `t = (x̄ − μ₀) / (s / √n) = (${f(mean)} − ${f(mu0)}) / (${formatValue(sd, d + 1)} / √${formatCount(n)}) = ${formatValue(t, 3)}`,
       },
-      pFormula: `p = 2 · P(T ≥ |${formatValue(t, 3)}|) = ${formatValue(p, 4)}`,
+      pFormula: `p = 2 · P(T ≥ |${formatValue(t, 3)}|) ${p4(p)}`,
       pExcel: `=DISTR.T.2C(${formatValue(Math.abs(t), 4)}; ${df})`,
       p,
       alpha,
@@ -281,7 +284,7 @@ export function twoSampleT(
           ],
         },
       },
-      pFormula: `p = 2 · P(T ≥ |${formatValue(t, 3)}|) con ${formatValue(df, 2)} gl = ${formatValue(p, 4)}`,
+      pFormula: `p = 2 · P(T ≥ |${formatValue(t, 3)}|) con ${formatValue(df, 2)} gl ${p4(p)}`,
       pExcel: `=PRUEBA.T(grupo1; grupo2; 2; ${equalVariances ? 2 : 3})`,
       p,
       alpha,
@@ -342,7 +345,7 @@ export function pairedT(
         text: `Se calcula la diferencia de cada par (${nameAfter} − ${nameBefore}) y se prueba si su promedio es 0.`,
         formula: `t = d̄ / (s_d / √n) = ${f(mean)} / (${formatValue(sd, d + 1)} / √${formatCount(n)}) = ${formatValue(t, 3)}`,
       },
-      pFormula: `p = 2 · P(T ≥ |${formatValue(t, 3)}|) con ${df} gl = ${formatValue(p, 4)}`,
+      pFormula: `p = 2 · P(T ≥ |${formatValue(t, 3)}|) con ${df} gl ${p4(p)}`,
       pExcel: "=PRUEBA.T(antes; después; 2; 1)",
       p,
       alpha,
@@ -398,7 +401,7 @@ export function oneProportionZ(
         title: "Estadístico z",
         formula: `z = (p̂ − p₀) / √(p₀(1 − p₀)/n) = (${formatValue(p, 4)} − ${formatValue(p0, 3)}) / √(${formatValue(p0, 3)} · ${formatValue(1 - p0, 3)} / ${formatCount(n)}) = ${formatValue(z, 3)}`,
       },
-      pFormula: `p = 2 · P(Z ≥ |${formatValue(z, 3)}|) = ${formatValue(pValue, 4)}`,
+      pFormula: `p = 2 · P(Z ≥ |${formatValue(z, 3)}|) ${p4(pValue)}`,
       pExcel: `=2*(1-DISTR.NORM.ESTAND.N(${formatValue(Math.abs(z), 4)}; VERDADERO))`,
       p: pValue,
       alpha,
@@ -451,7 +454,7 @@ export function twoProportionZ(
         text: "Con la proporción combinada de los dos grupos, la que valdría para ambos si H₀ fuera cierta.",
         formula: `p̄ = (${a.successes} + ${b.successes}) / (${a.n} + ${b.n}) = ${formatValue(pooled, 4)}\nz = (p̂₁ − p̂₂) / √(p̄(1 − p̄)(1/n₁ + 1/n₂)) = (${formatValue(p1, 4)} − ${formatValue(p2, 4)}) / ${formatValue(se, 4)} = ${formatValue(z, 3)}`,
       },
-      pFormula: `p = 2 · P(Z ≥ |${formatValue(z, 3)}|) = ${formatValue(pValue, 4)}`,
+      pFormula: `p = 2 · P(Z ≥ |${formatValue(z, 3)}|) ${p4(pValue)}`,
       p: pValue,
       alpha,
     }),
@@ -555,7 +558,7 @@ export function oneWayAnova(
         formula: `SC entre = Σ nᵢ(x̄ᵢ − x̄)² = ${formatValue(ssb, 4)};  SC dentro = Σ Σ (x − x̄ᵢ)² = ${formatValue(ssw, 4)}\nF = (SC entre / ${dfb}) / (SC dentro / ${dfw}) = ${formatValue(msb, 4)} / ${formatValue(msw, 4)} = ${formatValue(F, 3)}`,
         table,
       },
-      pFormula: `p = P(F(${dfb}; ${dfw}) ≥ ${formatValue(F, 3)}) = ${formatValue(p, 4)}`,
+      pFormula: `p = P(F(${dfb}; ${dfw}) ≥ ${formatValue(F, 3)}) ${p4(p)}`,
       pExcel: `=DISTR.F.CD(${formatValue(F, 4)}; ${dfb}; ${dfw})`,
       p,
       alpha,
@@ -634,7 +637,7 @@ export function chiSquareIndependence(
         text: "Para cada celda se compara lo observado (O) con lo esperado si no hubiera relación: E = total de la fila × total de la columna / total.",
         formula: `χ² = Σ (O − E)² / E = ${formatValue(chi2, 3)}, con (${r} − 1)(${c} − 1) = ${df} gl`,
       },
-      pFormula: `p = P(χ²(${df}) ≥ ${formatValue(chi2, 3)}) = ${formatValue(p, 4)}`,
+      pFormula: `p = P(χ²(${df}) ≥ ${formatValue(chi2, 3)}) ${p4(p)}`,
       pExcel: "=PRUEBA.CHICUAD(observados; esperados)",
       p,
       alpha,
