@@ -34,6 +34,14 @@ function defaultBackground(element: HTMLElement): string {
   return own === "" || own === "transparent" || own === "rgba(0, 0, 0, 0)" ? "#ffffff" : own;
 }
 
+/** Atributo que marca controles (botones de descarga, copiar) que no deben salir en la imagen. */
+export const EXPORT_IGNORE_ATTRIBUTE = "data-export-ignore";
+
+/** `false` para los nodos marcados con `data-export-ignore` y todo su contenido. */
+function isExportable(node: Node): boolean {
+  return !(node instanceof Element && node.hasAttribute(EXPORT_IGNORE_ATTRIBUTE));
+}
+
 /**
  * Captura un elemento del DOM como PNG usando `html-to-image`, forzando un
  * fondo opaco (blanco en claro, el del elemento en oscuro) y una relación de píxeles alta por defecto para que la
@@ -48,7 +56,7 @@ export async function captureElementAsPng(
 
   let blob: Blob | null;
   try {
-    blob = await toBlob(element, { pixelRatio, backgroundColor });
+    blob = await toBlob(element, { pixelRatio, backgroundColor, filter: isExportable });
   } catch {
     throw new ExportError("capture-failed", "Error al capturar la imagen");
   }
@@ -111,4 +119,69 @@ export async function exportAllChartsAsPng(
       await wait(300);
     }
   }
+}
+
+/** Propiedades de estilo que se copian como atributos para que el SVG se vea igual fuera de la página. */
+const SVG_STYLE_PROPERTIES = [
+  "fill",
+  "fill-opacity",
+  "stroke",
+  "stroke-opacity",
+  "stroke-width",
+  "stroke-dasharray",
+  "opacity",
+  "font-family",
+  "font-size",
+  "font-weight",
+  "text-anchor",
+  "dominant-baseline",
+] as const;
+
+/**
+ * Serializa la primera gráfica SVG dentro de `element` como archivo SVG
+ * autónomo: copia los estilos calculados (colores del tema, fuentes) como
+ * atributos, porque las variables CSS de la página no viajan con el archivo.
+ */
+export function elementToSvgBlob(element: HTMLElement): Blob {
+  const source = element.querySelector("svg");
+  if (!source) {
+    throw new ExportError("svg-not-found", "La gráfica no tiene una imagen vectorial");
+  }
+  const clone = source.cloneNode(true) as SVGSVGElement;
+  const originals = [source, ...Array.from(source.querySelectorAll("*"))];
+  const copies = [clone, ...Array.from(clone.querySelectorAll("*"))];
+  originals.forEach((original, index) => {
+    const copy = copies[index];
+    if (copy === undefined) return;
+    const style = getComputedStyle(original);
+    for (const property of SVG_STYLE_PROPERTIES) {
+      const value = style.getPropertyValue(property);
+      if (value !== "") copy.setAttribute(property, value);
+    }
+  });
+  clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  const box = source.getBoundingClientRect();
+  if (!clone.hasAttribute("width") && box.width > 0) clone.setAttribute("width", String(box.width));
+  if (!clone.hasAttribute("height") && box.height > 0) {
+    clone.setAttribute("height", String(box.height));
+  }
+  const xml = new XMLSerializer().serializeToString(clone);
+  return new Blob(
+    [
+      `<?xml version="1.0" encoding="UTF-8"?>
+${xml}`,
+    ],
+    {
+      type: "image/svg+xml",
+    },
+  );
+}
+
+/** Busca la gráfica por id y descarga su SVG. */
+export function exportElementAsSvg(elementId: string, filename: string): void {
+  const element = document.getElementById(elementId);
+  if (!element) {
+    throw new ExportError("element-not-found", "No se encontró el elemento de la gráfica");
+  }
+  downloadBlob(elementToSvgBlob(element), filename.endsWith(".svg") ? filename : `${filename}.svg`);
 }

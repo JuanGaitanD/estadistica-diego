@@ -14,8 +14,41 @@ import {
   captureElementAsPng,
   exportAllChartsAsPng,
   exportElementAsPng,
+  elementToSvgBlob,
   ExportError,
 } from "./image-exporter";
+
+describe("filtro de controles en la imagen", () => {
+  it("excluye los nodos marcados con data-export-ignore", async () => {
+    toBlobMock.mockReset();
+    toBlobMock.mockResolvedValue(new Blob(["x"]));
+    await captureElementAsPng(document.createElement("div"));
+    const options = toBlobMock.mock.calls[0]?.[1] as { filter: (node: Node) => boolean };
+    const button = document.createElement("div");
+    button.setAttribute("data-export-ignore", "");
+    expect(options.filter(button)).toBe(false);
+    expect(options.filter(document.createElement("svg"))).toBe(true);
+  });
+});
+
+describe("elementToSvgBlob", () => {
+  it("serializa el SVG con espacio de nombres y estilos en línea", async () => {
+    const figure = document.createElement("figure");
+    figure.innerHTML = '<svg width="10" height="10"><rect style="fill: rgb(1, 2, 3)"></rect></svg>';
+    document.body.appendChild(figure);
+    try {
+      const text = await elementToSvgBlob(figure).text();
+      expect(text).toContain('xmlns="http://www.w3.org/2000/svg"');
+      expect(text).toContain('fill="rgb(1, 2, 3)"');
+    } finally {
+      figure.remove();
+    }
+  });
+
+  it("falla con mensaje en español si no hay SVG", () => {
+    expect(() => elementToSvgBlob(document.createElement("div"))).toThrow(ExportError);
+  });
+});
 
 describe("captureElementAsPng", () => {
   beforeEach(() => {
@@ -33,6 +66,7 @@ describe("captureElementAsPng", () => {
     expect(toBlobMock).toHaveBeenCalledWith(element, {
       pixelRatio: 2,
       backgroundColor: "#ffffff",
+      filter: expect.any(Function),
     });
     expect(result).toBe(blob);
   });
@@ -53,6 +87,7 @@ describe("captureElementAsPng", () => {
     expect(toBlobMock).toHaveBeenCalledWith(element, {
       pixelRatio: 2,
       backgroundColor: "rgb(25, 31, 37)",
+      filter: expect.any(Function),
     });
   });
 
@@ -69,6 +104,7 @@ describe("captureElementAsPng", () => {
     expect(toBlobMock).toHaveBeenCalledWith(element, {
       pixelRatio: 2,
       backgroundColor: "#ffffff",
+      filter: expect.any(Function),
     });
   });
 
@@ -81,6 +117,7 @@ describe("captureElementAsPng", () => {
     expect(toBlobMock).toHaveBeenCalledWith(element, {
       pixelRatio: 3,
       backgroundColor: "#000000",
+      filter: expect.any(Function),
     });
   });
 
