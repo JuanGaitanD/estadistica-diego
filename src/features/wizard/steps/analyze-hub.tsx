@@ -5,7 +5,12 @@ import { useMemo, useState } from "react";
 
 import { StepHeader } from "@/components/layout/step-header";
 import { Button } from "@/components/ui/button";
-import { EstimationPanel, ProbabilityPanel, type AnalysisColumn } from "@/features/inference";
+import {
+  EstimationPanel,
+  HypothesisPanel,
+  ProbabilityPanel,
+  type AnalysisColumn,
+} from "@/features/inference";
 import { RegressionPanel, type NumericColumn } from "@/features/regression";
 
 import { isQuantitative } from "../model/validation";
@@ -15,7 +20,7 @@ import { useWizardStore } from "../store/wizard-store";
 type Destination = "explorar" | Panel;
 
 /** Paneles que se abren dentro de Analizar. */
-type Panel = "regresion" | "estimar" | "probabilidad";
+type Panel = "regresion" | "estimar" | "probabilidad" | "probar";
 
 interface Question {
   readonly id: string;
@@ -57,8 +62,8 @@ const QUESTIONS: readonly Question[] = [
     id: "comparar",
     question: "¿Es real la diferencia entre grupos?",
     example: "Si un grupo sacó más que otro o fue casualidad.",
-    method: "Prueba t · ANOVA",
-    destination: null,
+    method: "Pruebas de hipótesis",
+    destination: "probar",
   },
   {
     id: "estimar",
@@ -78,6 +83,7 @@ const QUESTIONS: readonly Question[] = [
 
 /** Texto del botón de cada pregunta. */
 const ACTION: Readonly<Record<string, string>> = {
+  comparar: "Probar si es real",
   predecir: "Ajustar una recta",
   relacionar: "Ver si se mueven juntas",
   estimar: "Estimar con mi muestra",
@@ -113,6 +119,11 @@ const PANEL_TEXT: Readonly<Record<Panel, { title: string; subtitle: string }>> =
     title: "¿Puedo predecir un número a partir de otro?",
     subtitle:
       "Elige las dos variables. StatLab ajusta la recta que mejor resume la relación, te dice qué significa y, si quieres, te muestra los 5 pasos con tus números.",
+  },
+  probar: {
+    title: "¿Es real la diferencia o pudo ser casualidad?",
+    subtitle:
+      "Elige qué quieres saber; StatLab usa la prueba que corresponde, te dice en llano si la diferencia es real y cuánto importa, y deja los 5 pasos plegados.",
   },
   estimar: {
     title: "¿Qué puedo decir de toda la población?",
@@ -150,6 +161,7 @@ export function AnalyzeHub() {
         </div>
         {open === "regresion" ? <RegressionPanel columns={numeric} /> : null}
         {open === "estimar" ? <EstimationPanel columns={columns} /> : null}
+        {open === "probar" ? <HypothesisPanel columns={columns} /> : null}
         {open === "probabilidad" ? <ProbabilityPanel columns={numeric} /> : null}
       </div>
     );

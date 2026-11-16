@@ -62,7 +62,7 @@ function categoriesOf(values: readonly CellValue[]): string[] {
   return [...new Set(values.filter((v) => v !== null).map(String))];
 }
 
-function Field({
+export function Field({
   label,
   value,
   onChange,
@@ -124,7 +124,7 @@ function IntervalResult({ title, ci }: { title: string; ci: ConfidenceInterval }
   );
 }
 
-function Empty({ children }: { children: ReactNode }) {
+export function Empty({ children }: { children: ReactNode }) {
   return <p className="text-muted-foreground sl-surface p-5">{children}</p>;
 }
 
