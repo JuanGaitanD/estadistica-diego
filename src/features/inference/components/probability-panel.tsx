@@ -33,7 +33,7 @@ import { captureChartAsDataUrl, ChartDownloadButton, CopyButton } from "@/featur
 import type { NumericColumn } from "@/features/regression";
 import { AddToReportButton } from "@/features/report";
 
-import { NumberField, readNumber } from "./number-field";
+import { NumberField, readNumber } from "@/components/shared/form-fields";
 
 type Kind = DistributionSpec["kind"];
 

@@ -29,8 +29,10 @@ import {
 import { captureChartAsDataUrl, ChartDownloadButton, CopyButton } from "@/features/export";
 import { AddToReportButton } from "@/features/report";
 
-import { Empty, Field, type AnalysisColumn } from "./estimation-panel";
-import { NumberField, readNumber } from "./number-field";
+import { Field } from "@/components/shared/form-fields";
+
+import { Empty, type AnalysisColumn } from "./estimation-panel";
+import { NumberField, readNumber } from "@/components/shared/form-fields";
 
 type Goal = "media" | "proporcion" | "grupos" | "pareada" | "relacion" | "dos-proporciones";
 

@@ -4,7 +4,48 @@ import { useId } from "react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { parseLocaleNumber } from "@/core/data";
+
+/** Selector con etiqueta, a ancho completo. */
+export function Field({
+  label,
+  value,
+  onChange,
+  options,
+  placeholder = "Elige",
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: readonly { id: string; label: string }[];
+  placeholder?: string;
+}) {
+  const id = useId();
+  return (
+    <div className="flex min-w-0 flex-col gap-1.5">
+      <Label htmlFor={id}>{label}</Label>
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger id={id} className="w-full">
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((option) => (
+            <SelectItem key={option.id} value={option.id}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
 
 /** Lee un número escrito por una persona (coma decimal), o `null`. */
 export function readNumber(text: string): number | null {
