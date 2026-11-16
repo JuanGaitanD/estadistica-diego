@@ -17,7 +17,16 @@ Plan aprobado por Juan el 2026-11-16: `docs/09-plan-plataforma.md` (alcance M0�
 | F3 · Regresión simple y correlación                                    | **Cerrada** (2026-11-16) |
 | F4 · Probabilidad e intervalos                                         | **Cerrada** (2026-11-16) |
 | F5 · Pruebas de hipótesis y selector                                   | **Cerrada** (2026-11-16) |
-| F6–F7                                                                  | Pendientes (sigue F6)    |
+| F6 · Múltiple, polinómica y logística                                  | **Cerrada** (2026-11-16) |
+| F7                                                                     | Pendiente (sigue F7)     |
+
+### F6 · qué quedó
+
+- **Motor** (`src/core/statistics/regression`): mínimos cuadrados por QR de Householder con pesos (`least-squares.ts`); regresión múltiple con R² y R² ajustado, prueba F, t por coeficiente, IC del 95 % y VIF; indicadoras con la categoría más frecuente de referencia; polinómica de grado 1 a 4 con comparación de R² ajustado por grado; logística binaria por IRLS con razones de momios e IC, McFadden, tabla de iteraciones y matriz de confusión con umbral. Probadas contra `lm(mpg ~ wt + hp)` y `glm(am ~ wt, binomial)` de R con `mtcars`.
+- **Interpretación:** «Manteniendo lo demás constante, cada unidad más de X sube Y en …», «ser «A» en lugar de «ref» suma …», «multiplica por 1,8 los momios de «sí»»; advertencias de pocas filas por término, VIF > 5, sobreajuste al subir de grado, separación casi perfecta y exactitud medida con los mismos datos. Paso a paso: ecuaciones normales con sumas para 2 predictores, tabla de coeficientes con `ESTIMACION.LINEAL`, R² ajustado, F y error típico; en la logística, el modelo, las iteraciones, momios, McFadden y la matriz.
+- **Pantalla** (`MultipleRegressionPanel`, `LogisticPanel`, desde Analizar): dos preguntas nuevas, «¿Puedo predecir con varias cosas a la vez, o con una curva?» y «¿Puedo predecir un sí o un no?». Casillas para elegir predictores (también de categorías), gráficas real contra predicho, curva, residuos y curva en S; todo al informe. `Field` y `NumberField` pasaron a `components/shared/form-fields.tsx`.
+- Verificación: 569 tests, tipos y lint en verde; paneles revisados a 1440 y 390 px sin desborde. `pnpm build` compila y genera todas las páginas, pero desde esta fase `next build` termina con código 1 por un aviso de seguridad: la versión instalada de Next.js tiene una vulnerabilidad conocida y Next recomienda actualizar. No se actualizó: cambiar dependencias queda a decisión de Juan.
+- **No hecho:** predecir un caso nuevo en estos modelos, exportar el Excel con fórmulas de la múltiple y la elección de variables en el proyecto `.statlab.json`.
 
 ### F5 · qué quedó
 
@@ -174,7 +183,7 @@ Cambios de texto/estructura declarados: desaparece el eyebrow duplicado «Paso N
 En el repo:
 
 ```bash
-pnpm check     # lint + format:check + typecheck + test (557 tests)
+pnpm check     # lint + format:check + typecheck + test (569 tests)
 pnpm build     # export estático a out/
 pnpm dev --port 3101
 ```
