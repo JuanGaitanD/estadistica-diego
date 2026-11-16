@@ -1,19 +1,25 @@
 "use client";
 
-import { ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
+import { useMemo, useState } from "react";
 
 import { StepHeader } from "@/components/layout/step-header";
 import { Button } from "@/components/ui/button";
+import { RegressionPanel, type NumericColumn } from "@/features/regression";
 
+import { isQuantitative } from "../model/validation";
 import { useWizardStore } from "../store/wizard-store";
+
+/** Dónde lleva cada pregunta disponible. */
+type Destination = "explorar" | "regresion";
 
 interface Question {
   readonly id: string;
   readonly question: string;
   readonly example: string;
   readonly method: string;
-  /** `false` si todavía no está en StatLab. */
-  readonly available: boolean;
+  /** Adónde lleva, o `null` si todavía no está en StatLab. */
+  readonly destination: Destination | null;
 }
 
 /**
@@ -27,48 +33,90 @@ const QUESTIONS: readonly Question[] = [
     question: "¿Cómo son mis datos?",
     example: "La nota típica del curso, cuánto varía, si hay casos raros.",
     method: "Estadística descriptiva",
-    available: true,
+    destination: "explorar",
   },
   {
     id: "predecir",
     question: "¿Puedo predecir un número a partir de otro?",
     example: "Cuánto sube la nota por cada hora de estudio.",
     method: "Regresión lineal",
-    available: false,
+    destination: "regresion",
   },
   {
     id: "relacionar",
     question: "¿Se mueven juntas dos cosas?",
     example: "Si a más horas de sueño, mejor rendimiento.",
-    method: "Correlación · chi-cuadrado",
-    available: false,
+    method: "Correlación",
+    destination: "regresion",
   },
   {
     id: "comparar",
     question: "¿Es real la diferencia entre grupos?",
     example: "Si un grupo sacó más que otro o fue casualidad.",
     method: "Prueba t · ANOVA",
-    available: false,
+    destination: null,
   },
   {
     id: "estimar",
     question: "¿Qué puedo decir de toda la población?",
     example: "Entre qué valores está el promedio de todos los estudiantes.",
     method: "Intervalos de confianza",
-    available: false,
+    destination: null,
   },
   {
     id: "probabilidad",
     question: "¿Qué tan probable es…?",
     example: "La probabilidad de sacar menos de 3,0.",
     method: "Distribuciones de probabilidad",
-    available: false,
+    destination: null,
   },
 ];
+
+/** Columnas numéricas incluidas, con sus valores, para la regresión. */
+function useNumericColumns(): NumericColumn[] {
+  const dataset = useWizardStore((state) => state.dataset);
+  const columns = useWizardStore((state) => state.columns);
+  return useMemo(() => {
+    if (dataset === null) return [];
+    return columns
+      .filter((column) => column.include && isQuantitative(column.kind))
+      .flatMap((column) => {
+        const data = dataset.columns.find((entry) => entry.variable.id === column.id);
+        return data === undefined
+          ? []
+          : [{ id: column.id, name: column.name, values: data.values }];
+      });
+  }, [dataset, columns]);
+}
 
 /** Zona «Analizar»: elegir por la pregunta, no por el nombre del cálculo (RF-42). */
 export function AnalyzeHub() {
   const goToZone = useWizardStore((state) => state.goToZone);
+  const numeric = useNumericColumns();
+  const [open, setOpen] = useState<"regresion" | null>(null);
+
+  if (open === "regresion") {
+    return (
+      <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-3">
+          <Button
+            type="button"
+            variant="ghost"
+            className="-ml-4 self-start"
+            onClick={() => setOpen(null)}
+          >
+            <ArrowLeft aria-hidden="true" />
+            Todas las preguntas
+          </Button>
+          <StepHeader
+            title="¿Puedo predecir un número a partir de otro?"
+            subtitle="Elige las dos variables. StatLab ajusta la recta que mejor resume la relación, te dice qué significa y, si quieres, te muestra los 5 pasos con tus números."
+          />
+        </div>
+        <RegressionPanel columns={numeric} />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-8">
@@ -89,9 +137,14 @@ export function AnalyzeHub() {
             </h2>
             <p className="text-muted-foreground text-sm">Por ejemplo: {item.example}</p>
             <div className="mt-auto pt-2">
-              {item.available ? (
+              {item.destination === "explorar" ? (
                 <Button type="button" onClick={() => goToZone("explorar")}>
                   Ver qué dicen tus datos
+                  <ArrowRight aria-hidden="true" />
+                </Button>
+              ) : item.destination === "regresion" ? (
+                <Button type="button" onClick={() => setOpen("regresion")}>
+                  {item.id === "predecir" ? "Ajustar una recta" : "Ver si se mueven juntas"}
                   <ArrowRight aria-hidden="true" />
                 </Button>
               ) : (
