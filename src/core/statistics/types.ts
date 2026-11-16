@@ -243,6 +243,8 @@ export interface VariableAnalysisResult {
   readonly ordinalMedian?: OrdinalMedianResult;
   readonly position?: PositionResult;
   readonly variability?: VariabilityResult;
+  /** Forma: asimetría y curtosis (solo cuantitativas). */
+  readonly shape?: readonly Metric[];
   /** Advertencias en español para el usuario. */
   readonly notes: readonly string[];
   /** Qué dicen estos datos, en lenguaje llano (RF-37). */

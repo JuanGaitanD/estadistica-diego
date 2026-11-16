@@ -4,6 +4,7 @@ import { mode } from "../central-tendency/mode";
 import { runVariableAnalysis } from "../run-variable-analysis";
 import {
   interpretCategorical,
+  describeShape,
   interpretQuantitative,
   quantitativeSteps,
   STEP_TABLE_MAX_ROWS,
@@ -128,12 +129,41 @@ describe("quantitativeSteps", () => {
       "2. Promedio (media aritmética)",
       "3. Mediana",
       "4. Desviación estándar (muestral)",
+      "5. Coeficiente de variación",
+      "6. Cuartiles, rango intercuartílico y atípicos",
+      "7. Forma: asimetría y curtosis",
     ]);
     expect(steps[1]?.formula).toBe("x̄ = Σx / n = 20,00 / 5 = 4,00");
     expect(steps[2]?.text).toContain("posición (n + 1) / 2 = 3, que vale 4");
     expect(steps[3]?.table?.footer).toEqual(["Σ", "20,00", "0,00", "4,00"]);
     expect(steps[3]?.formula).toBe("s² = Σ(x − x̄)² / (n − 1) = 4,00 / 4 = 1,00;  s = √1,00 = 1,00");
     expect(steps[3]?.excel).toContain("DESVEST.M");
+    expect(steps[4]?.formula).toBe("CV = s / |x̄| · 100 = 1,00 / 4,00 · 100 = 25,0 %");
+    expect(steps[5]?.formula?.split("\n")).toEqual([
+      "Q1: posición h = (n − 1) · 0,25 + 1 = 2,00 → x(2) = 3",
+      "Q3: posición h = (n − 1) · 0,75 + 1 = 4,00 → x(4) = 5",
+      "RIC = Q3 − Q1 = 5,00 − 3,00 = 2,00",
+      "Vallas: 3,00 − 1,5 · 2,00 = 0,00 y 5,00 + 1,5 · 2,00 = 8,00",
+    ]);
+    // z = −1, −1, 0, 1, 1: Σz³ = 0 y Σz⁴ = 4 → asimetría 0 y curtosis 5 − 8 = −3.
+    expect(steps[6]?.formula).toContain("= 0,000");
+    expect(steps[6]?.formula).toContain("= -3,000");
+  });
+
+  it("añade el cálculo de K y l cuando la variable se agrupa", () => {
+    const values = Array.from({ length: 24 }, (_, i) => 1 + i * 0.5);
+    const result = runVariableAnalysis({
+      variableId: "x",
+      kind: "continua",
+      values,
+      grouping: { enabled: true, rule: "sturges", closure: "cerrado-abierto" },
+    });
+    const last = result.steps.at(-1);
+    expect(last?.title).toMatch(/^\d+\. Agrupar en intervalos$/);
+    expect(last?.formula).toContain(
+      "K = 1 + log₂(n) = 1 + log₂(24) = 5,58 → se redondea hacia arriba: K = 6",
+    );
+    expect(last?.formula).toContain("Rango R = máximo − mínimo = 12,5 − 1,0 = 11,5");
   });
 
   it("mediana con n par y tabla recortada cuando hay muchos datos", () => {
@@ -153,7 +183,8 @@ describe("runVariableAnalysis incluye interpretación y paso a paso", () => {
       values: [10, 20, 30, null, 40, 50],
     });
     expect(result.interpretation.headline).toContain("30,0");
-    expect(result.steps).toHaveLength(4);
+    expect(result.steps).toHaveLength(7);
+    expect(result.shape?.map((metric) => metric.key)).toEqual(["asimetria", "curtosis"]);
   });
 
   it("cualitativa: sin paso a paso numérico", () => {
@@ -164,5 +195,22 @@ describe("runVariableAnalysis incluye interpretación y paso a paso", () => {
     });
     expect(result.interpretation.headline).toContain("«Bogotá»: 2 de 3 casos (66,7 %)");
     expect(result.steps).toHaveLength(0);
+  });
+});
+
+describe("describeShape", () => {
+  it("no describe la forma con menos de 8 datos", () => {
+    expect(describeShape([1, 2, 3, 4, 5])).toBeNull();
+  });
+
+  it("nombra la cola larga y los extremos", () => {
+    const skewed = [1, 1, 1, 2, 2, 2, 3, 3, 4, 20];
+    const text = describeShape(skewed) ?? "";
+    expect(text).toContain("muy cargada: tiene una cola hacia los valores altos");
+    expect(text).toContain("más datos extremos que en una campana normal");
+  });
+
+  it("dice casi simétrica cuando lo es", () => {
+    expect(describeShape([1, 2, 3, 4, 5, 6, 7, 8, 9])).toContain("casi simétrica (asimetría 0,00)");
   });
 });

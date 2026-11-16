@@ -17,6 +17,7 @@ import {
 import { makeMetric, unavailableMetric } from "./metric";
 import { isFiniteNumber, sortAscending, REASONS } from "./numeric";
 import { computePosition, DEFAULT_POSITION_OPTIONS } from "./position/position";
+import { kurtosis, skewness } from "./shape/shape";
 import type {
   CentralTendencyOptions,
   FrequencyOptions,
@@ -224,7 +225,8 @@ export function runVariableAnalysis(input: VariableAnalysisInput): VariableAnaly
         central.mode,
         ordinal?.label,
       );
-  const steps = quantitative ? quantitativeSteps(sortedNumbers) : [];
+  const steps = quantitative ? quantitativeSteps(sortedNumbers, groupedTable) : [];
+  const shape = quantitative ? [skewness(sortedNumbers), kurtosis(sortedNumbers)] : undefined;
 
   return {
     variableId: input.variableId,
@@ -238,6 +240,7 @@ export function runVariableAnalysis(input: VariableAnalysisInput): VariableAnaly
     ...(ordinal !== undefined ? { ordinalMedian: ordinal } : {}),
     ...(position !== undefined ? { position } : {}),
     ...(variability !== undefined ? { variability } : {}),
+    ...(shape !== undefined ? { shape } : {}),
     notes,
   };
 }
