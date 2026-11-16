@@ -13,6 +13,13 @@ import { DataTable } from "@/components/tables/data-table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { parseLocaleNumber } from "@/core/data";
 import { formatValue, interpretPrediction, predict, type Interpretation } from "@/core/statistics";
 import { captureChartAsDataUrl, ChartDownloadButton, CopyButton } from "@/features/export";
@@ -52,19 +59,18 @@ function VariableSelect({
   return (
     <div className="flex min-w-0 flex-col gap-1.5">
       <Label htmlFor={id}>{label}</Label>
-      <select
-        id={id}
-        className="sl-select h-11 w-full"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        aria-describedby={`${id}-ayuda`}
-      >
-        {columns.map((column) => (
-          <option key={column.id} value={column.id}>
-            {column.name}
-          </option>
-        ))}
-      </select>
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger id={id} aria-describedby={`${id}-ayuda`}>
+          <SelectValue placeholder="Elige una variable" />
+        </SelectTrigger>
+        <SelectContent>
+          {columns.map((column) => (
+            <SelectItem key={column.id} value={column.id}>
+              {column.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       <p id={`${id}-ayuda`} className="text-muted-foreground text-sm">
         {hint}
       </p>
@@ -270,8 +276,9 @@ export function RegressionPanel({ columns }: RegressionPanelProps) {
           ) : null}
 
           {coefficients !== null && fit !== null ? (
-            <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
+            <div className="flex flex-col gap-6">
               <SectionCard
+                className="min-w-0"
                 title="Coeficientes"
                 description="Cada coeficiente con su error estándar, su prueba t y su intervalo de confianza del 95 %."
                 actions={
@@ -290,7 +297,7 @@ export function RegressionPanel({ columns }: RegressionPanelProps) {
                   getRowKey={(row) => row[0] ?? ""}
                 />
               </SectionCard>
-              <SectionCard title="Ajuste">
+              <SectionCard className="min-w-0" title="Ajuste">
                 <DataTable
                   columns={fit.columns}
                   rows={fit.rows}

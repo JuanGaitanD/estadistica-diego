@@ -87,9 +87,7 @@ export function ScatterRegressionChart({
               tickFormatter={(value: number) => f(value)}
               {...AXIS_PROPS}
               width={48}
-            >
-              <Label value={yName} angle={-90} position="insideLeft" style={{ fontSize: 12 }} />
-            </YAxis>
+            ></YAxis>
             <Tooltip
               {...TOOLTIP_LINE_PROPS}
               formatter={(value, name) => [f(Number(value)), name === "x" ? xName : yName]}
@@ -128,8 +126,8 @@ export function ScatterRegressionChart({
           </ScatterChart>
         </ResponsiveContainer>
         <p className="text-muted-foreground text-sm">
-          Puntos: tus datos. Línea: la recta Ŷ = {f(model.b0)} {model.b1 < 0 ? "−" : "+"}{" "}
-          {f(Math.abs(model.b1))}·X.
+          Eje horizontal: {xName}; eje vertical: {yName}. Puntos: tus datos. Línea: la recta Ŷ ={" "}
+          {f(model.b0)} {model.b1 < 0 ? "−" : "+"} {f(Math.abs(model.b1))}·X.
           {segments
             ? " Rayas rojas: el error de cada punto; la recta es la que hace más pequeña la suma de sus cuadrados."
             : null}
@@ -189,9 +187,7 @@ export function ResidualChart({
               tickFormatter={(value: number) => f(value)}
               {...AXIS_PROPS}
               width={48}
-            >
-              <Label value="Residuo e" angle={-90} position="insideLeft" style={{ fontSize: 12 }} />
-            </YAxis>
+            ></YAxis>
             <Tooltip
               {...TOOLTIP_LINE_PROPS}
               formatter={(value, name) => [f(Number(value)), name === "x" ? "Ŷ" : "e"]}
@@ -200,6 +196,9 @@ export function ResidualChart({
             <Scatter data={points} fill={RESIDUAL} isAnimationActive={false} />
           </ScatterChart>
         </ResponsiveContainer>
+        <p className="text-muted-foreground text-sm">
+          Eje horizontal: {yName} predicho (Ŷ); eje vertical: el residuo e = Y − Ŷ.
+        </p>
       </div>
     </ChartContainer>
   );
