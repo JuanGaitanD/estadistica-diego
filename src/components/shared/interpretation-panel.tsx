@@ -86,7 +86,7 @@ export function StepsDisclosure({ steps }: { steps: readonly CalculationStep[] }
             {step.text ? <p className="text-muted-foreground text-sm">{step.text}</p> : null}
             {step.table ? <StepTableView table={step.table} caption={step.title} /> : null}
             {step.formula ? (
-              <p className="bg-muted/60 overflow-x-auto rounded-md px-3 py-2 font-mono text-sm">
+              <p className="bg-muted/60 overflow-x-auto rounded-md px-3 py-2 font-mono text-sm whitespace-pre-line">
                 {step.formula}
               </p>
             ) : null}

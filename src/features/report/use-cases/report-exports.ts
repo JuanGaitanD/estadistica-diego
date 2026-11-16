@@ -38,7 +38,8 @@ export function reportToPdfSpec(
       for (const step of item.steps) {
         const paragraphs = [
           ...(step.text ? [step.text] : []),
-          ...(step.formula ? [step.formula] : []),
+          // Una fórmula de varias líneas (cuartiles, K y l) va en párrafos separados.
+          ...(step.formula ? step.formula.split("\n") : []),
           ...(step.excel ? [`En Excel: ${step.excel}`] : []),
         ];
         sections.push({
