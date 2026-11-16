@@ -5,13 +5,17 @@ import { useMemo, useState } from "react";
 
 import { StepHeader } from "@/components/layout/step-header";
 import { Button } from "@/components/ui/button";
+import { EstimationPanel, ProbabilityPanel, type AnalysisColumn } from "@/features/inference";
 import { RegressionPanel, type NumericColumn } from "@/features/regression";
 
 import { isQuantitative } from "../model/validation";
 import { useWizardStore } from "../store/wizard-store";
 
 /** Dónde lleva cada pregunta disponible. */
-type Destination = "explorar" | "regresion";
+type Destination = "explorar" | Panel;
+
+/** Paneles que se abren dentro de Analizar. */
+type Panel = "regresion" | "estimar" | "probabilidad";
 
 interface Question {
   readonly id: string;
@@ -61,41 +65,75 @@ const QUESTIONS: readonly Question[] = [
     question: "¿Qué puedo decir de toda la población?",
     example: "Entre qué valores está el promedio de todos los estudiantes.",
     method: "Intervalos de confianza",
-    destination: null,
+    destination: "estimar",
   },
   {
     id: "probabilidad",
     question: "¿Qué tan probable es…?",
     example: "La probabilidad de sacar menos de 3,0.",
     method: "Distribuciones de probabilidad",
-    destination: null,
+    destination: "probabilidad",
   },
 ];
 
-/** Columnas numéricas incluidas, con sus valores, para la regresión. */
-function useNumericColumns(): NumericColumn[] {
+/** Texto del botón de cada pregunta. */
+const ACTION: Readonly<Record<string, string>> = {
+  predecir: "Ajustar una recta",
+  relacionar: "Ver si se mueven juntas",
+  estimar: "Estimar con mi muestra",
+  probabilidad: "Calcular una probabilidad",
+};
+
+/** Columnas incluidas en el análisis, con sus valores y si son numéricas. */
+function useAnalysisColumns(): AnalysisColumn[] {
   const dataset = useWizardStore((state) => state.dataset);
   const columns = useWizardStore((state) => state.columns);
   return useMemo(() => {
     if (dataset === null) return [];
     return columns
-      .filter((column) => column.include && isQuantitative(column.kind))
+      .filter((column) => column.include)
       .flatMap((column) => {
         const data = dataset.columns.find((entry) => entry.variable.id === column.id);
         return data === undefined
           ? []
-          : [{ id: column.id, name: column.name, values: data.values }];
+          : [
+              {
+                id: column.id,
+                name: column.name,
+                quantitative: isQuantitative(column.kind),
+                values: data.values,
+              },
+            ];
       });
   }, [dataset, columns]);
 }
 
+const PANEL_TEXT: Readonly<Record<Panel, { title: string; subtitle: string }>> = {
+  regresion: {
+    title: "¿Puedo predecir un número a partir de otro?",
+    subtitle:
+      "Elige las dos variables. StatLab ajusta la recta que mejor resume la relación, te dice qué significa y, si quieres, te muestra los 5 pasos con tus números.",
+  },
+  estimar: {
+    title: "¿Qué puedo decir de toda la población?",
+    subtitle:
+      "Con tu muestra, StatLab calcula entre qué valores está el dato de toda la población y qué tan seguro puedes estar.",
+  },
+  probabilidad: {
+    title: "¿Qué tan probable es…?",
+    subtitle:
+      "Elige una distribución y la pregunta; la parte sombreada de la gráfica es la probabilidad.",
+  },
+};
+
 /** Zona «Analizar»: elegir por la pregunta, no por el nombre del cálculo (RF-42). */
 export function AnalyzeHub() {
   const goToZone = useWizardStore((state) => state.goToZone);
-  const numeric = useNumericColumns();
-  const [open, setOpen] = useState<"regresion" | null>(null);
+  const columns = useAnalysisColumns();
+  const numeric: NumericColumn[] = columns.filter((column) => column.quantitative);
+  const [open, setOpen] = useState<Panel | null>(null);
 
-  if (open === "regresion") {
+  if (open !== null) {
     return (
       <div className="flex flex-col gap-8">
         <div className="flex flex-col gap-3">
@@ -108,12 +146,11 @@ export function AnalyzeHub() {
             <ArrowLeft aria-hidden="true" />
             Todas las preguntas
           </Button>
-          <StepHeader
-            title="¿Puedo predecir un número a partir de otro?"
-            subtitle="Elige las dos variables. StatLab ajusta la recta que mejor resume la relación, te dice qué significa y, si quieres, te muestra los 5 pasos con tus números."
-          />
+          <StepHeader title={PANEL_TEXT[open].title} subtitle={PANEL_TEXT[open].subtitle} />
         </div>
-        <RegressionPanel columns={numeric} />
+        {open === "regresion" ? <RegressionPanel columns={numeric} /> : null}
+        {open === "estimar" ? <EstimationPanel columns={columns} /> : null}
+        {open === "probabilidad" ? <ProbabilityPanel columns={numeric} /> : null}
       </div>
     );
   }
@@ -142,9 +179,9 @@ export function AnalyzeHub() {
                   Ver qué dicen tus datos
                   <ArrowRight aria-hidden="true" />
                 </Button>
-              ) : item.destination === "regresion" ? (
-                <Button type="button" onClick={() => setOpen("regresion")}>
-                  {item.id === "predecir" ? "Ajustar una recta" : "Ver si se mueven juntas"}
+              ) : item.destination !== null ? (
+                <Button type="button" onClick={() => setOpen(item.destination as Panel)}>
+                  {ACTION[item.id] ?? "Empezar"}
                   <ArrowRight aria-hidden="true" />
                 </Button>
               ) : (
