@@ -27,7 +27,9 @@ import {
   MULTIPLE_REASONS,
   multipleRegression,
   multipleSteps,
+  polynomialCenter,
   polynomialRegression,
+  polynomialTerms,
   predictLogistic,
   predictMultiple,
   type CalculationStep,
@@ -277,10 +279,7 @@ export function MultipleRegressionPanel({ columns }: { columns: readonly ModelCo
       const line =
         mode === "curva"
           ? curvePoints(min, max, (v) =>
-              predictMultiple(
-                model,
-                Array.from({ length: degree }, (_, i) => v ** (i + 1)),
-              ),
+              predictMultiple(model, polynomialTerms(v, degree, polynomialCenter(x))),
             )
           : [
               { x: min, y: min },

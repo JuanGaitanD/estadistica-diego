@@ -137,3 +137,17 @@ describe("regresión logística: glm(am ~ wt, binomial, mtcars)", () => {
     });
   });
 });
+
+describe("polinómica con X lejos del cero", () => {
+  it("una curva de grado 4 con años no se declara colineal", () => {
+    const years = Array.from({ length: 15 }, (_, i) => 2005 + i);
+    const y = years.map(
+      (t) => 3 + 0.5 * (t - 2012) - 0.02 * (t - 2012) ** 2 + 0.001 * (t - 2012) ** 4,
+    );
+    const result = polynomialRegression(years, y, 4, "Año");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.model.coefficients[1]!.name).toBe("(Año − 2012)");
+    expect(result.model.r2).toBeCloseTo(1, 8);
+  });
+});

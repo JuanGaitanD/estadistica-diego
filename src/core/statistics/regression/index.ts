@@ -17,7 +17,9 @@ export {
   MULTIPLE_REASONS,
   multipleRegression,
   multipleSteps,
+  polynomialCenter,
   polynomialRegression,
+  polynomialTerms,
   predictMultiple,
 } from "./multiple";
 export type {

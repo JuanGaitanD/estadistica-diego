@@ -179,16 +179,39 @@ export function dummyCode(name: string, values: readonly string[]): Predictor[] 
 
 const SUPERSCRIPT = ["", "", "²", "³", "⁴", "⁵"];
 
-/** Regresión polinómica: múltiple con X, X², …, Xᵍ. */
+/**
+ * Centro con el que se restan los X antes de elevarlos: 0 si X ya está cerca
+ * del cero; si no (años, por ejemplo), su promedio redondeado. Sin centrar,
+ * 2019⁴ y 2018⁴ son casi iguales y la curva parece colineal.
+ */
+export function polynomialCenter(x: readonly number[]): number {
+  if (x.length === 0) return 0;
+  const mean = neumaierSum(x) / x.length;
+  const sd = Math.sqrt(neumaierSum(x.map((v) => (v - mean) ** 2)) / x.length);
+  if (Math.abs(mean) <= 3 * sd) return 0;
+  return sd >= 1 ? Math.round(mean) : Number(mean.toPrecision(3));
+}
+
+/** Valores de los términos (X − c), (X − c)², … de una curva para un x. */
+export function polynomialTerms(x: number, degree: number, center: number): number[] {
+  return Array.from({ length: degree }, (_, i) => (x - center) ** (i + 1));
+}
+
+/** Regresión polinómica: múltiple con X, X², …, Xᵍ (con X centrada si hace falta). */
 export function polynomialRegression(
   x: readonly number[],
   y: readonly number[],
   degree: number,
   xName = "X",
 ): ReturnType<typeof multipleRegression> {
+  const center = polynomialCenter(x);
+  const base =
+    center === 0
+      ? xName
+      : `(${xName} − ${Number.isInteger(center) ? String(center) : formatValue(center, 3)})`;
   const predictors = Array.from({ length: degree }, (_, i) => ({
-    name: `${xName}${SUPERSCRIPT[i + 1] ?? `^${i + 1}`}`,
-    values: x.map((v) => v ** (i + 1)),
+    name: `${base}${SUPERSCRIPT[i + 1] ?? `^${i + 1}`}`,
+    values: x.map((v) => (v - center) ** (i + 1)),
   }));
   return multipleRegression(predictors, y, { vif: false });
 }
