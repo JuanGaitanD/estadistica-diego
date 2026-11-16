@@ -1,8 +1,12 @@
 # StatLab — Requisitos
 
-Calculadora estadística web, **solo cliente**, en español, para un profesor de estadística experto en la materia y poco hábil con tecnología. Sin backend: todo el cálculo ocurre en el navegador.
+Plataforma web de estadística, **solo cliente**, en español, para **cualquier persona sin formación en estadística** que quiera cargar o escribir sus datos, analizarlos desde la estadística básica hasta la regresión, entender cada resultado y exportarlo. También sirve de apoyo a la Electiva de datos (UAM): muestra el paso a paso y la equivalencia con Excel de cada cálculo. Sin backend: todo el cálculo ocurre en el navegador.
 
-Principio rector: **todo dato mostrado debe tener un significado y una utilidad clara**. Ninguna métrica se renderiza sin su microtexto "qué significa / para qué sirve".
+Lema: **«Estadística que se entiende: de lo básico a la regresión»**.
+
+Principio rector (decisión de Juan, 2026-11-16): **lo primero es la interpretación**. Frente a la persona va primero qué significa el resultado, en lenguaje llano y con su conclusión práctica. Los cálculos básicos, el paso a paso y las fórmulas quedan **ocultos por defecto** detrás de «Ver cómo se calculó», nunca encima de la interpretación. Lo mismo vale para el informe exportado. Sigue vigente que todo dato mostrado tiene un significado y una utilidad clara.
+
+Historial: hasta 2026-11-16 el público declarado era «un profesor de estadística experto, poco hábil con tecnología» y el alcance era solo la estadística descriptiva (RF-01 a RF-36). Ese alcance sigue vigente como base; la ampliación está en §7 y el plan en `docs/09-plan-plataforma.md`.
 
 ---
 
@@ -230,4 +234,46 @@ Cada punto lleva una **decisión por defecto** ya tomada (para no bloquear el de
 
 12. **Alcance de la contingencia.** Solo cruce de **dos** variables, sin prueba de independencia (chi-cuadrado) en fase 1. _Pregunta:_ ¿necesita chi-cuadrado y medidas de asociación? Sería un requisito adicional.
 
-13. **Fuera de alcance declarado en fase 1:** inferencia (intervalos de confianza, pruebas de hipótesis), regresión y correlación, series de tiempo, asimetría y curtosis, diagramas de caja y de dispersión. _Pregunta:_ ¿alguno es imprescindible ya? Asimetría/curtosis y boxplot son los candidatos naturales a fase 1.5.
+13. **Fuera de alcance declarado en fase 1** (_superado el 2026-11-16_: la inferencia, la correlación, la regresión, la asimetría, la curtosis y los diagramas de caja y dispersión entran en el alcance, ver §7): inferencia (intervalos de confianza, pruebas de hipótesis), regresión y correlación, series de tiempo, asimetría y curtosis, diagramas de caja y de dispersión. _Pregunta:_ ¿alguno es imprescindible ya? Asimetría/curtosis y boxplot son los candidatos naturales a fase 1.5.
+
+---
+
+## 7. Alcance ampliado (2026-11-16)
+
+Detalle de cada módulo, pantallas y fases en `docs/09-plan-plataforma.md`.
+
+### Requisitos de interpretación (aplican a todo resultado)
+
+- **RF-37** Todo resultado abre con su **interpretación**: una frase en lenguaje llano sobre los datos de la persona («La nota típica es 3,7…») y, cuando aplica, la conclusión práctica. Se genera con reglas deterministas en `src/core` (sin IA), de modo que pantalla, PDF y Excel dicen lo mismo.
+- **RF-38** La interpretación trae su advertencia honesta cuando aplica (muestra pequeña, supuesto no cumplido, extrapolación, correlación no implica causalidad).
+- **RF-39** El **paso a paso** (tabla de trabajo, sustituciones con los números de la persona, fórmula y equivalente en Excel) existe para todo cálculo y está **oculto por defecto** detrás de «Ver cómo se calculó».
+- **RF-40** En el informe exportado, cada sección empieza por la interpretación; el paso a paso solo se incluye si la persona lo marca.
+
+### Flujo
+
+- **RF-41** Espacio de trabajo con cuatro zonas: **Datos**, **Explorar**, **Analizar** e **Informe**. Analizar se organiza por intención (describir, comparar, relacionar, predecir, probabilidad, estimar).
+- **RF-42** Selector «¿Qué quieres saber?» que recomienda el método según la pregunta y los tipos de variable, con la razón y las alternativas descartadas.
+- **RF-43** Informe acumulativo: cualquier resultado se puede «Añadir al informe»; el informe se ordena, se titula y se exporta junto.
+- **RF-44** Modo guiado CRISP-DM (comprensión del problema, de los datos, preparación, modelado, evaluación, despliegue) que recorre los mismos módulos y documenta cada fase en el informe.
+- **RF-45** Datos: hoja editable para escribir o corregir celdas; guardar y abrir el proyecto en un archivo `.statlab.json`.
+
+### Módulos de cálculo nuevos
+
+- **RF-46** Descriptiva: asimetría (como `COEFICIENTE.ASIMETRIA`), curtosis (como `CURTOSIS`), puntaje z, percentil de un valor; gráficos de caja y bigotes, histograma, Pareto, dispersión y barras agrupadas.
+- **RF-47** Probabilidad: distribuciones binomial, Poisson, normal, t, chi-cuadrado y F con calculadora visual; comprobación aproximada de normalidad (Q-Q, asimetría, curtosis).
+- **RF-48** Estimación: error estándar, intervalo de confianza para media (t) y proporción (Wilson), diferencia de medias y de proporciones, tamaño de muestra.
+- **RF-49** Pruebas de hipótesis: t de una muestra, t de Welch (Student opcional), t pareada, z de una y dos proporciones, ANOVA de un factor con Tukey, chi-cuadrado de independencia; cada una con hipótesis, valor p, decisión en llano y tamaño del efecto.
+- **RF-50** Correlación de Pearson y Spearman con su prueba y matriz de correlación.
+- **RF-51** Regresión lineal simple por el método de los 5 pasos (modelo y S, derivadas, ecuaciones normales, resolución del sistema, recta), con tabla de trabajo, residuos e = Y − Ŷ, e², SCE, SCT, SCR, R² = 1 − SCE/SCT, R con el signo de b1, predicción con intervalo y equivalencias de Excel. Mínimos cuadrados **minimiza** la suma de errores al cuadrado.
+- **RF-52** Regresión múltiple (R² ajustado, prueba F, t por coeficiente, VIF, variables indicadoras) y polinómica (selector de grado, aviso de sobreajuste).
+- **RF-53** Regresión logística binaria: razones de momios, matriz de confusión con umbral ajustable, exactitud, sensibilidad, especificidad y pseudo-R² de McFadden.
+
+### Exportación ampliada
+
+- **RF-54** Cada resultado se puede **copiar** (tabla como texto tabulado para pegar en Excel, interpretación como texto, gráfica como imagen) y las gráficas se descargan en **PNG y SVG**.
+- **RF-55** La regresión se exporta también a XLSX con fórmulas de Excel vivas para verificar el cálculo.
+- **RF-56** El PDF debe pesar menos de 5 MB en un análisis típico.
+
+### Caso de prueba de referencia (clase de regresión)
+
+X = 1, 2, 3, 4, 5 e Y = 3, 3, 4, 5, 5 (n = 5, ΣX = 15, ΣX² = 55, ΣY = 20, ΣXY = 66; contiene el punto X = 1, Y = 3 de la nota). Debe dar b1 = 0,6, b0 = 2,2, SCE = 0,4, SCT = 4, R² = 0,9 y R ≈ 0,948683.
