@@ -59,11 +59,11 @@ export function ProjectActions() {
   return (
     <div className="flex flex-wrap items-center gap-1 sm:gap-2">
       <span className="sl-label mr-1">Proyecto</span>
-      <Button type="button" variant="ghost" size="sm" disabled={dataset === null} onClick={save}>
+      <Button type="button" variant="ghost" disabled={dataset === null} onClick={save}>
         <Save aria-hidden="true" />
         Guardar<span className="sr-only sm:not-sr-only"> en un archivo</span>
       </Button>
-      <Button type="button" variant="ghost" size="sm" onClick={() => inputRef.current?.click()}>
+      <Button type="button" variant="ghost" onClick={() => inputRef.current?.click()}>
         <FolderOpen aria-hidden="true" />
         Abrir<span className="sr-only sm:not-sr-only"> un proyecto</span>
       </Button>
