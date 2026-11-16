@@ -148,8 +148,8 @@ function fiveSteps(script: Script): CalculationStep[] {
 /** Frase de decisión en llano. */
 function verdict(p: number, alpha: number, n: number, claim: string, notMeaning: string): string {
   return p < alpha
-    ? `Con ${pText(p)}, es poco probable que sea casualidad: hay evidencia de que ${claim}.`
-    : `Con ${pText(p)}, eso podría deberse al azar: con estos ${formatCount(n)} datos no hay evidencia suficiente de que ${claim}. No significa que ${notMeaning}.`;
+    ? `Con ${pText(p)}, es poco probable que sea casualidad: hay evidencia de ${claim}.`
+    : `Con ${pText(p)}, eso podría deberse al azar: con estos ${formatCount(n)} datos no hay evidencia suficiente de ${claim}. No significa que ${notMeaning}.`;
 }
 
 const effectSentence = (effect: EffectSize): string =>
@@ -185,7 +185,7 @@ export function oneSampleT(
     significant: p < alpha,
     effect,
     interpretation: {
-      headline: `El promedio de ${name} es ${f(mean)}, ${direction} que ${f(mu0)}. ${verdict(p, alpha, n, `el promedio de la población sea distinto de ${f(mu0)}`, `sea igual a ${f(mu0)}`)}`,
+      headline: `El promedio de ${name} es ${f(mean)}, ${direction} que ${f(mu0)}. ${verdict(p, alpha, n, `una diferencia entre el promedio de la población y ${f(mu0)}`, `sea igual a ${f(mu0)}`)}`,
       details: [effectSentence(effect)],
       caveats: normalityCaveat(
         [{ label: name, values }],
@@ -259,7 +259,7 @@ export function twoSampleT(
     significant: p < alpha,
     effect,
     interpretation: {
-      headline: `«${higher}» tiene en promedio ${f(Math.abs(diff))} más de ${name} (${f(s1.mean)} en «${a.label}» y ${f(s2.mean)} en «${b.label}»). ${verdict(p, alpha, n1 + n2, `los promedios de los dos grupos son distintos en la población`, "sean iguales")}`,
+      headline: `«${higher}» tiene en promedio ${f(Math.abs(diff))} más de ${name} (${f(s1.mean)} en «${a.label}» y ${f(s2.mean)} en «${b.label}»). ${verdict(p, alpha, n1 + n2, "una diferencia entre los promedios de los dos grupos en la población", "sean iguales")}`,
       details: [
         effectSentence(effect),
         equalVariances
@@ -326,7 +326,7 @@ export function pairedT(
     significant: p < alpha,
     effect,
     interpretation: {
-      headline: `De ${nameBefore} a ${nameAfter} el valor ${mean >= 0 ? "sube" : "baja"} en promedio ${f(Math.abs(mean))}. ${verdict(p, alpha, n, "hubo un cambio real", "no haya cambiado nada")}`,
+      headline: `De ${nameBefore} a ${nameAfter} el valor ${mean >= 0 ? "sube" : "baja"} en promedio ${f(Math.abs(mean))}. ${verdict(p, alpha, n, "un cambio real", "no haya cambiado nada")}`,
       details: [
         effectSentence(effect),
         `Se comparan ${formatCount(n)} pares: cada caso con él mismo, así lo que varía entre personas no estorba.`,
@@ -389,7 +389,7 @@ export function oneProportionZ(
     significant: pValue < alpha,
     effect,
     interpretation: {
-      headline: `El ${formatShare(p)} de la muestra es ${label} (${formatCount(successes)} de ${formatCount(n)}), frente al ${formatShare(p0)} de referencia. ${verdict(pValue, alpha, n, `el porcentaje de la población es distinto del ${formatShare(p0)}`, `sea igual`)}`,
+      headline: `El ${formatShare(p)} de la muestra es ${label} (${formatCount(successes)} de ${formatCount(n)}), frente al ${formatShare(p0)} de referencia. ${verdict(pValue, alpha, n, `una diferencia entre el porcentaje de la población y el ${formatShare(p0)}`, `sea igual`)}`,
       details: [effectSentence(effect)],
       caveats,
     },
@@ -437,7 +437,7 @@ export function twoProportionZ(
     significant: pValue < alpha,
     effect,
     interpretation: {
-      headline: `En «${a.label}» el ${formatShare(p1)} es ${outcome} y en «${b.label}» el ${formatShare(p2)}. ${verdict(pValue, alpha, a.n + b.n, "los dos porcentajes son distintos en la población", "sean iguales")}`,
+      headline: `En «${a.label}» el ${formatShare(p1)} es ${outcome} y en «${b.label}» el ${formatShare(p2)}. ${verdict(pValue, alpha, a.n + b.n, "una diferencia entre los dos porcentajes en la población", "sean iguales")}`,
       details: [effectSentence(effect)],
       caveats: small
         ? [
@@ -544,7 +544,7 @@ export function oneWayAnova(
     table,
     tukey,
     interpretation: {
-      headline: `El promedio de ${name} va de ${f(bottom.mean)} en «${bottom.label}» a ${f(top.mean)} en «${top.label}». ${verdict(p, alpha, n, `al menos un grupo tiene un promedio distinto`, "todos sean iguales")}`,
+      headline: `El promedio de ${name} va de ${f(bottom.mean)} en «${bottom.label}» a ${f(top.mean)} en «${top.label}». ${verdict(p, alpha, n, "una diferencia entre los promedios de los grupos", "todos sean iguales")}`,
       details,
       caveats,
     },
