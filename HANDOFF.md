@@ -14,7 +14,18 @@ Plan aprobado por Juan el 2026-11-16: `docs/09-plan-plataforma.md` (alcance M0�
 | F1 · Nuevo flujo (espacio de trabajo e informe)                        | **Cerrada** (2026-11-16) |
 | FL · Landing en `/` y la app en `/app` (pedida por Juan el 2026-11-16) | **Cerrada** (2026-11-16) |
 | F2 · Descriptiva completa y explicable                                 | **Cerrada** (2026-11-16) |
-| F3–F7                                                                  | Pendientes (sigue F3)    |
+| F3 · Regresión simple y correlación                                    | **Cerrada** (2026-11-16) |
+| F4–F7                                                                  | Pendientes (sigue F4)    |
+
+### F3 · qué quedó
+
+- **Motor** (`src/core/statistics/distributions`, `regression`): t de Student (CDF, cuantil, valor p; probada con tablas y `INV.T`); regresión simple por mínimos cuadrados con SCE, SCT, SCR, R², r con el signo de b1, error estándar, prueba t e IC 95 % de b0 y b1; predicción con intervalo y aviso de extrapolación; Pearson y Spearman (rangos con empates promediados) con su prueba. **Caso de la §7 en tests:** ΣX = 15, ΣX² = 55, ΣY = 20, ΣXY = 66, b1 = 0,6, b0 = 2,2, SCE = 0,4, SCT = 4, R² = 0,9, r = 0,948683, valor p de la pendiente 0,0138.
+- **Interpretación primero** (`interpretation/describe-regression.ts`): pendiente en llano, R², fuerza (|r| < 0,1 nula, < 0,3 débil, < 0,7 moderada, ≥ 0,7 fuerte), lectura del valor p con α = 0,05, error típico y advertencias (causalidad, rango de X, b0 fuera de los datos, muestra pequeña).
+- **Los 5 pasos de la nota** plegados, con los números de la persona: modelo y S (dice «se minimiza, no se maximiza»), derivadas, ecuaciones normales con su tabla, resolución por eliminación, la recta; más ajuste (Ŷ, e, e², SCE, SCT, R², r con signo) y prueba de la pendiente.
+- **Pantalla** (`src/features/regression`, desde Analizar → «¿Puedo predecir…?» o «¿Se mueven juntas…?»): elegir X e Y, interpretación, dispersión con la recta y los residuos como segmentos (hasta 150 puntos), predecir, correlación, coeficientes, ajuste, matriz de correlación (≥ 3 numéricas), residuos contra ajustados, «Añadir al informe» (con la gráfica) y **Excel con fórmulas vivas** (`SLOPE`, `INTERCEPT`, `RSQ`, `CORREL`, `STEYX` y la tabla de trabajo; el exportador XLSX acepta celdas con fórmula).
+- La portada marca la regresión como disponible.
+- **No hecho:** histograma de residuos (la gráfica de residuos contra ajustados cubre el diagnóstico). La elección de X e Y no se guarda en el proyecto `.statlab.json`.
+- Verificación: 525 tests, tipos, lint y `pnpm build` en verde; panel revisado a 1440 y 390 px sin desborde.
 
 ### F2 · qué quedó
 
@@ -145,7 +156,7 @@ Cambios de texto/estructura declarados: desaparece el eyebrow duplicado «Paso N
 En el repo:
 
 ```bash
-pnpm check     # lint + format:check + typecheck + test (492 tests)
+pnpm check     # lint + format:check + typecheck + test (525 tests)
 pnpm build     # export estático a out/
 pnpm dev --port 3101
 ```
