@@ -20,6 +20,31 @@ Plan aprobado por Juan el 2026-11-16: `docs/09-plan-plataforma.md` (alcance M0�
 | F6 · Múltiple, polinómica y logística                                  | **Cerrada** (2026-11-16) |
 | F7 · Modo guiado CRISP-DM y cierre                                     | **Cerrada** (2026-11-16) |
 
+### Revisión del rango completo (2026-11-16)
+
+Un subagente revisor (Opus) revisó `main..feat/plataforma-interpretacion`: corrección, seguridad, exactitud estadística frente a R y Excel, y accesibilidad. Veredicto en la primera vuelta: **apto**, sin bloqueantes. En la segunda vuelta revisó los arreglos y repitió **apto**.
+
+Corregido, con test donde aplica:
+
+- Datos esencialmente constantes: se usa el criterio de `t.test` de R. Las pruebas t, los IC de la media y de la diferencia, y el ANOVA ya no dan resultados absurdos (antes salía «t = −2·10¹⁶, hay evidencia» o un IC «entre 4,0 y 4,0»).
+- «Dos proporciones» con la misma variable para grupo y resultado.
+- Polinómica: X se centra cuando está lejos del cero, y el centro se redondea a la escala de su dispersión. Con años, la curva de grado 4 ya no da un falso aviso de colinealidad. R², F, p y la curva no cambian.
+- El ejemplo ya no pisa los últimos datos propios guardados, y se ofrece recuperarlos también con el ejemplo cargado. Abrir un proyecto pide confirmar si hay datos o informe.
+- Redacción exacta de la desviación estándar («suelen alejarse unos…»), del error típico y del IC de la diferencia («hay evidencia de que…»).
+- Aviso cuando una variable de categorías queda con una sola categoría.
+- El proyecto solo acepta imágenes PNG o JPEG.
+- La primera visita a `/app` ya no deja una entrada de más en el historial.
+
+Queda anotado, sin corregir:
+
+- Al copiar una tabla y pegarla en Excel, un texto que empiece por `=` se vuelve fórmula. Los datos son de la propia persona.
+- Las opciones del `.statlab.json` se validan por tipo, no por rango.
+- En la polinómica centrada, el paso a paso muestra las sumas de los términos centrados. `ESTIMACION.LINEAL` sobre X sin centrar da otros coeficientes, aunque el mismo R², la misma F y el mismo p.
+
+### Pila de PR
+
+El rango se publica como una pila de 25 PR apilados (`pila/01-…` a `pila/25-…`), uno o varios por fase y sin mezclar fases. Cada PR va contra la rama anterior y el primero contra `main`. Se cortan en los límites de commit, con unas 600 líneas de código sin tests por PR. Se pasan de ese tamaño los commits que ya lo superan solos, como el del espacio de trabajo (1.771 líneas) o el de la portada (803). Se revisan y se fusionan en orden; el merge y la producción quedan a decisión de Juan.
+
 ### F7 · qué quedó
 
 - **Modo guiado CRISP-DM** (`src/features/wizard/guided`): «Guíame paso a paso» en el espacio de trabajo y «¿Primera vez? Te guío paso a paso» en la portada (`/app#guiado`). Una barra de seis fases sobre las mismas zonas: la pregunta en una frase y su tipo (describir, comparar, relacionar, predecir); los datos; la **bitácora de preparación**, que compara cada variable con lo detectado al cargar (renombres, tipos cambiados, variables fuera, orden de categorías, faltantes); el método que corresponde; la **lista de evaluación** con semáforo según el tipo de pregunta; y el despliegue, que añade al informe la pregunta, la bitácora y la evaluación. El recorrido vive en memoria: si se recarga la página, vuelve a empezar.
@@ -178,7 +203,7 @@ Palotes de conteo sobre placa ciruela: `src/app/icon1.svg` (SVG), `icon2.png` (3
 
 ## Dónde estamos
 
-La plataforma del plan `docs/09-plan-plataforma.md` está completa en la rama `feat/plataforma-interpretacion` (F0–F7 y FL cerradas el 2026-11-16, detalle por fase arriba). **No se ha hecho push, merge ni despliegue**; eso queda a decisión de Juan.
+La plataforma del plan `docs/09-plan-plataforma.md` está completa en la rama `feat/plataforma-interpretacion` (F0–F7 y FL cerradas el 2026-11-16, detalle por fase arriba). Revisión completa con veredicto «apto». Juan autorizó el push de la pila de PR y una vista previa en Vercel; **no** el merge ni la promoción a producción.
 
 - Portada en `/` y aplicación en `/app` con las zonas Datos, Explorar, Analizar e Informe y el modo guiado CRISP-DM.
 - La interpretación va primero en todos los módulos; el paso a paso, con fórmulas y su equivalente en Excel, queda tras «Ver cómo se calculó» (ADR-004).
@@ -186,11 +211,7 @@ La plataforma del plan `docs/09-plan-plataforma.md` está completa en la rama `f
 - Next.js actualizado a 16.4.6 por un aviso de seguridad.
 - La dirección visual sigue siendo el «cuaderno de laboratorio de estadística» de `docs/05-diseno.md` (decisión del 2026-11-12).
 
-**Lo que sigue, si Juan lo pide:**
-
-- Revisión del rango completo antes del PR, que es grande (más de 600 líneas, así que conviene apilarlo).
-- Push y PR a `main`.
-- Despliegue.
+**Lo que sigue, si Juan lo pide:** revisar y fusionar la pila de PR en orden, y después promover a producción.
 
 Pendientes menores anotados en cada fase:
 
@@ -204,7 +225,7 @@ Pendientes menores anotados en cada fase:
 En el repo:
 
 ```bash
-pnpm check     # lint + format:check + typecheck + test (572 tests)
+pnpm check     # lint + format:check + typecheck + test (577 tests)
 pnpm build     # export estático a out/
 pnpm dev --port 3101
 ```
