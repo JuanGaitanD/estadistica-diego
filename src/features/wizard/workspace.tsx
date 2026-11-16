@@ -7,6 +7,7 @@
  */
 import { ArrowRight, Compass } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { toast } from "sonner";
 
 import { AppShell } from "@/components/layout/app-shell";
 import { ZoneNav } from "@/components/layout/zone-nav";
@@ -105,7 +106,11 @@ export function Workspace() {
         goToZone("explorar");
         return;
       }
-      if (isZone(id)) goToZone(id);
+      if (!isZone(id)) return;
+      // Un enlace a una zona que aún no se puede abrir (sin datos) explica por qué.
+      const reason = useWizardStore.getState().zoneBlockedReason(id);
+      if (reason !== null) toast.info(reason);
+      goToZone(id);
     };
     fromHash();
     window.addEventListener("hashchange", fromHash);

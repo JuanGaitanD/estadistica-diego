@@ -8,6 +8,8 @@ vi.mock("@/infrastructure/export", async (importOriginal) => ({
   captureElementAsPng: vi.fn().mockResolvedValue(new Blob(["x"], { type: "image/png" })),
 }));
 
+import { toast } from "sonner";
+
 import { useReportStore } from "@/features/report";
 import { renderWithProviders } from "@/test/render-with-providers";
 
@@ -20,6 +22,17 @@ describe("Workspace (flujo completo)", () => {
     useReportStore.getState().clear();
     window.localStorage.clear();
     window.history.replaceState(null, "", "/");
+  });
+
+  it("un enlace a una zona bloqueada explica por qué queda en Datos", async () => {
+    window.history.replaceState(null, "", "/app#explorar");
+    const info = vi.spyOn(toast, "info");
+    renderWithProviders(<Workspace />);
+    expect(info).toHaveBeenCalledWith(expect.stringMatching(/Todavía no hay datos cargados/));
+    info.mockRestore();
+    expect(
+      screen.getByRole("heading", { level: 1, name: "¿Qué datos vamos a analizar?" }),
+    ).toBeInTheDocument();
   });
 
   it("de los datos de ejemplo a la interpretación sin elegir cálculos", async () => {
