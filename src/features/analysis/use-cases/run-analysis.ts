@@ -25,6 +25,7 @@
 import type { CellValue, Column, Dataset, DatasetWarning } from "@/core/data";
 import {
   computeContingencyTable,
+  contingencySteps,
   interpretContingency,
   runVariableAnalysis,
   sortAscending,
@@ -465,6 +466,7 @@ export function runAnalysis(
         rowColumn.variable.name,
         columnColumn.variable.name,
       ),
+      steps: contingencySteps(table, rowColumn.variable.name, columnColumn.variable.name),
     });
   }
 

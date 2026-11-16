@@ -178,6 +178,7 @@ export function ContingencyTable({
       {contingency.interpretation ? (
         <InterpretationPanel
           interpretation={contingency.interpretation}
+          {...(contingency.steps !== undefined ? { steps: contingency.steps } : {})}
           name={title}
           actions={interpretationActions}
         />

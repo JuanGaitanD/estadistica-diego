@@ -11,6 +11,7 @@
  */
 import type { MissingPolicy, VariableKind } from "@/core/data";
 import type {
+  CalculationStep,
   CentralTendencyOptions,
   ContingencyResult,
   Interpretation,
@@ -188,6 +189,8 @@ export interface AnalyzedContingency {
   readonly unavailableReason?: string;
   /** Qué dice el cruce, en llano (RF-37). Solo si hay tabla. */
   readonly interpretation?: Interpretation;
+  /** Cómo se calculó el cruce (RF-39). Solo si hay tabla. */
+  readonly steps?: readonly CalculationStep[];
 }
 
 /** Resultado completo del análisis. */

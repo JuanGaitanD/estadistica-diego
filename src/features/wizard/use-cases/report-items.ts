@@ -40,7 +40,7 @@ export function contingencyReportItem(cross: AnalyzedContingency): ReportItemInp
   return {
     title,
     interpretation: cross.interpretation,
-    steps: [],
+    steps: cross.steps ?? [],
     tables: [
       {
         title: `Cruce · ${title}`,
