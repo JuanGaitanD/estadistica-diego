@@ -12,8 +12,17 @@ Plan aprobado por Juan el 2026-11-16: `docs/09-plan-plataforma.md` (alcance M0�
 | ---------------------------------------------------------------------- | ------------------------ |
 | F0 · Cimientos                                                         | **Cerrada** (2026-11-16) |
 | F1 · Nuevo flujo (espacio de trabajo e informe)                        | **Cerrada** (2026-11-16) |
-| FL · Landing en `/` y la app en `/app` (pedida por Juan el 2026-11-16) | Siguiente                |
-| F2–F7                                                                  | Pendientes               |
+| FL · Landing en `/` y la app en `/app` (pedida por Juan el 2026-11-16) | **Cerrada** (2026-11-16) |
+| F2–F7                                                                  | Pendientes (sigue F2)    |
+
+### FL · qué quedó
+
+- **Portada en `/`** (`src/features/landing`): lema, para quién es, tres pasos con palotes, ejemplo real (el panel «Qué significa» de la app con su «Ver cómo se calculó»), módulos marcados «Disponible» o «En construcción», formatos de exportación y banda de cierre en ciruela. Diseño con la skill `disenojg` (commit `24fa6b7`, 2026-11-12); decisiones en `docs/05-diseno.md` («Aterrizaje en `/`»).
+- **Textos del motor, no a mano:** `sample-insights.ts` corre el motor sobre los datos de ejemplo en el build; si cambia una frase del motor, cambia la portada.
+- **Demo viva** (`landing-demo.tsx`): cuatro estados (pegar → qué significa → cómo se calculó → informe), avanza cada 6 s, se pausa con cursor, foco, fuera de vista o pestaña oculta; con movimiento reducido no arranca. Cascada de entrada y revelado por bloque solo en CSS (`animation-timeline: view()` donde existe).
+- **La app pasa a `/app`.** `/app#ejemplo` carga los datos de ejemplo y abre Explorar (sin dejar `#ejemplo` en el historial). Los enlaces viejos `/#datos|explorar|analizar|informe` redirigen a `/app#…`. «Seguir con tu último análisis» aparece si el navegador guarda datos. `vercel.json` gana `cleanUrls` para servir `out/app.html` en `/app`.
+- «Ver cómo se calculó» pasa a objetivo de 44 px con chevron propio (también en la app).
+- Verificación: 461 tests, tipos, lint y `pnpm build` en verde; capturas a 1440×900 y 390×844 en claro y oscuro, `auditoria-visual.js` sin avisos (contraste, objetivos, recortes, subrayados), sin desborde horizontal, demo con hueco máximo de 45 % y comprobada con movimiento reducido. Sin probar: Firefox y WebKit, y `cleanUrls` en Vercel (no se desplegó).
 
 ### F1 · qué quedó
 
@@ -125,7 +134,7 @@ Cambios de texto/estructura declarados: desaparece el eyebrow duplicado «Paso N
 En el repo:
 
 ```bash
-pnpm check     # lint + format:check + typecheck + test (420 tests)
+pnpm check     # lint + format:check + typecheck + test (461 tests)
 pnpm build     # export estático a out/
 pnpm dev --port 3101
 ```
