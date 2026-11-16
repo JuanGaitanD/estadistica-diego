@@ -117,7 +117,8 @@ export function Workspace() {
     const current = window.location.hash.slice(1);
     if (current === target) return;
     // `#ejemplo` no queda en el historial: Atrás no vuelve a cargar los datos.
-    if (current === "ejemplo" || current === "guiado")
+    // Sin hash (primera visita), tampoco: Atrás vuelve directo a la portada.
+    if (current === "" || current === "ejemplo" || current === "guiado")
       window.history.replaceState(null, "", `#${target}`);
     else window.history.pushState(null, "", `#${target}`);
   }, [zone]);
