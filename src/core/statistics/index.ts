@@ -107,6 +107,10 @@ export type { VariableAnalysisInput } from "./run-variable-analysis";
 
 export {
   clipStepRows,
+  describeShape,
+  groupingStep,
+  locateValue,
+  SHAPE_MIN_N,
   interpretCategorical,
   interpretContingency,
   ASSOCIATION_GAP,
@@ -119,4 +123,4 @@ export {
   SMALL_SAMPLE,
   STEP_TABLE_MAX_ROWS,
 } from "./interpretation";
-export type { CategoryCount } from "./interpretation";
+export type { CategoryCount, LocatedValue } from "./interpretation";
