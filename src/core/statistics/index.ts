@@ -93,3 +93,17 @@ export {
   DISTINCT_VALUES_THRESHOLD,
 } from "./run-variable-analysis";
 export type { VariableAnalysisInput } from "./run-variable-analysis";
+
+export {
+  clipStepRows,
+  interpretCategorical,
+  interpretQuantitative,
+  quantitativeSteps,
+  formatCount,
+  formatShare,
+  formatValue,
+  narrativeDecimals,
+  SMALL_SAMPLE,
+  STEP_TABLE_MAX_ROWS,
+} from "./interpretation";
+export type { CategoryCount } from "./interpretation";
