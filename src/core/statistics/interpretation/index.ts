@@ -15,3 +15,11 @@ export { ASSOCIATION_GAP, contingencySteps, interpretContingency } from "./descr
 export { formatCount, formatShare, formatValue, narrativeDecimals } from "./text";
 export { locateValue } from "./locate-value";
 export type { LocatedValue } from "./locate-value";
+export {
+  ALPHA,
+  correlationStrength,
+  interpretCorrelation,
+  interpretPrediction,
+  interpretRegression,
+  regressionSteps,
+} from "./describe-regression";

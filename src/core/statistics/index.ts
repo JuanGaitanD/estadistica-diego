@@ -95,6 +95,27 @@ export {
 } from "./shape";
 export type { BoxPlotSummary } from "./shape";
 
+export { lnGamma, regularizedBeta, tCdf, tQuantile, tTwoTailedP } from "./distributions";
+
+export {
+  averageRanks,
+  completePairs,
+  CONFIDENCE,
+  pearson,
+  predict,
+  REGRESSION_REASONS,
+  simpleRegression,
+  spearman,
+} from "./regression";
+export type {
+  Correlation,
+  Interval,
+  Prediction,
+  RegressionFailure,
+  RegressionRow,
+  SimpleRegression,
+} from "./regression";
+
 export { computeContingencyTable } from "./contingency";
 export type { ContingencyParams } from "./contingency";
 
@@ -107,8 +128,14 @@ export type { VariableAnalysisInput } from "./run-variable-analysis";
 
 export {
   categoricalSteps,
+  ALPHA,
   clipStepRows,
   contingencySteps,
+  correlationStrength,
+  interpretCorrelation,
+  interpretPrediction,
+  interpretRegression,
+  regressionSteps,
   describeShape,
   groupingStep,
   locateValue,
