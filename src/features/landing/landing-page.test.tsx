@@ -17,7 +17,7 @@ describe("LandingPage", () => {
         .every((link) => link.getAttribute("href") === "/app#ejemplo"),
     ).toBe(true);
     expect(screen.getAllByText(/El valor típico es 3,74/).length).toBeGreaterThan(0);
-    expect(screen.getAllByText("En construcción").length).toBeGreaterThan(0);
+    expect(screen.queryByText("En construcción")).toBeNull();
     expect(screen.getByRole("button", { name: /demostración/ })).toBeTruthy();
   });
 });

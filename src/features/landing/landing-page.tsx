@@ -59,8 +59,8 @@ const MODULES: readonly { name: string; detail: string; ready: boolean }[] = [
   },
   {
     name: "Regresión múltiple y logística",
-    detail: "Varias variables a la vez y resultados de sí o no",
-    ready: false,
+    detail: "Varias variables a la vez, curvas y resultados de sí o no",
+    ready: true,
   },
 ];
 
