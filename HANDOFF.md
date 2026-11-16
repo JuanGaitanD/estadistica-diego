@@ -2,6 +2,27 @@
 
 Estado del trabajo de diseño. Última actualización: 2026-11-12 (ronda 3: CSP sin `eval`, PNG oscuro, «Cerrar», decimal «Automático» y `public/` limpio).
 
+## Plataforma (desde 2026-11-16): de calculadora descriptiva a «estadística que se entiende»
+
+Plan aprobado por Juan el 2026-11-16: `docs/09-plan-plataforma.md` (alcance M0–M9, matriz, fases F0–F7, 105 h con margen). Requisitos ampliados en `docs/01-requisitos.md` §7 (RF-37 a RF-56). Rama: `feat/plataforma-interpretacion` (sin push).
+
+**Principio rector (Juan):** la interpretación va primero, en llano y con la conclusión práctica; el paso a paso queda oculto detrás de «Ver cómo se calculó». Decisión técnica en `docs/03-adr/ADR-004-interpretacion-primero.md`.
+
+| Fase                                            | Estado                   |
+| ----------------------------------------------- | ------------------------ |
+| F0 · Cimientos                                  | **Cerrada** (2026-11-16) |
+| F1 · Nuevo flujo (espacio de trabajo e informe) | Siguiente                |
+| F2–F7                                           | Pendientes               |
+
+### F0 · qué quedó
+
+- **Contrato del motor:** todo `VariableAnalysisResult` trae `interpretation` (`headline`, `details`, `caveats`) y `steps` (paso a paso con tabla de trabajo y fórmula de Excel). Reglas en `src/core/statistics/interpretation/` con umbrales declarados (sesgo 0,1 desviaciones; CV 15 % / 30 %; n < 10).
+- **Pantalla:** cada variable abre con «Qué significa» y botón Copiar; «Ver cómo se calculó» (un `<details>` nativo) muestra ordenar, media, mediana y desviación con los números de la persona. La tarjeta «Resumen» pasó a llamarse «Las cifras».
+- **Exportar:** gráficas → Copiar (imagen), PNG y SVG; tablas de frecuencias, posición y variabilidad → Copiar (texto tabulado). El PDF pone «Qué significa: <variable>» antes de las cifras.
+- **Arreglos del pendiente:** PDF comprimido (prueba: PNG de 600×600 pasa de 1,08 MB a < 100 KB); el PNG ya no incluye el botón de descarga (`data-export-ignore`); «regla: sturges» → «regla de Sturges»; `wigi.json` creado.
+- **Ojo de rendimiento:** el paso a paso solo formatea las filas que muestra (30); la primera versión recalculaba decimales por celda (O(n²)) y bloqueaba la suite. El arreglo quedó dentro del commit `feat(ui)` de F0.
+- Verificación: 443 tests, `tsc`, `eslint` y prettier en verde; revisado a mano en `pnpm dev` con los datos de ejemplo.
+
 ## Pendiente: StatLab hay que terminarlo y mejorarlo
 
 Juan pidió que este pendiente **se quede anotado**. La ronda 3 cerró lo marcado «cerrado» más abajo; lo demás sigue abierto.
@@ -24,13 +45,13 @@ Juan pidió que este pendiente **se quede anotado**. La ronda 3 cerró lo marcad
 
 **De origen (ya estaban antes del rediseño; siguen abiertos)**
 
-- El PDF pesa unos 40 MB (gráficas rasteradas).
+- ~~El PDF pesa unos 40 MB~~: cerrado en F0 (compresión).
 - Con decimal «Automático», una columna en la que **todas** las celdas con decimales tienen exactamente tres cifras (`2.500`, `3.750`, `4.125`) sigue leyéndose como miles (2500, 3750, 4125) y avisa: sin otra celda que pruebe el separador no hay forma segura de decidir. Se arregla eligiendo «Punto decimal» o «Coma decimal».
 - Las tarjetas de métrica tienen más del 60 % vacío.
 - El esqueleto de carga parpadea aunque se pida movimiento reducido.
 - En `notas.xlsx`, elegir «Otra hoja» no cambia la vista previa.
-- No hay `wigi.json`: el repo no lo tiene y no se creó.
-- El PNG exportado incluye dentro de la imagen el enlace «Descargar PNG». Se arregla excluyéndolo con la opción `filter` de `html-to-image`; no se hizo en la ronda 3 para que el PNG en claro siguiera idéntico byte a byte.
+- ~~No hay `wigi.json`~~: creado en F0.
+- ~~El PNG exportado incluye dentro de la imagen el enlace «Descargar PNG»~~ (cerrado en F0). Se arregla excluyéndolo con la opción `filter` de `html-to-image`; no se hizo en la ronda 3 para que el PNG en claro siguiera idéntico byte a byte.
 - **Revisión de la ronda 3, para decidir:** con decimal «Automático», una sola celda que use el punto como decimal (`1.5`) hace que las celdas de tres cifras de la misma columna (`1.500`, `2.000`) se lean como decimales (1,5 y 2) **sin aviso**; antes eran 1500 y 2000 con aviso. Solo afecta a columnas que mezclan las dos convenciones. Mejora posible: un aviso informativo cuando la columna decide una celda dudosa. Además, celdas con varios puntos (`1.234.567`, cédulas con puntos) ahora son números y no texto, de modo que una columna de identificadores así pasa de categórica a cuantitativa.
 
 ## Ronda 3 (2026-11-12)
