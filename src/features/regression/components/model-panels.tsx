@@ -16,6 +16,7 @@ import {
   compareDegrees,
   confusionMatrix,
   formatCount,
+  formatOdds,
   formatP,
   formatValue,
   interpretLogistic,
@@ -42,6 +43,8 @@ const RESIDUAL_ID = "chart-modelo-residuos";
 
 interface TextTable {
   readonly title: string;
+  /** Qué contiene la tabla (se lee bajo el título). */
+  readonly caption: string;
   readonly columns: readonly string[];
   readonly rows: readonly (readonly string[])[];
 }
@@ -69,7 +72,7 @@ function TableCard({ table }: { table: TextTable }) {
           format: (row: readonly string[]) => row[index] ?? "",
         }))}
         rows={[...table.rows]}
-        caption={table.title}
+        caption={table.caption}
         getRowKey={(row) => row[0] ?? ""}
       />
     </SectionCard>
@@ -205,8 +208,8 @@ function curvePoints(min: number, max: number, at: (x: number) => number) {
 export function MultipleRegressionPanel({ columns }: { columns: readonly ModelColumn[] }) {
   const numeric = columns.filter((c) => c.quantitative);
   const [mode, setMode] = useState<"varias" | "curva">("varias");
-  const [yId, setYId] = useState(numeric[numeric.length - 1]?.id ?? "");
-  const [xId, setXId] = useState(numeric[0]?.id ?? "");
+  const [yId, setYId] = useState(numeric[0]?.id ?? "");
+  const [xId, setXId] = useState(numeric[1]?.id ?? "");
   const [degreeText, setDegreeText] = useState("2");
   const others = columns.filter((c) => c.id !== yId);
   const [chosen, setChosen] = useState<string[] | null>(null);
@@ -254,6 +257,8 @@ export function MultipleRegressionPanel({ columns }: { columns: readonly ModelCo
           : `${target.name} según ${used.map((c) => c.name).join(", ")}`;
       const coefficients: TextTable = {
         title: "Coeficientes",
+        caption:
+          "Cada término con su error estándar, su valor p y su intervalo de confianza del 95 %",
         columns: ["Término", "Coeficiente", "Error estándar", "Valor p", "IC 95 %"],
         rows: model.coefficients.map((c) => [
           c.name,
@@ -436,17 +441,20 @@ export function LogisticPanel({ columns }: { columns: readonly ModelColumn[] }) 
       const interpretation = { ...base, caveats };
       const odds: TextTable = {
         title: "Razones de momios",
+        caption:
+          "Por cuánto multiplica cada variable los momios de «sí»; la intersección no se lee así",
         columns: ["Término", "b", "e^b (momios)", "Valor p", "IC 95 % de e^b"],
-        rows: model.coefficients.map((c) => [
+        rows: model.coefficients.map((c, j) => [
           c.name,
           formatValue(c.estimate, 4),
-          formatValue(c.oddsRatio, 3),
+          j === 0 ? "—" : formatOdds(c.oddsRatio),
           formatP(c.p),
-          `${formatValue(c.lower, 3)} a ${formatValue(c.upper, 3)}`,
+          j === 0 ? "—" : `${formatOdds(c.lower)} a ${formatOdds(c.upper)}`,
         ]),
       };
       const matrix: TextTable = {
         title: "Matriz de confusión",
+        caption: "Casos reales (filas) contra lo que predice el modelo (columnas)",
         columns: ["", `Predicho «${yesLabel}»`, "Predicho otro"],
         rows: [
           [

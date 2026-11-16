@@ -17,8 +17,9 @@ const columns = [
 
 describe("MultipleRegressionPanel", () => {
   it("ajusta Nota con Horas y Edad y explica cada coeficiente", () => {
-    render(<MultipleRegressionPanel columns={columns.filter((c) => c.id !== "aprueba")} />);
-    expect(screen.getByText(/Juntas, Horas, Edad explican el/)).toBeTruthy();
+    const ordered = [columns[3]!, columns[0]!, columns[1]!];
+    render(<MultipleRegressionPanel columns={ordered} />);
+    expect(screen.getByText(/Juntas, Horas y Edad explican el/)).toBeTruthy();
     expect(
       screen.getByText(/Manteniendo lo demás constante, cada unidad más de Horas sube Nota/),
     ).toBeTruthy();
