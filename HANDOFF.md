@@ -4,15 +4,28 @@ Estado del trabajo de diseño. Última actualización: 2026-11-12 (ronda 3: CSP 
 
 ## Plataforma (desde 2026-11-16): de calculadora descriptiva a «estadística que se entiende»
 
-Plan aprobado por Juan el 2026-11-16: `docs/09-plan-plataforma.md` (alcance M0–M9, matriz, fases F0–F7, 105 h con margen). Requisitos ampliados en `docs/01-requisitos.md` §7 (RF-37 a RF-56). Rama: `feat/plataforma-interpretacion` (sin push).
+Plan aprobado por Juan el 2026-11-16: `docs/09-plan-plataforma.md` (alcance M0–M9, matriz, fases F0–F7, 112,5 h con margen tras sumar FL). Requisitos ampliados en `docs/01-requisitos.md` §7 (RF-37 a RF-56). Rama: `feat/plataforma-interpretacion` (sin push). Nota: el commit `08914a6` (`chore(config)`) arrastró por error el reformateo de prettier de `docs/09`; no se reescribió la historia.
 
 **Principio rector (Juan):** la interpretación va primero, en llano y con la conclusión práctica; el paso a paso queda oculto detrás de «Ver cómo se calculó». Decisión técnica en `docs/03-adr/ADR-004-interpretacion-primero.md`.
 
-| Fase                                            | Estado                   |
-| ----------------------------------------------- | ------------------------ |
-| F0 · Cimientos                                  | **Cerrada** (2026-11-16) |
-| F1 · Nuevo flujo (espacio de trabajo e informe) | Siguiente                |
-| F2–F7                                           | Pendientes               |
+| Fase                                                                   | Estado                   |
+| ---------------------------------------------------------------------- | ------------------------ |
+| F0 · Cimientos                                                         | **Cerrada** (2026-11-16) |
+| F1 · Nuevo flujo (espacio de trabajo e informe)                        | **Cerrada** (2026-11-16) |
+| FL · Landing en `/` y la app en `/app` (pedida por Juan el 2026-11-16) | Siguiente                |
+| F2–F7                                                                  | Pendientes               |
+
+### F1 · qué quedó
+
+- **Espacio de trabajo** (`src/features/wizard/workspace.tsx`, antes `wizard.tsx`): zonas Datos, Explorar, Analizar e Informe con pestañas de cuaderno (`components/layout/zone-nav.tsx`). La zona vive en el hash (`#explorar`); sin datos válidos, Explorar y Analizar explican qué falta. Diseño con la skill `disenojg` (commit `24fa6b7`, 2026-11-12), sobre el sistema «cuaderno de laboratorio» vigente.
+- **Datos:** carga, hoja editable (`model/grid.ts`, hasta 1.000 filas, pegado desde Excel; pasa por el mismo lector que el texto pegado) y tipos en la misma pantalla; «Ver qué dicen tus datos» lleva a Explorar.
+- **Explorar:** la selección habitual se aplica sola al cargar y se rehace al cambiar tipos mientras la persona no la ajuste (`calculationCustomized`); «Elegir qué se calcula» se abre en línea. El cruce de dos variables trae su interpretación (`interpretContingency`).
+- **Informe acumulativo** (`src/features/report`): «Añadir al informe» por variable, por cruce o «Añadir todo»; cada resultado es una copia fija (interpretación, pasos, tablas como texto e imágenes de las gráficas). Se ordena, se anota y se exporta a PDF (interpretación primero; el paso a paso solo si se marca), Excel (hoja «Qué significa» y cifras como números) o texto. Se guarda en el navegador; si no cabe, sin imágenes y con aviso.
+- **Proyecto `.statlab.json`:** guardar y abrir datos, tipos, cálculos e informe; se valida entero al abrir.
+- **Retirado:** el diálogo de PDF por secciones y su selección (`export-dialog`, `build-report-spec`, `export-selection`, `report-sections`): lo sustituye el informe.
+- **Analizar:** preguntas en llano; solo «¿Cómo son mis datos?» está activa; las demás dicen «Llega en una próxima versión» hasta F3–F5.
+- Añadir una variable con tres gráficas tarda unos segundos (captura a pixelRatio 2, ~400 KB en localStorage); el botón muestra la carga.
+- Verificación: 459 tests, tipos, lint y `pnpm build` en verde; recorrido en `pnpm dev` a 1366 y 390 px (sin desborde).
 
 ### F0 · qué quedó
 
