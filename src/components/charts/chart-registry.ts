@@ -1,15 +1,4 @@
-import type { ComponentType } from "react";
-
 import type { VariableKind } from "@/core/statistics";
-
-import type { BarChartProps } from "./bar-chart";
-import { BarChart } from "./bar-chart";
-import type { FrequencyPolygonProps } from "./frequency-polygon";
-import { FrequencyPolygon } from "./frequency-polygon";
-import type { OgiveProps } from "./ogive";
-import { Ogive } from "./ogive";
-import type { PieChartProps } from "./pie-chart";
-import { PieChart } from "./pie-chart";
 
 /**
  * Nota de tipos: el core no exporta un `VariableKind` distinto para
@@ -17,34 +6,47 @@ import { PieChart } from "./pie-chart";
  * `src/core/statistics/types.ts` ("nominal" | "ordinal" | "discreta" | "continua"),
  * que es el mismo usado en `src/core/data`.
  */
-export type ChartKind = "pie" | "bar" | "polygon" | "ogive";
+export type ChartKind = "pie" | "bar" | "pareto" | "box" | "polygon" | "ogive";
+
+/** Todos los tipos de gráfica, en el orden en que se ofrecen. */
+export const CHART_KINDS: readonly ChartKind[] = [
+  "pie",
+  "bar",
+  "pareto",
+  "box",
+  "polygon",
+  "ogive",
+];
 
 interface ChartRegistryEntry {
-  readonly component: ComponentType<
-    PieChartProps | BarChartProps | FrequencyPolygonProps | OgiveProps
-  >;
   readonly label: string;
   readonly description: string;
 }
 
 export const CHART_REGISTRY: Record<ChartKind, ChartRegistryEntry> = {
   pie: {
-    component: PieChart as ChartRegistryEntry["component"],
     label: "Gráfico circular",
     description: "Reparte un círculo según la participación de cada categoría.",
   },
   bar: {
-    component: BarChart as ChartRegistryEntry["component"],
-    label: "Gráfico de barras",
-    description: "Compara la frecuencia de cada categoría o clase entre sí.",
+    label: "Barras o histograma",
+    description:
+      "Compara la frecuencia de cada categoría; con clases es un histograma de barras pegadas.",
+  },
+  pareto: {
+    label: "Diagrama de Pareto",
+    description:
+      "Ordena las categorías de la más a la menos frecuente y acumula el porcentaje: muestra qué pocas reúnen la mayoría.",
+  },
+  box: {
+    label: "Caja y bigotes",
+    description: "Muestra la mitad central de los datos, la mediana, el recorrido y los atípicos.",
   },
   polygon: {
-    component: FrequencyPolygon as ChartRegistryEntry["component"],
     label: "Polígono de frecuencias",
     description: "Une las marcas de clase para mostrar la forma de la distribución.",
   },
   ogive: {
-    component: Ogive as ChartRegistryEntry["component"],
     label: "Ojiva",
     description:
       "Muestra la frecuencia acumulada para leer cuántos datos hay por debajo de un valor.",
@@ -82,6 +84,21 @@ export function appliesTo(
         };
       }
       return { ok: true };
+    }
+    case "pareto": {
+      if (variableKind === "nominal") return { ok: true };
+      return {
+        ok: false,
+        reason:
+          "El diagrama de Pareto reordena las categorías por frecuencia: aplica a variables nominales, donde no hay un orden propio.",
+      };
+    }
+    case "box": {
+      if (variableKind === "discreta" || variableKind === "continua") return { ok: true };
+      return {
+        ok: false,
+        reason: "El diagrama de caja necesita números: aplica a variables cuantitativas.",
+      };
     }
     case "polygon": {
       if (variableKind === "nominal") {

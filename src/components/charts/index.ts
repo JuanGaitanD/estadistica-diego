@@ -4,6 +4,8 @@ export * from "./pie-chart";
 export * from "./bar-chart";
 export * from "./frequency-polygon";
 export * from "./ogive";
+export * from "./box-plot";
+export * from "./pareto-chart";
 export * from "./contingency-heatmap";
 export * from "./chart-registry";
 export * from "./chart-thumbnail";

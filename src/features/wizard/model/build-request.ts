@@ -2,7 +2,7 @@
  * Traduce la selección del asistente en un `AnalysisRequest` del módulo de
  * análisis. Función pura: misma selección, misma petición.
  */
-import type { ChartKind } from "@/components/charts";
+import { CHART_REGISTRY, type ChartKind } from "@/components/charts";
 import type { AnalysisChartSpec, AnalysisRequest, ChartType } from "@/features/analysis";
 
 import type { CalculationSelection, ColumnConfig, WizardState } from "./types";
@@ -21,19 +21,16 @@ function chartTypeOf(kind: ChartKind, grouped: boolean): ChartType {
   if (kind === "pie") return "pie";
   if (kind === "bar") return grouped ? "histograma" : "barras";
   if (kind === "polygon") return "poligono";
+  if (kind === "pareto") return "pareto";
+  if (kind === "box") return "caja";
   return "ojiva";
 }
-
-const CHART_CAPTIONS: Readonly<Record<ChartKind, string>> = {
-  pie: "Reparte un círculo según la participación de cada categoría.",
-  bar: "Compara la frecuencia de cada categoría o clase entre sí.",
-  polygon: "Une las marcas de clase para mostrar la forma de la distribución.",
-  ogive: "Muestra la frecuencia acumulada para leer cuántos datos hay por debajo de un valor.",
-};
 
 const CHART_TITLES: Readonly<Record<ChartKind, string>> = {
   pie: "Gráfico circular",
   bar: "Gráfico de barras",
+  pareto: "Diagrama de Pareto",
+  box: "Diagrama de caja",
   polygon: "Polígono de frecuencias",
   ogive: "Ojiva",
 };
@@ -60,12 +57,12 @@ export function buildChartSpecs(state: WizardState): AnalysisChartSpec[] {
       specs.push({
         id: chartElementId(column.id, kind),
         type: chartTypeOf(kind, grouped),
-        title: `${CHART_TITLES[kind]} de ${column.name}`,
+        title: `${kind === "bar" && grouped ? "Histograma" : CHART_TITLES[kind]} de ${column.name}`,
         variableId: column.id,
         source: kind === "ogive" ? "frecuencia-acumulada" : "frecuencia",
         labels: { showValue: true, showPercent: true, showCategory: true },
         paletteKey: column.id,
-        caption: CHART_CAPTIONS[kind],
+        caption: CHART_REGISTRY[kind].description,
       });
     }
   }

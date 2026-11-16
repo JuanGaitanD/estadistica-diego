@@ -5,9 +5,11 @@ import { useEffect, useMemo, useState } from "react";
 
 import {
   BarChart,
+  BoxPlot,
   ContingencyHeatmap,
   FrequencyPolygon,
   Ogive,
+  ParetoChart,
   PieChart,
   type ChartKind,
 } from "@/components/charts";
@@ -50,6 +52,8 @@ import { StepCalculations } from "./step-calculations";
 const CHART_TITLE: Readonly<Record<ChartKind, string>> = {
   bar: "Diagrama de barras",
   pie: "Diagrama circular",
+  pareto: "Diagrama de Pareto",
+  box: "Diagrama de caja y bigotes",
   polygon: "Polígono de frecuencias",
   ogive: "Ojiva",
 };
@@ -64,7 +68,8 @@ function chartFor(
   const actions = <ChartDownloadButton elementId={elementId} filename={`${elementId}.png`} />;
   // El título dice qué gráfica es: en una página con varias por variable,
   // repetir solo el nombre de la variable no distingue nada.
-  const common = { title: `${CHART_TITLE[kind]} · ${variable.variableName}`, actions } as const;
+  const name = kind === "bar" && grouped !== undefined ? "Histograma" : CHART_TITLE[kind];
+  const common = { title: `${name} · ${variable.variableName}`, actions } as const;
 
   if (kind === "pie") {
     // Con la variable agrupada, la tarta se dibuja sobre las clases.
@@ -76,6 +81,17 @@ function chartFor(
     const data = grouped ?? table;
     if (data === undefined) return null;
     return <BarChart key={elementId} data={data} {...common} />;
+  }
+  if (kind === "pareto") {
+    if (table === undefined) return null;
+    return <ParetoChart key={elementId} data={table} {...common} />;
+  }
+  if (kind === "box") {
+    const summary = variable.analysis.box;
+    if (summary === undefined) return null;
+    return (
+      <BoxPlot key={elementId} variableId={variable.variableId} summary={summary} {...common} />
+    );
   }
   if (grouped === undefined) return null;
   if (kind === "polygon") {

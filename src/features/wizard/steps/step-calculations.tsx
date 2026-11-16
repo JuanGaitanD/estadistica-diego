@@ -2,7 +2,7 @@
 
 /** Paso 3: "¿Qué cálculos y gráficas necesitas?" (RF-13 a RF-25). */
 import { StepHeader } from "@/components/layout/step-header";
-import { appliesTo, CHART_REGISTRY, CHART_THUMBNAILS, type ChartKind } from "@/components/charts";
+import { appliesTo, CHART_KINDS, CHART_REGISTRY, CHART_THUMBNAILS } from "@/components/charts";
 import { OptionCard } from "@/components/shared/option-card";
 import { SectionCard } from "@/components/shared/section-card";
 import { Button } from "@/components/ui/button";
@@ -26,8 +26,6 @@ interface OptionState {
   readonly disabled: boolean;
   readonly reason: string;
 }
-
-const CHART_KINDS: readonly ChartKind[] = ["pie", "bar", "polygon", "ogive"];
 
 const RULE_LABELS: Readonly<Record<ClassRuleChoice, string>> = {
   sturges: "Sturges (K = techo de 1 + log2 n)",

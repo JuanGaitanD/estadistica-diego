@@ -1,6 +1,7 @@
 import "@/lib/zod-config";
 import { z } from "zod";
 
+import { CHART_KINDS } from "@/components/charts";
 import type { Dataset } from "@/core/data";
 
 import { DEFAULT_CALCULATION, type CalculationSelection, type ColumnConfig } from "./types";
@@ -55,7 +56,7 @@ function mergeCalculation(raw: Record<string, unknown>): CalculationSelection {
             id,
             Array.isArray(kinds)
               ? kinds.filter((entry) =>
-                  ["pie", "bar", "polygon", "ogive"].includes(entry as string),
+                  (CHART_KINDS as readonly string[]).includes(entry as string),
                 )
               : [],
           ]),

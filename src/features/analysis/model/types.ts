@@ -46,7 +46,8 @@ export interface CentralTendencyRequestOptions extends CentralTendencyOptions {
 }
 
 /** Tipos de gráfica ofrecidos (RF-25). */
-export type ChartType = "pie" | "barras" | "histograma" | "poligono" | "ojiva" | "contingencia";
+export type ChartType =
+  "pie" | "barras" | "histograma" | "pareto" | "caja" | "poligono" | "ojiva" | "contingencia";
 
 /**
  * Especificación de una gráfica elegida por la persona usuaria. El módulo de
@@ -172,6 +173,8 @@ export interface AnalyzedVariable {
   /** Petición efectiva tras aplicar la matriz de aplicabilidad. */
   readonly request: VariableAnalysisRequest;
   readonly analysis: VariableAnalysisResult;
+  /** Datos válidos ordenados (solo cuantitativas), para ubicar un valor. */
+  readonly sortedValues?: readonly number[];
   readonly applicability: ApplicabilityMap;
   readonly unavailable: readonly UnavailableCalculation[];
 }

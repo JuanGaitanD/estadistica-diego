@@ -27,6 +27,7 @@ import {
   computeContingencyTable,
   interpretContingency,
   runVariableAnalysis,
+  sortAscending,
   type CentralTendencyOptions,
   type FrequencyRow,
   type ObservedValue,
@@ -377,6 +378,13 @@ export function runAnalysis(
       grouped: analysis.groupedFrequency !== undefined,
       request: effective.request,
       analysis,
+      ...(kind === "discreta" || kind === "continua"
+        ? {
+            sortedValues: sortAscending(
+              values.filter((value): value is number => typeof value === "number"),
+            ),
+          }
+        : {}),
       applicability,
       unavailable: effective.unavailable,
     });
