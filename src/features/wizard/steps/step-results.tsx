@@ -33,7 +33,6 @@ import {
   VariableResults,
 } from "@/features/analysis";
 import type { AnalysisResult, AnalyzedVariable } from "@/features/analysis";
-import { interpretationToText } from "@/components/shared/interpretation-panel";
 import { ChartDownloadButton, CopyButton, ExportToolbar } from "@/features/export";
 import type { FrequencyTableResult } from "@/core/statistics";
 
@@ -224,12 +223,7 @@ export function StepResults() {
               >
                 <VariableResults
                   variable={variable}
-                  interpretationActions={
-                    <CopyButton
-                      what="la interpretación"
-                      getText={() => interpretationToText(variable.analysis.interpretation)}
-                    />
-                  }
+                  copyAction={(what, getText) => <CopyButton what={what} getText={getText} />}
                 />
                 {kinds.length > 0 ? (
                   <div className="flex flex-col gap-6">

@@ -9,6 +9,8 @@ export interface InterpretationPanelProps {
   steps?: readonly CalculationStep[];
   /** Título visible del bloque. */
   title?: string;
+  /** De qué es la interpretación (variable, prueba); distingue el nombre accesible. */
+  name?: string;
   /** Acciones (copiar, añadir al informe…), a la derecha del título. */
   actions?: ReactNode;
   className?: string;
@@ -27,13 +29,14 @@ export function InterpretationPanel({
   interpretation,
   steps = [],
   title = "Qué significa",
+  name,
   actions,
   className,
 }: InterpretationPanelProps) {
   return (
     <section
       className={cn("sl-surface border-l-primary border-l-4 p-5 sm:p-6", className)}
-      aria-label={title}
+      aria-label={name ? `${title}: ${name}` : title}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <p className="sl-label pt-1">{title}</p>

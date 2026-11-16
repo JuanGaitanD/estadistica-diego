@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 
-import { DataTable, type DataTableColumn } from "@/components/tables/data-table";
+import { DataTable, dataTableText, type DataTableColumn } from "@/components/tables/data-table";
 
 interface Row {
   categoria: string;
@@ -54,5 +54,18 @@ describe("DataTable", () => {
     );
     const highlighted = screen.getByText("20");
     expect(highlighted).toHaveClass("bg-heat-5");
+  });
+});
+
+describe("dataTableText", () => {
+  it("devuelve cabeceras y celdas como se ven, sin marcado", () => {
+    const text = dataTableText<{ name: string; n: number }>(
+      [
+        { key: "name", label: "Valor", format: (row) => <strong>{row.name}</strong> },
+        { key: "n", label: "fi" },
+      ],
+      [{ name: "Bogotá", n: 10 }],
+    );
+    expect(text).toEqual({ columns: ["Valor", "fi"], rows: [["Bogotá", "10"]] });
   });
 });
