@@ -80,7 +80,7 @@ export function Field({
     <div className="flex min-w-0 flex-col gap-1.5">
       <Label htmlFor={id}>{label}</Label>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger id={id}>
+        <SelectTrigger id={id} className="w-full">
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>

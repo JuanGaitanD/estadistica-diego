@@ -90,7 +90,7 @@ function groupValues(numeric: AnalysisColumn, group: AnalysisColumn, label: stri
 function tukeyTable(result: AnovaTest) {
   return {
     title: "Comparaciones de a pares (Tukey)",
-    columns: ["Pareja", "Diferencia", "Valor p", "¿Diferencia clara?"],
+    columns: ["Pareja", "Diferencia", "Valor p", "¿Es clara?"],
     rows: result.tukey.map((pair) => [
       `«${pair.b}» − «${pair.a}»`,
       formatValue(pair.difference, 3),
