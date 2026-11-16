@@ -33,7 +33,7 @@
   },
   "git": {
     "ramaProduccion": "main",
-    "ambitosCommit": ["core", "data", "ui", "export", "plan", "handoff", "next", "deps", "ci", "docs"],
+    "ambitosCommit": ["core", "data", "ui", "export", "plan", "handoff", "config", "next", "deps", "ci", "docs"],
     "hooks": "ninguno",
     "proveedor": "github"
   },
