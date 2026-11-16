@@ -15,6 +15,7 @@ import { ReportView, useReportStore } from "@/features/report";
 
 import { GuidedBar } from "./guided/guided-bar";
 import { useGuidedStore } from "./guided/guided-store";
+import { SAMPLE_DATA_NAME } from "./model/sample-dataset";
 import { ZONES, type Zone } from "./model/types";
 import { AnalyzeHub } from "./steps/analyze-hub";
 import { ProjectActions } from "./steps/project-actions";
@@ -74,6 +75,7 @@ export function Workspace() {
   const detectStoredDataset = useWizardStore((state) => state.detectStoredDataset);
   const recoverLastDataset = useWizardStore((state) => state.recoverLastDataset);
   const dataset = useWizardStore((state) => state.dataset);
+  const sourceName = useWizardStore((state) => state.sourceName);
   const reportCount = useReportStore((state) => state.items.length);
   const guidedActive = useGuidedStore((state) => state.active);
   const startGuided = useGuidedStore((state) => state.start);
@@ -166,7 +168,9 @@ export function Workspace() {
 
         <GuidedBar />
 
-        {zone === "datos" && dataset === null && hasStoredDataset ? (
+        {zone === "datos" &&
+        (dataset === null || sourceName === SAMPLE_DATA_NAME) &&
+        hasStoredDataset ? (
           <div className="border-rule bg-muted/40 flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius)] border p-4">
             <p className="text-muted-foreground text-sm">
               Guardamos en este navegador los últimos datos que analizaste.
