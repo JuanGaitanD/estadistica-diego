@@ -16,7 +16,16 @@ Plan aprobado por Juan el 2026-11-16: `docs/09-plan-plataforma.md` (alcance M0�
 | F2 · Descriptiva completa y explicable                                 | **Cerrada** (2026-11-16) |
 | F3 · Regresión simple y correlación                                    | **Cerrada** (2026-11-16) |
 | F4 · Probabilidad e intervalos                                         | **Cerrada** (2026-11-16) |
-| F5–F7                                                                  | Pendientes (sigue F5)    |
+| F5 · Pruebas de hipótesis y selector                                   | **Cerrada** (2026-11-16) |
+| F6–F7                                                                  | Pendientes (sigue F6)    |
+
+### F5 · qué quedó
+
+- **Motor** (`src/core/statistics/inference/hypothesis-tests.ts`, `distributions/studentized-range.ts`): t de una muestra, t de Welch (Student como opción), t pareada, z de una y de dos proporciones, ANOVA de un factor con Tukey HSD (rango estudentizado con el algoritmo de `ptukey` de R) y chi-cuadrado de independencia. Probadas contra R con `sleep`, `PlantGrowth` y la tabla género-partido de Agresti. Todas de dos colas (F y χ² por la derecha).
+- **Guion de 5 pasos** en cada prueba (hipótesis en palabras y símbolos, α, estadístico con sustitución, valor p con su fórmula de Excel, decisión) y **tamaño del efecto** (d de Cohen, h de Cohen, η², V de Cramér) para separar «significativo» de «importante». Supuestos visibles: normalidad con n < 30 (sugiere Wilcoxon, Mann-Whitney o Kruskal-Wallis), varianzas muy distintas en ANOVA, esperados < 5 en chi-cuadrado (sugiere juntar categorías o Fisher), n·p₀ < 5 en proporciones.
+- **Pantalla** (`HypothesisPanel`, desde «¿Es real la diferencia entre grupos?» en Analizar): selector «Qué quieres saber» con seis preguntas en llano y la razón de la prueba; con dos grupos usa Welch y con tres o más ANOVA + Tukey automáticamente. Conclusión primero, curva con el valor p sombreado, tabla de Tukey y «Añadir al informe» con la tabla ANOVA, Tukey y la gráfica.
+- **No hecho:** pruebas de una cola, Wilcoxon/Mann-Whitney/Kruskal-Wallis y Fisher (solo se sugieren), chi-cuadrado dentro de las tablas cruzadas de Explorar (está en el panel), cajas por grupo.
+- Verificación: 557 tests, tipos, lint y `pnpm build` en verde; panel revisado a 1440 y 390 px sin desborde.
 
 ### F4 · qué quedó
 
@@ -165,7 +174,7 @@ Cambios de texto/estructura declarados: desaparece el eyebrow duplicado «Paso N
 En el repo:
 
 ```bash
-pnpm check     # lint + format:check + typecheck + test (543 tests)
+pnpm check     # lint + format:check + typecheck + test (557 tests)
 pnpm build     # export estático a out/
 pnpm dev --port 3101
 ```
