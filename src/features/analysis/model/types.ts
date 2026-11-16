@@ -11,8 +11,10 @@
  */
 import type { MissingPolicy, VariableKind } from "@/core/data";
 import type {
+  CalculationStep,
   CentralTendencyOptions,
   ContingencyResult,
+  Interpretation,
   FrequencyOptions,
   GroupingOptions,
   PositionOptions,
@@ -45,7 +47,8 @@ export interface CentralTendencyRequestOptions extends CentralTendencyOptions {
 }
 
 /** Tipos de gráfica ofrecidos (RF-25). */
-export type ChartType = "pie" | "barras" | "histograma" | "poligono" | "ojiva" | "contingencia";
+export type ChartType =
+  "pie" | "barras" | "histograma" | "pareto" | "caja" | "poligono" | "ojiva" | "contingencia";
 
 /**
  * Especificación de una gráfica elegida por la persona usuaria. El módulo de
@@ -171,6 +174,8 @@ export interface AnalyzedVariable {
   /** Petición efectiva tras aplicar la matriz de aplicabilidad. */
   readonly request: VariableAnalysisRequest;
   readonly analysis: VariableAnalysisResult;
+  /** Datos válidos ordenados (solo cuantitativas), para ubicar un valor. */
+  readonly sortedValues?: readonly number[];
   readonly applicability: ApplicabilityMap;
   readonly unavailable: readonly UnavailableCalculation[];
 }
@@ -182,6 +187,10 @@ export interface AnalyzedContingency {
   readonly columnVariableName: string;
   readonly table: ContingencyResult | null;
   readonly unavailableReason?: string;
+  /** Qué dice el cruce, en llano (RF-37). Solo si hay tabla. */
+  readonly interpretation?: Interpretation;
+  /** Cómo se calculó el cruce (RF-39). Solo si hay tabla. */
+  readonly steps?: readonly CalculationStep[];
 }
 
 /** Resultado completo del análisis. */
@@ -203,6 +212,12 @@ export interface ResultSection {
   readonly id: string;
   readonly title: string;
   readonly kind:
-    "resumen" | "frecuencias" | "tendencia-central" | "posicion" | "variabilidad" | "contingencia";
+    | "resumen"
+    | "frecuencias"
+    | "tendencia-central"
+    | "posicion"
+    | "variabilidad"
+    | "forma"
+    | "contingencia";
   readonly variableId?: string;
 }

@@ -20,8 +20,8 @@ export type { VariableSectionKind } from "./use-cases/sections";
 
 export { AnalysisSummary } from "./components/analysis-summary";
 export type { AnalysisSummaryProps } from "./components/analysis-summary";
-export { VariableResults } from "./components/variable-results";
-export type { VariableResultsProps } from "./components/variable-results";
+export { VariableResults, variableTablesText } from "./components/variable-results";
+export type { VariableResultsProps, VariableTableText } from "./components/variable-results";
 export {
   ContingencyTable,
   EXTREME_MAX_CLASS,

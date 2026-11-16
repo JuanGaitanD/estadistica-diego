@@ -5,9 +5,12 @@ import { useEffect, useMemo, useState } from "react";
 
 import {
   BarChart,
+  BoxPlot,
   ContingencyHeatmap,
   FrequencyPolygon,
+  GroupedBarChart,
   Ogive,
+  ParetoChart,
   PieChart,
   type ChartKind,
 } from "@/components/charts";
@@ -33,16 +36,30 @@ import {
   VariableResults,
 } from "@/features/analysis";
 import type { AnalysisResult, AnalyzedVariable } from "@/features/analysis";
-import { ChartDownloadButton, ExportToolbar } from "@/features/export";
+import {
+  captureChartAsDataUrl,
+  ChartDownloadButton,
+  CopyButton,
+  ExportToolbar,
+} from "@/features/export";
+import { AddToReportButton, useReportStore } from "@/features/report";
 import type { FrequencyTableResult } from "@/core/statistics";
 
 import { chartElementId, chartsFor } from "../model/build-request";
 import { useWizardStore } from "../store/wizard-store";
-import { buildAvailableSections } from "../use-cases/report-sections";
+import {
+  contingencyReportItem,
+  crossChartElementId,
+  crossReportItem,
+  variableReportItem,
+} from "../use-cases/report-items";
+import { StepCalculations } from "./step-calculations";
 
 const CHART_TITLE: Readonly<Record<ChartKind, string>> = {
   bar: "Diagrama de barras",
   pie: "Diagrama circular",
+  pareto: "Diagrama de Pareto",
+  box: "Diagrama de caja y bigotes",
   polygon: "Polígono de frecuencias",
   ogive: "Ojiva",
 };
@@ -57,7 +74,8 @@ function chartFor(
   const actions = <ChartDownloadButton elementId={elementId} filename={`${elementId}.png`} />;
   // El título dice qué gráfica es: en una página con varias por variable,
   // repetir solo el nombre de la variable no distingue nada.
-  const common = { title: `${CHART_TITLE[kind]} · ${variable.variableName}`, actions } as const;
+  const name = kind === "bar" && grouped !== undefined ? "Histograma" : CHART_TITLE[kind];
+  const common = { title: `${name} · ${variable.variableName}`, actions } as const;
 
   if (kind === "pie") {
     // Con la variable agrupada, la tarta se dibuja sobre las clases.
@@ -69,6 +87,17 @@ function chartFor(
     const data = grouped ?? table;
     if (data === undefined) return null;
     return <BarChart key={elementId} data={data} {...common} />;
+  }
+  if (kind === "pareto") {
+    if (table === undefined) return null;
+    return <ParetoChart key={elementId} data={table} {...common} />;
+  }
+  if (kind === "box") {
+    const summary = variable.analysis.box;
+    if (summary === undefined) return null;
+    return (
+      <BoxPlot key={elementId} variableId={variable.variableId} summary={summary} {...common} />
+    );
   }
   if (grouped === undefined) return null;
   if (kind === "polygon") {
@@ -131,20 +160,29 @@ export function StepResults() {
   const result = useWizardStore((state) => state.result);
   const isComputing = useWizardStore((state) => state.isComputing);
   const computeResult = useWizardStore((state) => state.computeResult);
-  const goToStep = useWizardStore((state) => state.goToStep);
   const reset = useWizardStore((state) => state.reset);
+  const addToReport = useReportStore((state) => state.add);
 
   const [attempted, setAttempted] = useState(false);
+  const [adjusting, setAdjusting] = useState(false);
 
-  // El cálculo se lanza al entrar al paso, en un tick posterior, para que el
-  // esqueleto de carga alcance a pintarse si `runAnalysis` tarda (RNF-06).
+  // El cálculo se lanza en un tick posterior, para que el esqueleto de carga
+  // alcance a pintarse si `runAnalysis` tarda (RNF-06). Se repite cada vez que
+  // la selección cambia (el store deja `result` en null).
   useEffect(() => {
+    if (result !== null) return;
     const timer = window.setTimeout(() => {
       computeResult();
       setAttempted(true);
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [computeResult]);
+  }, [computeResult, result]);
+
+  const chartsOf = (variable: AnalyzedVariable) =>
+    chartsFor(calculation, variable.variableId).map((kind) => ({
+      elementId: chartElementId(variable.variableId, kind),
+      title: `${CHART_TITLE[kind]} · ${variable.variableName}`,
+    }));
 
   const chartElementIds = useMemo(() => {
     if (result === null) return [];
@@ -157,11 +195,6 @@ export function StepResults() {
     return ids;
   }, [result, calculation]);
 
-  const availableSections = useMemo(
-    () => (result === null ? [] : buildAvailableSections(result, chartElementIds)),
-    [result, chartElementIds],
-  );
-
   // Si el cálculo ya se intentó y no hubo resultado (por ejemplo, porque la
   // selección quedó vacía), se explica en vez de dejar el esqueleto girando.
   if (result === null && attempted && !isComputing) {
@@ -169,13 +202,9 @@ export function StepResults() {
       <div className="flex flex-col gap-4">
         <EmptyState
           title="Todavía no hay nada que calcular"
-          description="Vuelve al paso anterior y elige al menos un cálculo o una gráfica."
+          description="Elige al menos un cálculo o una gráfica."
         />
-        <div>
-          <Button type="button" variant="outline" onClick={() => goToStep(2)}>
-            Volver a los cálculos
-          </Button>
-        </div>
+        <StepCalculations embedded />
       </div>
     );
   }
@@ -201,12 +230,52 @@ export function StepResults() {
         <AnalysisSummary result={result} />
         <ExportToolbar
           dataset={dataset ?? undefined}
-          availableSections={availableSections}
           chartElementIds={chartElementIds}
           reportTitle="statlab_analisis"
-          analysisName="Análisis descriptivo"
-          sampleSize={result.totalRows}
+          primaryAction={
+            <AddToReportButton
+              what="todas las variables"
+              label="Añadir todo al informe"
+              build={async () => {
+                // Cada variable y cada cruce entran como resultado propio; el botón añade el último.
+                const items = [];
+                for (const variable of result.variables) {
+                  items.push(
+                    await variableReportItem(variable, chartsOf(variable), captureChartAsDataUrl),
+                  );
+                }
+                for (const cross of result.contingencies) {
+                  const item = await crossReportItem(cross, captureChartAsDataUrl);
+                  if (item !== null) items.push(item);
+                }
+                const last = items.pop();
+                if (last === undefined) throw new Error("sin resultados");
+                for (const item of items) addToReport(item);
+                return last;
+              }}
+            />
+          }
         />
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            aria-expanded={adjusting}
+            aria-controls="elegir-calculos"
+            onClick={() => setAdjusting((open) => !open)}
+          >
+            {adjusting ? "Ocultar la selección de cálculos" : "Elegir qué se calcula"}
+          </Button>
+          <p className="text-muted-foreground text-sm">
+            Mostramos lo habitual para cada tipo de variable; puedes añadir o quitar medidas y
+            gráficas.
+          </p>
+        </div>
+        {adjusting ? (
+          <div id="elegir-calculos" className="sl-surface p-5 sm:p-7">
+            <StepCalculations embedded />
+          </div>
+        ) : null}
       </div>
 
       <div className="mt-8 gap-12 lg:grid lg:grid-cols-[14rem_minmax(0,1fr)]">
@@ -221,7 +290,18 @@ export function StepResults() {
                 className="gap-block flex scroll-mt-28 flex-col"
                 aria-labelledby={`titulo-${variable.variableId}`}
               >
-                <VariableResults variable={variable} />
+                <VariableResults
+                  variable={variable}
+                  copyAction={(what, getText) => <CopyButton what={what} getText={getText} />}
+                  reportAction={
+                    <AddToReportButton
+                      what={`la variable ${variable.variableName}`}
+                      build={() =>
+                        variableReportItem(variable, chartsOf(variable), captureChartAsDataUrl)
+                      }
+                    />
+                  }
+                />
                 {kinds.length > 0 ? (
                   <div className="flex flex-col gap-6">
                     <h3 className="sl-label">Gráficas</h3>
@@ -244,21 +324,44 @@ export function StepResults() {
               key={`${cross.request.rowVariableId}-${cross.request.columnVariableId}`}
               className="gap-block flex flex-col"
             >
-              <ContingencyTable contingency={cross} />
+              <ContingencyTable
+                contingency={cross}
+                interpretationActions={(() => {
+                  const item = contingencyReportItem(cross);
+                  return item === null ? null : (
+                    <AddToReportButton
+                      what={`el cruce de ${cross.rowVariableName} y ${cross.columnVariableName}`}
+                      build={async () =>
+                        (await crossReportItem(cross, captureChartAsDataUrl)) ?? item
+                      }
+                    />
+                  );
+                })()}
+              />
               {cross.table !== null ? (
-                <ContingencyHeatmap
-                  data={cross.table}
-                  title={`Mapa de calor: ${cross.rowVariableName} y ${cross.columnVariableName}`}
-                  description="Cuanto más oscura la celda, más casos combinan esas dos categorías."
-                />
+                <>
+                  <GroupedBarChart
+                    data={cross.table}
+                    title={`Barras agrupadas: ${cross.columnVariableName} dentro de cada ${cross.rowVariableName}`}
+                    description={`Cada grupo de barras suma 100 %: compara cómo se reparte ${cross.columnVariableName} en cada grupo, aunque los grupos tengan tamaños distintos.`}
+                    actions={
+                      <ChartDownloadButton
+                        elementId={crossChartElementId(cross)}
+                        filename={`barras_${cross.request.rowVariableId}_${cross.request.columnVariableId}.png`}
+                      />
+                    }
+                  />
+                  <ContingencyHeatmap
+                    data={cross.table}
+                    title={`Mapa de calor: ${cross.rowVariableName} y ${cross.columnVariableName}`}
+                    description="Cuanto más oscura la celda, más casos combinan esas dos categorías."
+                  />
+                </>
               ) : null}
             </section>
           ))}
 
           <div className="border-rule flex flex-wrap items-center gap-3 border-t pt-8">
-            <Button type="button" variant="outline" onClick={() => goToStep(2)}>
-              Cambiar selección
-            </Button>
             <Dialog>
               <DialogTrigger asChild>
                 <Button type="button" variant="ghost">

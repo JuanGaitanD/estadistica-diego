@@ -1,3 +1,4 @@
+import { crc32, deflateSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
 import { buildReportPdf, buildReportPdfDocument } from "./pdf-builder";
 import type { ReportPdfSpec, ReportSection } from "./pdf-types";
@@ -18,20 +19,20 @@ const baseSpec: ReportPdfSpec = {
 };
 
 describe("buildReportPdfDocument", () => {
-  it("genera al menos la portada", () => {
-    const doc = buildReportPdfDocument(baseSpec);
+  it("genera al menos la portada", async () => {
+    const doc = await buildReportPdfDocument(baseSpec);
     expect(doc.getNumberOfPages()).toBeGreaterThanOrEqual(1);
   });
 
-  it("incluye acentos y ñ en la portada sin lanzar errores", () => {
+  it("incluye acentos y ñ en la portada sin lanzar errores", async () => {
     const spec: ReportPdfSpec = {
       ...baseSpec,
       analysisName: "Distribución de tamaño según año — ¿cuántos?",
     };
-    expect(() => buildReportPdfDocument(spec)).not.toThrow();
+    await expect(buildReportPdfDocument(spec)).resolves.toBeDefined();
   });
 
-  it("dibuja una sección de tipo texto", () => {
+  it("dibuja una sección de tipo texto", async () => {
     const sections: ReportSection[] = [
       {
         kind: "text",
@@ -39,11 +40,11 @@ describe("buildReportPdfDocument", () => {
         paragraphs: ["Párrafo de prueba con ñ y acentos: á é í ó ú."],
       },
     ];
-    const doc = buildReportPdfDocument({ ...baseSpec, sections });
+    const doc = await buildReportPdfDocument({ ...baseSpec, sections });
     expect(doc.getNumberOfPages()).toBeGreaterThanOrEqual(2);
   });
 
-  it("dibuja una sección de métricas, respetando explanation ausente", () => {
+  it("dibuja una sección de métricas, respetando explanation ausente", async () => {
     const sections: ReportSection[] = [
       {
         kind: "metrics",
@@ -54,10 +55,10 @@ describe("buildReportPdfDocument", () => {
         ],
       },
     ];
-    expect(() => buildReportPdfDocument({ ...baseSpec, sections })).not.toThrow();
+    await expect(buildReportPdfDocument({ ...baseSpec, sections })).resolves.toBeDefined();
   });
 
-  it("pagina correctamente una tabla con muchas filas", () => {
+  it("pagina correctamente una tabla con muchas filas", async () => {
     const rows: (readonly (string | number)[])[] = Array.from({ length: 120 }, (_, i) => [
       i + 1,
       `valor-${i + 1}`,
@@ -65,26 +66,26 @@ describe("buildReportPdfDocument", () => {
     const sections: ReportSection[] = [
       { kind: "table", title: "Frecuencias", columns: ["n", "valor"], rows, note: "n = 120" },
     ];
-    const doc = buildReportPdfDocument({ ...baseSpec, sections });
+    const doc = await buildReportPdfDocument({ ...baseSpec, sections });
     // Con márgenes de 15mm en A4 y filas de 6mm caben ~44 filas por página;
     // 120 filas deberían forzar varias páginas adicionales a la portada.
     expect(doc.getNumberOfPages()).toBeGreaterThan(2);
   });
 
-  it("dibuja una sección de imagen ajustada al ancho útil", () => {
+  it("dibuja una sección de imagen ajustada al ancho útil", async () => {
     const sections: ReportSection[] = [
       { kind: "image", title: "Gráfica", dataUrl: TINY_PNG_DATA_URL, caption: "Figura 1" },
     ];
-    expect(() => buildReportPdfDocument({ ...baseSpec, sections })).not.toThrow();
+    await expect(buildReportPdfDocument({ ...baseSpec, sections })).resolves.toBeDefined();
   });
 
-  it("agrega múltiples secciones en el orden dado", () => {
+  it("agrega múltiples secciones en el orden dado", async () => {
     const sections: ReportSection[] = [
       { kind: "text", title: "Uno", paragraphs: ["a"] },
       { kind: "metrics", title: "Dos", items: [{ label: "x", value: "1" }] },
       { kind: "image", title: "Tres", dataUrl: TINY_PNG_DATA_URL },
     ];
-    expect(() => buildReportPdfDocument({ ...baseSpec, sections })).not.toThrow();
+    await expect(buildReportPdfDocument({ ...baseSpec, sections })).resolves.toBeDefined();
   });
 });
 
@@ -95,5 +96,41 @@ describe("buildReportPdf", () => {
       sections: [{ kind: "text", title: "Resumen", paragraphs: ["Contenido de prueba."] }],
     });
     expect(blob.size).toBeGreaterThan(0);
+  });
+});
+
+/** PNG RGBA de `size`×`size` en blanco, armado a mano (jsdom no tiene canvas). */
+function solidPngDataUrl(size: number): string {
+  const chunk = (type: string, data: Buffer): Buffer => {
+    const body = Buffer.concat([Buffer.from(type, "ascii"), data]);
+    const length = Buffer.alloc(4);
+    length.writeUInt32BE(data.length);
+    const crc = Buffer.alloc(4);
+    crc.writeUInt32BE(crc32(body));
+    return Buffer.concat([length, body, crc]);
+  };
+  const header = Buffer.alloc(13);
+  header.writeUInt32BE(size, 0);
+  header.writeUInt32BE(size, 4);
+  header.set([8, 6, 0, 0, 0], 8);
+  const row = Buffer.concat([Buffer.from([0]), Buffer.alloc(size * 4, 255)]);
+  const raw = Buffer.concat(Array.from({ length: size }, () => row));
+  const png = Buffer.concat([
+    Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
+    chunk("IHDR", header),
+    chunk("IDAT", deflateSync(raw)),
+    chunk("IEND", Buffer.alloc(0)),
+  ]);
+  return `data:image/png;base64,${png.toString("base64")}`;
+}
+
+describe("peso del PDF (RF-56)", () => {
+  it("comprime las imágenes: una gráfica de 600×600 px no ocupa sus píxeles crudos", async () => {
+    const doc = await buildReportPdfDocument({
+      ...baseSpec,
+      sections: [{ kind: "image", title: "Gráfica", dataUrl: solidPngDataUrl(600) }],
+    });
+    // Crudo serían 600·600·4 = 1,44 MB; comprimido queda en unos pocos KB.
+    expect(doc.output().length).toBeLessThan(100_000);
   });
 });

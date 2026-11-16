@@ -69,10 +69,35 @@ function OgiveThumbnail({ className }: ThumbnailProps) {
   );
 }
 
+function ParetoThumbnail({ className }: ThumbnailProps) {
+  return (
+    <Thumbnail className={className}>
+      <path d="M3 21 H29" />
+      <rect x="5" y="8" width="4" height="13" />
+      <rect x="11" y="12" width="4" height="9" />
+      <rect x="17" y="16" width="4" height="5" />
+      <rect x="23" y="18" width="4" height="3" />
+      <path d="M7 8 L13 5 L19 4 L25 3.5" />
+    </Thumbnail>
+  );
+}
+
+function BoxThumbnail({ className }: ThumbnailProps) {
+  return (
+    <Thumbnail className={className}>
+      <path d="M3 12 H9 M23 12 H29 M3 8 V16 M29 8 V16" />
+      <rect x="9" y="6" width="14" height="12" />
+      <path d="M15 6 V18" />
+    </Thumbnail>
+  );
+}
+
 /** Miniatura de cada tipo de gráfica, para las opciones del paso 3. */
 export const CHART_THUMBNAILS: Readonly<Record<ChartKind, ComponentType<ThumbnailProps>>> = {
   pie: PieThumbnail,
   bar: BarThumbnail,
+  pareto: ParetoThumbnail,
+  box: BoxThumbnail,
   polygon: PolygonThumbnail,
   ogive: OgiveThumbnail,
 };

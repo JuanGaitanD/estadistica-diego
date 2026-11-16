@@ -49,3 +49,25 @@ describe("StepData", () => {
     expect(alerta).toHaveTextContent("CSV o Excel");
   });
 });
+
+describe("hoja de datos editable", () => {
+  beforeEach(() => {
+    useWizardStore.getState().reset();
+  });
+
+  it("escribe datos en la tabla y los usa", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<StepData />);
+    await user.click(screen.getByRole("button", { name: "Escribir los datos en una tabla" }));
+    const name = screen.getByRole("textbox", { name: "Nombre de la columna 1" });
+    await user.clear(name);
+    await user.type(name, "Horas");
+    await user.type(screen.getByRole("textbox", { name: "Fila 1, Horas" }), "2");
+    await user.type(screen.getByRole("textbox", { name: "Fila 2, Horas" }), "3,5");
+    await user.click(screen.getByRole("button", { name: "Usar los datos de la tabla" }));
+    const dataset = useWizardStore.getState().dataset;
+    expect(dataset?.rowCount).toBe(2);
+    expect(dataset?.columns[0]?.variable.name).toBe("Horas");
+    expect(dataset?.columns[0]?.values).toEqual([2, 3.5]);
+  }, 20_000);
+});

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Download } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -11,8 +11,6 @@ import {
   exportDatasetToXlsx,
 } from "@/infrastructure/export";
 import type { Dataset } from "@/core/data";
-import type { AvailableSection } from "../use-cases/build-report-spec";
-import { ExportDialog } from "./export-dialog";
 
 export interface ExportToolbarProps {
   /**
@@ -21,11 +19,11 @@ export interface ExportToolbarProps {
    * fallar al pulsarlos.
    */
   readonly dataset: Dataset | undefined;
-  readonly availableSections: readonly AvailableSection[];
   readonly chartElementIds: readonly string[];
+  /** Nombre base de los archivos (`statlab_analisis`). */
   readonly reportTitle: string;
-  readonly analysisName?: string;
-  readonly sampleSize?: number;
+  /** Acción principal de la barra (por ejemplo, añadir todo al informe). */
+  readonly primaryAction?: ReactNode;
 }
 
 /**
@@ -34,11 +32,9 @@ export interface ExportToolbarProps {
  */
 export function ExportToolbar({
   dataset,
-  availableSections,
   chartElementIds,
   reportTitle,
-  analysisName,
-  sampleSize,
+  primaryAction,
 }: ExportToolbarProps) {
   const [isDownloadingCharts, setIsDownloadingCharts] = useState(false);
   const canExportData = dataset !== undefined && dataset.columns.length > 0;
@@ -54,10 +50,10 @@ export function ExportToolbar({
     }
   };
 
-  const handleExportXlsx = (): void => {
+  const handleExportXlsx = async (): Promise<void> => {
     if (dataset === undefined) return;
     try {
-      const blob = exportDatasetToXlsx(dataset);
+      const blob = await exportDatasetToXlsx(dataset);
       downloadBlob(blob, `${reportTitle}.xlsx`);
       toast.success("Datos exportados en Excel");
     } catch {
@@ -80,12 +76,7 @@ export function ExportToolbar({
   return (
     <div className="border-rule bg-muted/40 grid grid-cols-2 gap-2 rounded-[var(--radius)] border p-2.5 sm:flex sm:flex-wrap sm:items-center">
       <span className="sl-label col-span-2 mx-1.5 sm:col-span-1 sm:inline">Exportar</span>
-      <ExportDialog
-        reportTitle={reportTitle}
-        analysisName={analysisName ?? reportTitle}
-        sampleSize={sampleSize ?? 0}
-        availableSections={availableSections}
-      />
+      {primaryAction}
       <span className="bg-rule mx-1 hidden h-6 w-px sm:block" aria-hidden="true" />
       <Button type="button" variant="outline" disabled={!canExportData} onClick={handleExportCsv}>
         <Download aria-hidden="true" />

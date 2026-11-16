@@ -17,8 +17,6 @@ vi.mock("@/infrastructure/export", () => ({
 
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
-vi.mock("./export-dialog", () => ({ ExportDialog: () => <div /> }));
-
 import { buildDataset } from "@/core/data";
 
 import { ExportToolbar } from "./export-toolbar";
@@ -29,28 +27,14 @@ describe("ExportToolbar", () => {
   });
 
   it("deshabilita la exportación de datos cuando todavía no hay dataset", () => {
-    render(
-      <ExportToolbar
-        dataset={undefined}
-        availableSections={[]}
-        chartElementIds={[]}
-        reportTitle="prueba"
-      />,
-    );
+    render(<ExportToolbar dataset={undefined} chartElementIds={[]} reportTitle="prueba" />);
     expect(screen.getByRole("button", { name: /CSV/ })).toBeDisabled();
     expect(screen.getByRole("button", { name: /Excel/ })).toBeDisabled();
   });
 
   it("exporta CSV y Excel con el dataset, sin conversiones de tipo", async () => {
     const dataset = buildDataset([[1], [2]], { source: "texto", headers: ["Edad"] });
-    render(
-      <ExportToolbar
-        dataset={dataset}
-        availableSections={[]}
-        chartElementIds={[]}
-        reportTitle="prueba"
-      />,
-    );
+    render(<ExportToolbar dataset={dataset} chartElementIds={[]} reportTitle="prueba" />);
 
     await userEvent.click(screen.getByRole("button", { name: /CSV/ }));
     expect(mocks.exportDatasetToCsv).toHaveBeenCalledWith(dataset);
@@ -62,14 +46,7 @@ describe("ExportToolbar", () => {
   });
 
   it("deshabilita la descarga de gráficas cuando no hay ninguna", () => {
-    render(
-      <ExportToolbar
-        dataset={undefined}
-        availableSections={[]}
-        chartElementIds={[]}
-        reportTitle="prueba"
-      />,
-    );
+    render(<ExportToolbar dataset={undefined} chartElementIds={[]} reportTitle="prueba" />);
     expect(screen.getByRole("button", { name: /Todas las gráficas/ })).toBeDisabled();
   });
 });

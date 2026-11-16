@@ -8,16 +8,18 @@ import type { Dataset, DatasetSource, VariableKind } from "@/core/data";
 import type { ChartKind } from "@/components/charts";
 import type { AnalysisResult } from "@/features/analysis";
 
-/** Índice del paso actual (0..3). */
+/** Índice de validación: 0 datos, 1 variables, 2 cálculos, 3 resultados (RF-12). */
 export type StepIndex = 0 | 1 | 2 | 3;
 
-/** Pasos del asistente, en orden (docs/05-diseno.md §5a). */
-export const WIZARD_STEPS = [
-  { id: "datos", title: "Datos" },
-  { id: "variables", title: "Variables" },
-  { id: "calculos", title: "Cálculos y gráficas" },
-  { id: "resultados", title: "Resultados" },
+/** Zonas del espacio de trabajo (RF-41), en el orden en que se recorren. */
+export const ZONES = [
+  { id: "datos", title: "Datos", hint: "Carga o escribe" },
+  { id: "explorar", title: "Explorar", hint: "Qué dicen tus datos" },
+  { id: "analizar", title: "Analizar", hint: "Responde una pregunta" },
+  { id: "informe", title: "Informe", hint: "Junta y exporta" },
 ] as const;
+
+export type Zone = (typeof ZONES)[number]["id"];
 
 /** Formato decimal elegido por la persona usuaria en el paso 1 (RF-09). */
 export type DecimalChoice = "auto" | "coma" | "punto";
@@ -90,7 +92,7 @@ export interface CalculationSelection {
 
 /** Estado completo del asistente. */
 export interface WizardState {
-  readonly step: StepIndex;
+  readonly zone: Zone;
   readonly dataset: Dataset | null;
   readonly origin: DatasetSource | null;
   readonly sourceName: string | null;
@@ -101,6 +103,11 @@ export interface WizardState {
   readonly isImporting: boolean;
   readonly columns: readonly ColumnConfig[];
   readonly calculation: CalculationSelection;
+  /**
+   * `false` mientras la selección sea la habitual: entonces se rehace sola al
+   * cambiar los tipos de variable. Pasa a `true` cuando la persona la ajusta.
+   */
+  readonly calculationCustomized: boolean;
   readonly result: AnalysisResult | null;
   readonly isComputing: boolean;
   /** `true` si hay un análisis guardado en el navegador que se puede recuperar. */

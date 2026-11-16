@@ -34,7 +34,12 @@ export function ChartContainer({
             <p className="text-muted-foreground mt-1.5 text-sm leading-relaxed">{description}</p>
           ) : null}
         </div>
-        {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
+        {actions ? (
+          // Fuera de la imagen exportada (PNG, PDF): son controles, no parte de la gráfica.
+          <div data-export-ignore="" className="flex shrink-0 flex-wrap items-center gap-1">
+            {actions}
+          </div>
+        ) : null}
       </figcaption>
       <div className="min-h-[280px] w-full sm:min-h-[360px]">{children}</div>
     </figure>

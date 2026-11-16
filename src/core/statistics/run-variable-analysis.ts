@@ -9,9 +9,16 @@ import {
   computeSimpleFrequencyTable,
   DEFAULT_FREQUENCY_OPTIONS,
 } from "./frequency/frequency-table";
+import {
+  categoricalSteps,
+  interpretCategorical,
+  interpretQuantitative,
+  quantitativeSteps,
+} from "./interpretation/describe-variable";
 import { makeMetric, unavailableMetric } from "./metric";
 import { isFiniteNumber, sortAscending, REASONS } from "./numeric";
 import { computePosition, DEFAULT_POSITION_OPTIONS } from "./position/position";
+import { boxPlotSummary, kurtosis, skewness } from "./shape/shape";
 import type {
   CentralTendencyOptions,
   FrequencyOptions,
@@ -212,9 +219,27 @@ export function runVariableAnalysis(input: VariableAnalysisInput): VariableAnaly
     );
   }
 
+  const interpretation = quantitative
+    ? interpretQuantitative(sortedNumbers)
+    : interpretCategorical(
+        (frequency?.rows ?? []).map((row) => ({ label: row.label, count: row.absolute })),
+        central.mode,
+        ordinal?.label,
+      );
+  const steps = quantitative
+    ? quantitativeSteps(sortedNumbers, groupedTable)
+    : categoricalSteps(
+        (frequency?.rows ?? []).map((row) => ({ label: row.label, count: row.absolute })),
+        ordinal?.label,
+      );
+  const shape = quantitative ? [skewness(sortedNumbers), kurtosis(sortedNumbers)] : undefined;
+  const box = quantitative ? boxPlotSummary(sortedNumbers) : null;
+
   return {
     variableId: input.variableId,
     kind: input.kind,
+    interpretation,
+    steps,
     summary,
     ...(frequency !== undefined ? { frequency } : {}),
     ...(groupedTable !== undefined ? { groupedFrequency: groupedTable } : {}),
@@ -222,6 +247,8 @@ export function runVariableAnalysis(input: VariableAnalysisInput): VariableAnaly
     ...(ordinal !== undefined ? { ordinalMedian: ordinal } : {}),
     ...(position !== undefined ? { position } : {}),
     ...(variability !== undefined ? { variability } : {}),
+    ...(shape !== undefined ? { shape } : {}),
+    ...(box !== null ? { box } : {}),
     notes,
   };
 }

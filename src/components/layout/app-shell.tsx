@@ -78,7 +78,7 @@ function AppHeader() {
               StatLab
             </span>
             <span className="text-muted-foreground mt-0.5 hidden text-xs leading-tight sm:inline">
-              Estadística descriptiva, explicada
+              Estadística que se entiende
             </span>
           </span>
         </div>
@@ -95,7 +95,8 @@ function AppFooter() {
   return (
     <footer className="border-rule mt-10 border-t py-7">
       <p className="text-muted-foreground mx-auto w-full max-w-[84rem] px-5 text-xs sm:px-8">
-        StatLab · Herramienta educativa de estadística descriptiva
+        StatLab · Estadística que se entiende: de lo básico a la regresión. Tus datos no salen de tu
+        navegador.
       </p>
     </footer>
   );

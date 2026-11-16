@@ -2,12 +2,10 @@
  * Paquete "Cálculos de siempre" (RF-13): la preselección sensata según los
  * tipos de variable que la persona usuaria confirmó en el paso 2.
  */
-import { appliesTo, type ChartKind } from "@/components/charts";
+import { appliesTo, CHART_KINDS, type ChartKind } from "@/components/charts";
 
 import type { CalculationSelection, ColumnConfig } from "./types";
 import { isQuantitative } from "./validation";
-
-const ALL_CHART_KINDS: readonly ChartKind[] = ["pie", "bar", "polygon", "ogive"];
 
 /**
  * Devuelve la selección habitual: tabla de frecuencias con porcentajes y
@@ -28,9 +26,7 @@ export function usualSelection(
   const charts: Record<string, ChartKind[]> = {};
   for (const column of included) {
     const isGrouped = grouped && isQuantitative(column.kind);
-    charts[column.id] = ALL_CHART_KINDS.filter(
-      (kind) => appliesTo(kind, column.kind, isGrouped).ok,
-    );
+    charts[column.id] = CHART_KINDS.filter((kind) => appliesTo(kind, column.kind, isGrouped).ok);
   }
 
   const cualitativas = included.filter((column) => !isQuantitative(column.kind));

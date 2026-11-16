@@ -69,7 +69,16 @@ export const variabilityOptionsSchema = z.object({
 
 export const chartSpecSchema = z.object({
   id: z.string().min(1),
-  type: z.enum(["pie", "barras", "histograma", "poligono", "ojiva", "contingencia"]),
+  type: z.enum([
+    "pie",
+    "barras",
+    "histograma",
+    "pareto",
+    "caja",
+    "poligono",
+    "ojiva",
+    "contingencia",
+  ]),
   title: z.string(),
   variableId: z.string().min(1, "Elige la variable de la gráfica"),
   secondVariableId: z.string().min(1).optional(),

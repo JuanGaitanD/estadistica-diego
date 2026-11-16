@@ -1,6 +1,8 @@
 import "@/lib/zod-config";
 import { z } from "zod";
 
+import type { CalculationStep, Interpretation } from "@/core/statistics";
+
 /** Versión vigente del esquema persistido en localStorage. */
 export const SCHEMA_VERSION = 1;
 
@@ -37,6 +39,75 @@ export const datasetSchema = z.object({
   createdAt: z.string(),
   warnings: z.array(datasetWarningSchema),
 });
+
+const interpretationSchema = z.object({
+  headline: z.string(),
+  details: z.array(z.string()),
+  caveats: z.array(z.string()),
+});
+
+const stepSchema = z.object({
+  title: z.string(),
+  text: z.string().optional(),
+  formula: z.string().optional(),
+  table: z
+    .object({
+      columns: z.array(z.string()),
+      rows: z.array(z.array(z.string())),
+      footer: z.array(z.string()).optional(),
+      omittedRows: z.number().optional(),
+    })
+    .optional(),
+  excel: z.string().optional(),
+});
+
+const reportTableSchema = z.object({
+  title: z.string(),
+  columns: z.array(z.string()),
+  rows: z.array(z.array(z.string())),
+});
+
+/** Imagen de una gráfica guardada en el informe (data URL PNG). */
+const reportImageSchema = z.object({
+  title: z.string(),
+  // Solo PNG o JPEG: el PDF no sabe dibujar otros formatos.
+  dataUrl: z.string().regex(/^data:image\/(png|jpeg);base64,/),
+});
+
+/** Un resultado añadido al informe: copia fija de lo que se veía al añadirlo. */
+export const reportItemSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  addedAt: z.string(),
+  interpretation: interpretationSchema,
+  steps: z.array(stepSchema),
+  tables: z.array(reportTableSchema),
+  images: z.array(reportImageSchema),
+  note: z.string(),
+});
+
+/** Informe acumulativo (RF-43). */
+export const reportSchema = z.object({
+  title: z.string(),
+  includeSteps: z.boolean(),
+  items: z.array(reportItemSchema),
+});
+
+/**
+ * Con `exactOptionalPropertyTypes`, zod infiere los opcionales como
+ * `T | undefined`; el tipo guardado reutiliza los del dominio, que son los
+ * que valida el esquema.
+ */
+export type StoredReportItem = Omit<
+  z.infer<typeof reportItemSchema>,
+  "steps" | "interpretation"
+> & {
+  readonly steps: readonly CalculationStep[];
+  readonly interpretation: Interpretation;
+};
+export type StoredReport = Omit<z.infer<typeof reportSchema>, "items"> & {
+  readonly items: readonly StoredReportItem[];
+};
 
 /** Preferencias de usuario persistidas localmente. */
 export const preferencesSchema = z.object({

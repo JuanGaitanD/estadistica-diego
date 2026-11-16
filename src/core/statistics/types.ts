@@ -7,6 +7,8 @@
  * limpios y no conoce el modelo de datos.
  */
 
+import type { BoxPlotSummary } from "./shape/shape";
+
 /** Tipo de variable, en los mismos términos que `core/data`. */
 export type VariableKind = "nominal" | "ordinal" | "discreta" | "continua";
 
@@ -21,6 +23,44 @@ export interface Explanation {
   readonly why: string;
   /** Fórmula en notación legible, para el modo docente. */
   readonly formula?: string;
+}
+
+/**
+ * Interpretación en lenguaje llano de un resultado concreto (RF-37, RF-38).
+ * Es lo primero que ve la persona: va encima de cualquier cifra o tabla.
+ */
+export interface Interpretation {
+  /** Frase principal: qué significa el resultado y su conclusión práctica. */
+  readonly headline: string;
+  /** Frases de apoyo, en orden de importancia. */
+  readonly details: readonly string[];
+  /** Advertencias honestas: muestra pequeña, supuestos, causalidad. */
+  readonly caveats: readonly string[];
+}
+
+/** Tabla de trabajo de un paso del cálculo. Las celdas ya vienen como texto. */
+export interface StepTable {
+  readonly columns: readonly string[];
+  readonly rows: readonly (readonly string[])[];
+  /** Fila de totales, si aplica. */
+  readonly footer?: readonly string[];
+  /** Filas omitidas por tamaño (la tabla se recorta para que sea legible). */
+  readonly omittedRows?: number;
+}
+
+/**
+ * Un paso del cálculo con los números de la persona (RF-39). Se muestra
+ * oculto por defecto, detrás de «Ver cómo se calculó».
+ */
+export interface CalculationStep {
+  readonly title: string;
+  /** Explicación del paso en una o dos frases. */
+  readonly text?: string;
+  /** Fórmula con los valores sustituidos, en notación legible. */
+  readonly formula?: string;
+  readonly table?: StepTable;
+  /** Fórmula equivalente de Excel en español (`=PROMEDIO(A2:A25)`). */
+  readonly excel?: string;
 }
 
 /** Métrica individual: valor calculable o `null` con su motivo, nunca `NaN`. */
@@ -205,6 +245,14 @@ export interface VariableAnalysisResult {
   readonly ordinalMedian?: OrdinalMedianResult;
   readonly position?: PositionResult;
   readonly variability?: VariabilityResult;
+  /** Forma: asimetría y curtosis (solo cuantitativas). */
+  readonly shape?: readonly Metric[];
+  /** Cinco números y atípicos para el diagrama de caja (solo cuantitativas). */
+  readonly box?: BoxPlotSummary;
   /** Advertencias en español para el usuario. */
   readonly notes: readonly string[];
+  /** Qué dicen estos datos, en lenguaje llano (RF-37). */
+  readonly interpretation: Interpretation;
+  /** Cómo se calcularon las medidas básicas (RF-39). */
+  readonly steps: readonly CalculationStep[];
 }

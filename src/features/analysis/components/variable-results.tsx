@@ -2,7 +2,12 @@
 
 import type { ReactNode } from "react";
 
-import { explanationFor, type FrequencyRow, type Metric } from "@/core/statistics";
+import {
+  CLASS_RULE_LABEL,
+  explanationFor,
+  type FrequencyRow,
+  type Metric,
+} from "@/core/statistics";
 import {
   formatMetricValue,
   formatNumber,
@@ -10,17 +15,30 @@ import {
   isPercentMetric,
 } from "@/components/shared/format";
 import { HelpHint } from "@/components/shared/help-hint";
+import {
+  InterpretationPanel,
+  interpretationToText,
+} from "@/components/shared/interpretation-panel";
 import { MetricCard } from "@/components/shared/metric-card";
 import { SectionCard } from "@/components/shared/section-card";
-import { DataTable, type DataTableColumn } from "@/components/tables/data-table";
+import { DataTable, dataTableText, type DataTableColumn } from "@/components/tables/data-table";
+import { tableToTsv } from "@/infrastructure/export";
 import { Badge } from "@/components/ui/badge";
 
 import type { AnalyzedVariable, VariableKind } from "../model/types";
 import { variableSectionId } from "../use-cases/sections";
 import { explanationText } from "./metric-explanation";
+import { ValueLocator } from "./value-locator";
 
 export interface VariableResultsProps {
   variable: AnalyzedVariable;
+  /**
+   * Botón de copiar que inyecta quien compone la pantalla (la exportación vive
+   * en otro feature). Recibe qué se copia y cómo obtener el texto.
+   */
+  copyAction?: (what: string, getText: () => string) => ReactNode;
+  /** «Añadir al informe», junto a la interpretación. */
+  reportAction?: ReactNode;
   /** Decimales de presentación. Por defecto 2. */
   decimals?: number;
 }
@@ -129,7 +147,12 @@ function metricRows(metrics: readonly Metric[]): MetricRow[] {
  * frecuencias, posición y variabilidad. Recibe todo ya calculado; no tiene
  * estado propio ni accede al store.
  */
-export function VariableResults({ variable, decimals = 2 }: VariableResultsProps) {
+/**
+ * Tablas de una variable (columnas con formato y filas). Es la única fuente
+ * de lo que muestran las tablas: la pantalla las dibuja y el informe las
+ * copia como texto con `variableTablesText`.
+ */
+function variableTableModel(variable: AnalyzedVariable, decimals: number) {
   const { analysis, request } = variable;
   const frequency = analysis.groupedFrequency ?? analysis.frequency;
   const grouped = analysis.groupedFrequency !== undefined;
@@ -218,6 +241,85 @@ export function VariableResults({ variable, decimals = 2 }: VariableResultsProps
     },
   ];
 
+  const frequencyRows = frequency ? toDisplayRows(frequency.rows, frequency.n) : [];
+  return {
+    analysis,
+    frequency,
+    grouped,
+    frequencyColumns,
+    frequencyRows,
+    positionResult,
+    positionMetrics,
+    metricTableColumns,
+  };
+}
+
+/** Tabla de una variable como texto, para el informe y las exportaciones. */
+export interface VariableTableText {
+  readonly title: string;
+  readonly columns: string[];
+  readonly rows: string[][];
+}
+
+/** Tablas de frecuencias, posición y variabilidad de una variable, como texto. */
+export function variableTablesText(variable: AnalyzedVariable, decimals = 2): VariableTableText[] {
+  const model = variableTableModel(variable, decimals);
+  const tables: VariableTableText[] = [];
+  if (model.frequency) {
+    tables.push({
+      title: `Tabla de frecuencias · ${variable.variableName}`,
+      ...dataTableText(model.frequencyColumns, model.frequencyRows),
+    });
+  }
+  if (model.positionMetrics.length > 0) {
+    tables.push({
+      title: `Medidas de posición · ${variable.variableName}`,
+      ...dataTableText(model.metricTableColumns, metricRows(model.positionMetrics)),
+    });
+  }
+  const variability = model.analysis.variability?.metrics ?? [];
+  if (variability.length > 0) {
+    tables.push({
+      title: `Medidas de variabilidad · ${variable.variableName}`,
+      ...dataTableText(model.metricTableColumns, metricRows(variability)),
+    });
+  }
+  const shape = model.analysis.shape ?? [];
+  if (shape.length > 0) {
+    tables.push({
+      title: `Forma · ${variable.variableName}`,
+      ...dataTableText(model.metricTableColumns, metricRows(shape)),
+    });
+  }
+  return tables;
+}
+
+export function VariableResults({
+  variable,
+  copyAction,
+  reportAction,
+  decimals = 2,
+}: VariableResultsProps) {
+  const copyTable = <TRow,>(
+    what: string,
+    columns: DataTableColumn<TRow>[],
+    rows: TRow[],
+  ): ReactNode =>
+    copyAction?.(what, () => {
+      const text = dataTableText(columns, rows);
+      return tableToTsv(text.columns, text.rows);
+    });
+  const {
+    analysis,
+    frequency,
+    grouped,
+    frequencyColumns,
+    frequencyRows,
+    positionResult,
+    positionMetrics,
+    metricTableColumns,
+  } = variableTableModel(variable, decimals);
+
   return (
     <article className="flex flex-col gap-6" data-variable-id={variable.variableId}>
       <header className="border-rule flex flex-wrap items-end justify-between gap-3 border-b pb-3">
@@ -236,10 +338,23 @@ export function VariableResults({ variable, decimals = 2 }: VariableResultsProps
         </div>
       </header>
 
-      <div id={variableSectionId(variable.variableId, "resumen")}>
+      <div id={variableSectionId(variable.variableId, "resumen")} className="flex flex-col gap-6">
+        <InterpretationPanel
+          interpretation={analysis.interpretation}
+          steps={analysis.steps}
+          name={variable.variableName}
+          actions={
+            <>
+              {copyAction?.("la interpretación", () =>
+                interpretationToText(analysis.interpretation),
+              )}
+              {reportAction}
+            </>
+          }
+        />
         <SectionCard
-          title="Resumen"
-          description="Lo esencial de la variable, con su explicación en cada tarjeta."
+          title="Las cifras"
+          description="Cada medida con su explicación en el icono de ayuda."
         >
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {analysis.summary.map((metric) => metricCard(metric, decimals))}
@@ -317,10 +432,11 @@ export function VariableResults({ variable, decimals = 2 }: VariableResultsProps
             description={`${frequency.n} dato(s) válido(s)${
               frequency.excluded > 0 ? ` · ${frequency.excluded} excluido(s) por faltantes` : ""
             }`}
+            actions={copyTable("la tabla de frecuencias", frequencyColumns, frequencyRows)}
           >
             <DataTable
               columns={frequencyColumns}
-              rows={toDisplayRows(frequency.rows, frequency.n)}
+              rows={frequencyRows}
               caption={`Tabla de frecuencias de ${variable.variableName}`}
               getRowKey={(row) => row.key}
               getCellClassName={(row) =>
@@ -331,7 +447,7 @@ export function VariableResults({ variable, decimals = 2 }: VariableResultsProps
               <p className="text-muted-foreground mt-3 flex flex-wrap items-center gap-1.5 text-sm">
                 <span>
                   Número de intervalos K = {frequency.k}
-                  {frequency.rule ? ` (regla: ${frequency.rule})` : ""}
+                  {frequency.rule ? ` (regla de ${CLASS_RULE_LABEL[frequency.rule]})` : ""}
                 </span>
                 <HelpHint label={explanationText(explanationFor("numero-de-intervalos"))} />
                 {frequency.intervalLength !== undefined ? (
@@ -361,6 +477,11 @@ export function VariableResults({ variable, decimals = 2 }: VariableResultsProps
                 ? "R-7, el de Excel .INC"
                 : "R-6, el de Excel .EXC"
             }).`}
+            actions={copyTable(
+              "las medidas de posición",
+              metricTableColumns,
+              metricRows(positionMetrics),
+            )}
           >
             <DataTable
               columns={metricTableColumns}
@@ -377,6 +498,11 @@ export function VariableResults({ variable, decimals = 2 }: VariableResultsProps
           <SectionCard
             title="Medidas de variabilidad"
             description="Cuánto se alejan los datos entre sí y respecto a su centro."
+            actions={copyTable(
+              "las medidas de variabilidad",
+              metricTableColumns,
+              metricRows(analysis.variability.metrics),
+            )}
           >
             <DataTable
               columns={metricTableColumns}
@@ -395,6 +521,31 @@ export function VariableResults({ variable, decimals = 2 }: VariableResultsProps
             ) : null}
           </SectionCard>
         </div>
+      ) : null}
+
+      {analysis.shape && analysis.shape.length > 0 ? (
+        <div id={variableSectionId(variable.variableId, "forma")}>
+          <SectionCard
+            title="Forma"
+            description="Si los datos se cargan hacia un lado y cuánto pesan los extremos. Son las mismas cifras que COEFICIENTE.ASIMETRIA y CURTOSIS de Excel."
+            actions={copyTable(
+              "las medidas de forma",
+              metricTableColumns,
+              metricRows(analysis.shape),
+            )}
+          >
+            <DataTable
+              columns={metricTableColumns}
+              rows={metricRows(analysis.shape)}
+              caption={`Medidas de forma de ${variable.variableName}`}
+              getRowKey={(row) => row.key}
+            />
+          </SectionCard>
+        </div>
+      ) : null}
+
+      {variable.sortedValues !== undefined && variable.sortedValues.length >= 2 ? (
+        <ValueLocator variableName={variable.variableName} sortedValues={variable.sortedValues} />
       ) : null}
 
       {analysis.notes.length > 0 ? (

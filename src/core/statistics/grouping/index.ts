@@ -5,6 +5,7 @@ export {
   computeIntervalLength,
   ceilToPrecision,
   detectDecimals,
+  CLASS_RULE_LABEL,
   MIN_CLASSES,
   MAX_CLASSES,
 } from "./intervals";

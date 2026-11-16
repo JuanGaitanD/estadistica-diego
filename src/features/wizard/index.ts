@@ -4,10 +4,10 @@
  * `src/app` solo necesita `Wizard`; el resto se exporta para tests y para
  * reutilizar el estado desde otros módulos de `features`.
  */
-export { Wizard } from "./wizard";
+export { Workspace } from "./workspace";
 export { useWizardStore } from "./store/wizard-store";
 export type { WizardActions, WizardStore } from "./store/wizard-store";
-export { WIZARD_STEPS, DEFAULT_CALCULATION, DEFAULT_IMPORT_OPTIONS } from "./model/types";
+export { ZONES, DEFAULT_CALCULATION, DEFAULT_IMPORT_OPTIONS } from "./model/types";
 export type {
   CalculationSelection,
   ColumnConfig,
@@ -16,6 +16,7 @@ export type {
   StepIndex,
   StepValidation,
   WizardState,
+  Zone,
 } from "./model/types";
 export { canProceed, parsePercentiles } from "./model/validation";
 export { buildAnalysisRequest, chartElementId } from "./model/build-request";

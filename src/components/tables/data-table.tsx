@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { isValidElement, useEffect, useId, useRef, useState, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -12,6 +12,36 @@ export interface DataTableColumn<TRow> {
   align?: ColumnAlign;
   /** Formatea el valor crudo de la celda para mostrar. */
   format?: (row: TRow) => ReactNode;
+}
+
+/** Texto plano de un nodo de React (cadenas y números de sus hijos). */
+function nodeText(node: ReactNode): string {
+  if (typeof node === "string" || typeof node === "number") return String(node);
+  if (Array.isArray(node)) return node.map(nodeText).join("");
+  if (isValidElement<{ children?: ReactNode }>(node)) return nodeText(node.props.children);
+  return "";
+}
+
+/**
+ * La tabla como texto (cabeceras y celdas tal como se ven), para copiarla o
+ * exportarla sin repetir el formato de cada columna.
+ */
+export function dataTableText<TRow>(
+  columns: readonly DataTableColumn<TRow>[],
+  rows: readonly TRow[],
+): { columns: string[]; rows: string[][] } {
+  return {
+    columns: columns.map((column) => column.label),
+    rows: rows.map((row) =>
+      columns.map((column) =>
+        nodeText(
+          column.format
+            ? column.format(row)
+            : ((row as Record<string, unknown>)[column.key] as ReactNode),
+        ).trim(),
+      ),
+    ),
+  };
 }
 
 export interface DataTableProps<TRow> {

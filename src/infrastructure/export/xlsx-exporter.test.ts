@@ -12,7 +12,7 @@ describe("exportDatasetToXlsx", () => {
       ],
       { source: "texto", headers: ["n", "color"] },
     );
-    const blob = exportDatasetToXlsx(dataset);
+    const blob = await exportDatasetToXlsx(dataset);
     const buffer = await blob.arrayBuffer();
     const workbook = XLSX.read(buffer, { type: "array" });
     expect(workbook.SheetNames).toHaveLength(1);
@@ -22,7 +22,7 @@ describe("exportDatasetToXlsx", () => {
   });
 
   it("genera una hoja por cada tabla genérica", async () => {
-    const blob = exportDatasetToXlsx([
+    const blob = await exportDatasetToXlsx([
       { title: "Frecuencias", columns: ["valor", "fi"], rows: [[1, 3]] },
       { title: "Posición", columns: ["percentil", "valor"], rows: [[50, 10]] },
     ]);
@@ -32,7 +32,7 @@ describe("exportDatasetToXlsx", () => {
   });
 
   it("sanea nombres de hoja repetidos o inválidos", async () => {
-    const blob = exportDatasetToXlsx([
+    const blob = await exportDatasetToXlsx([
       { title: "a:b", columns: ["x"], rows: [[1]] },
       { title: "a:b", columns: ["x"], rows: [[2]] },
     ]);
@@ -40,5 +40,22 @@ describe("exportDatasetToXlsx", () => {
     const workbook = XLSX.read(buffer, { type: "array" });
     expect(workbook.SheetNames[0]).not.toContain(":");
     expect(new Set(workbook.SheetNames).size).toBe(2);
+  });
+
+  it("escribe fórmulas vivas con su valor ya calculado", async () => {
+    const blob = await exportDatasetToXlsx([
+      {
+        title: "Regresión",
+        columns: ["X", "Y", "Pendiente"],
+        rows: [
+          [1, 3, { formula: "SLOPE(B2:B3,A2:A3)", value: 2 }],
+          [2, 5, null],
+        ],
+      },
+    ]);
+    const workbook = XLSX.read(await blob.arrayBuffer(), { type: "array", cellFormula: true });
+    const sheet = workbook.Sheets["Regresión"];
+    expect(sheet?.["C2"]?.f).toBe("SLOPE(B2:B3,A2:A3)");
+    expect(sheet?.["C2"]?.v).toBe(2);
   });
 });

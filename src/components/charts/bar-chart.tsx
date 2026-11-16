@@ -77,6 +77,9 @@ export function BarChart({
     value: measureValue(row, measure),
     percent: row.relative,
   }));
+  // Con clases (variable agrupada) es un histograma: barras contiguas de un solo
+  // color, porque el eje es continuo y una clase empieza donde acaba la anterior.
+  const histogram = data.grouped && !horizontal;
   const hasLongLabels = bars.some((bar) => bar.label.length > 8);
   const containerId = `chart-${data.variableId}-bar`;
 
@@ -90,13 +93,14 @@ export function BarChart({
     >
       <div
         role="img"
-        aria-label={`Gráfico de barras de ${measureLabel(measure).toLowerCase()} de ${data.variableId}, n = ${data.n}`}
+        aria-label={`${histogram ? "Histograma" : "Gráfico de barras"} de ${measureLabel(measure).toLowerCase()} de ${data.variableId}, n = ${data.n}`}
         className="flex h-full w-full flex-col gap-2"
       >
         <ResponsiveContainer width="100%" height={320}>
           <ReBarChart
             data={bars as unknown as Record<string, unknown>[]}
             layout={horizontal ? "vertical" : "horizontal"}
+            {...(histogram ? { barCategoryGap: 0, barGap: 0 } : {})}
             margin={{ top: 24, right: 16, left: 16, bottom: hasLongLabels ? 48 : 16 }}
           >
             <CartesianGrid {...GRID_PROPS} />
@@ -133,10 +137,11 @@ export function BarChart({
                 <Cell
                   key={bar.label}
                   fill={
-                    colorMode === "single"
+                    colorMode === "single" || histogram
                       ? categoricalColorFor(data.variableId)
                       : categoricalColorFor(bar.label)
                   }
+                  {...(histogram ? { stroke: "var(--card)", strokeWidth: 1 } : {})}
                 />
               ))}
               <LabelList

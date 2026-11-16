@@ -1,8 +1,9 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useState, type ReactNode } from "react";
 
 import { formatNumber, formatPercent } from "@/components/shared/format";
+import { InterpretationPanel } from "@/components/shared/interpretation-panel";
 import { SectionCard } from "@/components/shared/section-card";
 import { DataTable, type DataTableColumn } from "@/components/tables/data-table";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,8 @@ export interface ContingencyTableProps {
   decimals?: number;
   /** Vista inicial; si se omite se deduce de la petición. */
   defaultView?: ContingencyView;
+  /** Acciones del bloque «Qué significa» (copiar, añadir al informe). */
+  interpretationActions?: ReactNode;
 }
 
 interface CrossRow {
@@ -57,6 +60,7 @@ export function ContingencyTable({
   contingency,
   decimals = 2,
   defaultView,
+  interpretationActions,
 }: ContingencyTableProps) {
   const [view, setView] = useState<ContingencyView>(
     defaultView ?? viewFromRequest(contingency.request.percentages),
@@ -169,7 +173,16 @@ export function ContingencyTable({
         contingency.request.rowVariableId,
         contingency.request.columnVariableId,
       )}
+      className="flex flex-col gap-6"
     >
+      {contingency.interpretation ? (
+        <InterpretationPanel
+          interpretation={contingency.interpretation}
+          {...(contingency.steps !== undefined ? { steps: contingency.steps } : {})}
+          name={title}
+          actions={interpretationActions}
+        />
+      ) : null}
       <SectionCard
         title={title}
         description={`${table.grandTotal} caso(s) cruzados${

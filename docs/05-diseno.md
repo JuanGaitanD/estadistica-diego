@@ -1,5 +1,19 @@
 # StatLab — Dirección de diseño (para implementación con shadcn/ui)
 
+## Aterrizaje en `/` (2026-11-16, fase FL)
+
+Decidido con la skill `disenojg` (commit `24fa6b7`, 2026-11-12). Hereda **todo** el sistema de la decisión de abajo (color, tipografía, forma, botón con cuerpo, foco doble, palotes); la app pasa a `/app`.
+
+- **Modo:** Persuadir. **Ficha:** StatLab, gratis y en el navegador, para personas sin formación en estadística. Promesa: «te dice qué significan tus datos, en palabras simples; el cálculo, si lo quieres ver». Escena: alguien con una hoja de Excel y una pregunta, no un estadístico.
+- **Color:** el mismo; un solo cambio fuerte de ritmo, la banda de cierre en ciruela de esténcil (texto `--sobre-accion`, 8,1:1). Sin degradados ni colores nuevos.
+- **Tipografía:** Atkinson Hyperlegible Next en un título grande (3,5–4,5 rem en escritorio, 2,5 rem en móvil) y Mono para datos, cifras y nombres de archivo.
+- **Forma y profundidad:** hojas con borde de 1 px sobre papel; la demo va sobre papel milimétrico, como la zona de datos de la app.
+- **Firma:** palotes de conteo numeran los tres pasos (I, II, III trazados a mano); el panel «Qué significa» con su filete ciruela es el mismo de la app.
+- **Primera pantalla:** dividida. Mensaje y acciones a la izquierda; a la derecha, **el producto funcionando**: una maqueta hecha con los componentes reales que recorre cuatro estados (pegar datos → qué significa → cómo se calculó → informe). Los textos de la demo y del ejemplo **los calcula el motor en el build** a partir de los datos de ejemplo incluidos: no hay frases escritas a mano.
+- **Momento focal:** esa demo (avanza cada 6 s, pausa al pasar el cursor, al enfocar, fuera de vista y con la pestaña oculta; con movimiento reducido no arranca sola). Base: estados en todos los controles, cascada de entrada en la primera pantalla y revelado por bloque. Sin seguimiento del cursor: el carácter es sobrio.
+- **Contenido veraz:** lo que aún no existe (regresión, pruebas, probabilidad…) se lista como «En construcción», no como disponible. Sin cifras de uso ni testimonios: no hay.
+- **Autocomprobación:** con el logotipo tapado, el papel cuadriculado, los palotes y el panel con filete ciruela identifican a StatLab; la primera pantalla enseña un resultado interpretado que solo este producto da.
+
 ## Decisión final (2026-11-12): cuaderno de laboratorio de estadística
 
 Esta decisión **sustituye a la de 2026-09-20** en todo lo visual (color, tipografía, forma, profundidad, componentes y firma). La anterior se conserva abajo, tal cual, como histórico. No cambian la estructura del asistente, los textos de las pantallas, los cálculos ni la exportación.

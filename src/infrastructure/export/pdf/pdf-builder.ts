@@ -1,4 +1,5 @@
-import { jsPDF } from "jspdf";
+// jsPDF (con html2canvas y canvg) pesa cientos de KB: se carga al exportar, no al abrir la app.
+import type { jsPDF } from "jspdf";
 import { downloadBlob } from "../download-blob";
 import type { ReportPdfSpec, ReportSection } from "./pdf-types";
 
@@ -191,7 +192,16 @@ function drawImageSection(
   const imageHeight = (properties.height / properties.width) * imageWidth;
 
   ensureSpace(doc, cursor, imageHeight);
-  doc.addImage(section.dataUrl, format, MARGIN_MM, cursor.y, imageWidth, imageHeight);
+  doc.addImage(
+    section.dataUrl,
+    format,
+    MARGIN_MM,
+    cursor.y,
+    imageWidth,
+    imageHeight,
+    undefined,
+    "FAST",
+  );
   cursor.y += imageHeight + 4;
 
   if (section.caption) {
@@ -241,8 +251,11 @@ function drawFooters(doc: jsPDF, generatedAt: Date): void {
  * página) sin convertirlo a `Blob`, para poder inspeccionarlo en tests
  * (ej. `doc.getNumberOfPages()`).
  */
-export function buildReportPdfDocument(spec: ReportPdfSpec): jsPDF {
-  const doc = new jsPDF({ format: PAGE_FORMAT, unit: "mm" });
+export async function buildReportPdfDocument(spec: ReportPdfSpec): Promise<jsPDF> {
+  const { jsPDF } = await import("jspdf");
+  // `compress` comprime los flujos de página y "FAST" en addImage comprime las
+  // imágenes: sin ambos, cada gráfica se guardaba como píxeles crudos (~40 MB).
+  const doc = new jsPDF({ format: PAGE_FORMAT, unit: "mm", compress: true });
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
 
@@ -267,7 +280,7 @@ export function buildReportPdfDocument(spec: ReportPdfSpec): jsPDF {
 
 /** Genera el reporte PDF completo como `Blob`, listo para descargar. */
 export async function buildReportPdf(spec: ReportPdfSpec): Promise<Blob> {
-  const doc = buildReportPdfDocument(spec);
+  const doc = await buildReportPdfDocument(spec);
   return doc.output("blob");
 }
 

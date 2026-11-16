@@ -161,7 +161,7 @@ describe("AnalysisSummary", () => {
     const result = analyze([variableRequest("sexo"), variableRequest("hijos")]);
     render(<AnalysisSummary result={result} />);
 
-    expect(screen.getByRole("heading", { name: "Aquí están tus resultados" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Qué dicen tus datos" })).toBeInTheDocument();
     // La cabecera resume el análisis con etiqueta + cifra (no con badges).
     expect(screen.getByText("Filas de datos")).toBeInTheDocument();
     expect(screen.getByText("8")).toBeInTheDocument();

@@ -32,6 +32,7 @@ export {
   computeIntervalLength,
   ceilToPrecision,
   detectDecimals,
+  CLASS_RULE_LABEL,
   MIN_CLASSES,
   MAX_CLASSES,
 } from "./grouping";
@@ -84,6 +85,21 @@ export {
 } from "./variability";
 export type { OutlierReport, VariabilityParams } from "./variability";
 
+export {
+  boxPlotSummary,
+  kurtosis,
+  percentileOfValue,
+  skewness,
+  SHAPE_REASONS,
+  zScores,
+} from "./shape";
+export type { BoxPlotSummary } from "./shape";
+
+export * from "./distributions";
+export * from "./inference";
+
+export * from "./regression";
+
 export { computeContingencyTable } from "./contingency";
 export type { ContingencyParams } from "./contingency";
 
@@ -93,3 +109,31 @@ export {
   DISTINCT_VALUES_THRESHOLD,
 } from "./run-variable-analysis";
 export type { VariableAnalysisInput } from "./run-variable-analysis";
+
+export {
+  categoricalSteps,
+  ALPHA,
+  clipStepRows,
+  contingencySteps,
+  correlationStrength,
+  interpretCorrelation,
+  interpretPrediction,
+  interpretRegression,
+  regressionSteps,
+  describeShape,
+  groupingStep,
+  locateValue,
+  SHAPE_MIN_N,
+  interpretCategorical,
+  interpretContingency,
+  ASSOCIATION_GAP,
+  interpretQuantitative,
+  quantitativeSteps,
+  formatCount,
+  formatShare,
+  formatValue,
+  narrativeDecimals,
+  SMALL_SAMPLE,
+  STEP_TABLE_MAX_ROWS,
+} from "./interpretation";
+export type { CategoryCount, LocatedValue } from "./interpretation";

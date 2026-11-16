@@ -175,6 +175,26 @@ export const EXPLANATIONS = {
     why: "Señalar posibles errores o casos excepcionales",
     formula: "xi < Q1 − 1,5·RIC o xi > Q3 + 1,5·RIC",
   },
+  asimetria: {
+    what: "Si los datos se cargan hacia un lado: positiva, cola larga a la derecha; negativa, a la izquierda",
+    why: "Decidir si el promedio representa bien al dato típico o conviene la mediana",
+    formula: "g = n / ((n − 1)(n − 2)) · Σ((xi − x̄) / s)³",
+  },
+  curtosis: {
+    what: "Si hay más o menos datos extremos que en una campana normal (exceso: 0 = como la normal)",
+    why: "Saber si conviene esperar valores muy alejados del centro",
+    formula: "n(n + 1) / ((n − 1)(n − 2)(n − 3)) · Σ((xi − x̄) / s)⁴ − 3(n − 1)² / ((n − 2)(n − 3))",
+  },
+  "puntaje-z": {
+    what: "Cuántas desviaciones estándar se aleja un dato del promedio",
+    why: "Comparar datos de escalas distintas y ver qué tan raro es un valor",
+    formula: "z = (x − x̄) / s",
+  },
+  "percentil-de-un-valor": {
+    what: "Qué porcentaje de los datos queda por debajo de un valor dado",
+    why: "Ubicar un caso concreto dentro del grupo",
+    formula: "Inverso del percentil R-7 (RANGO.PERCENTIL.INC de Excel)",
+  },
   "tabla-de-contingencia": {
     what: "Cuenta los casos que combinan dos categorías",
     why: "Explorar si dos variables están relacionadas",

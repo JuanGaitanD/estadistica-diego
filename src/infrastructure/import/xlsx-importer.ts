@@ -1,4 +1,4 @@
-import * as XLSX from "xlsx";
+// SheetJS se carga al importar un Excel, no al abrir la app.
 import { buildDataset } from "@/core/data";
 import type { CellValue, Dataset, MissingValueConfig, NumberFormat } from "@/core/data";
 
@@ -13,6 +13,7 @@ export interface ImportXlsxOptions {
 
 /** Lee los nombres de hoja disponibles en un archivo XLSX, sin importarlo. */
 export async function listXlsxSheets(file: File): Promise<readonly string[]> {
+  const XLSX = await import("xlsx");
   const buffer = await file.arrayBuffer();
   const workbook = XLSX.read(buffer, { type: "array" });
   return workbook.SheetNames;
@@ -24,6 +25,7 @@ export async function listXlsxSheets(file: File): Promise<readonly string[]> {
  * usa por defecto si no se indica `sheetName`.
  */
 export async function importXlsxFile(file: File, options: ImportXlsxOptions): Promise<Dataset> {
+  const XLSX = await import("xlsx");
   const buffer = await file.arrayBuffer();
   const workbook = XLSX.read(buffer, { type: "array", cellDates: true });
   const sheetName = options.sheetName ?? workbook.SheetNames[0];

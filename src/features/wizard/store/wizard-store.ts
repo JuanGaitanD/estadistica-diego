@@ -35,19 +35,26 @@ import {
   type StepIndex,
   type StepValidation,
   type WizardState,
+  type Zone,
 } from "../model/types";
+import { restoreWorkspace } from "../model/project";
 import { usualSelection } from "../model/usual-selection";
 import { canProceed as canProceedPure } from "../model/validation";
 
 /** Acciones del asistente. Todas son puras salvo las de importación. */
 export interface WizardActions {
-  goToStep: (step: StepIndex) => void;
-  goNext: () => void;
-  goBack: () => void;
+  /** Cambia de zona; sin datos válidos solo se puede estar en «Datos» o «Informe». */
+  goToZone: (zone: Zone) => void;
+  /** Por qué no se puede entrar en una zona, o `null` si se puede. */
+  zoneBlockedReason: (zone: Zone) => string | null;
 
   setPastedText: (text: string) => void;
   importText: (text?: string) => void;
   importSample: () => void;
+  /** Usa el texto tabulado de la hoja editable (con fila de nombres); `true` si se pudo leer. */
+  importGridText: (tsv: string) => boolean;
+  /** Abre un proyecto ya validado: datos y configuración del espacio de trabajo. */
+  openProject: (dataset: Dataset, workspace: unknown) => void;
   importFromFile: (file: File) => Promise<void>;
   setImportOption: <K extends keyof ImportOptions>(key: K, value: ImportOptions[K]) => void;
   clearImportError: () => void;
@@ -65,13 +72,13 @@ export interface WizardActions {
   detectStoredDataset: () => void;
   recoverLastDataset: () => boolean;
   reset: () => void;
-  canProceed: (step?: StepIndex) => StepValidation;
+  canProceed: (step: StepIndex) => StepValidation;
 }
 
 export type WizardStore = WizardState & WizardActions;
 
 const INITIAL_STATE: WizardState = {
-  step: 0,
+  zone: "datos",
   dataset: null,
   origin: null,
   sourceName: null,
@@ -82,6 +89,7 @@ const INITIAL_STATE: WizardState = {
   isImporting: false,
   columns: [],
   calculation: DEFAULT_CALCULATION,
+  calculationCustomized: false,
   result: null,
   isComputing: false,
   hasStoredDataset: false,
@@ -130,12 +138,15 @@ function stateForDataset(
   origin: DatasetSource,
   sourceName: string | null,
 ): Partial<WizardState> {
+  const columns = columnsFromDataset(dataset);
   return {
     dataset,
     origin,
     sourceName,
-    columns: columnsFromDataset(dataset),
-    calculation: { ...DEFAULT_CALCULATION },
+    columns,
+    // Explorar muestra de entrada lo habitual: nadie tiene que saber qué marcar.
+    calculation: usualSelection(columns, DEFAULT_CALCULATION),
+    calculationCustomized: false,
     result: null,
     importError: null,
     isImporting: false,
@@ -155,200 +166,245 @@ function requestKey(value: unknown): string {
 
 let lastRequestKey: string | null = null;
 
-export const useWizardStore = create<WizardStore>()((set, get) => ({
-  ...INITIAL_STATE,
-
-  goToStep: (step) => set({ step }),
-
-  goNext: () => {
-    const state = get();
-    if (state.step >= 3) return;
-    if (!canProceedPure(state, state.step).ok) return;
-    set({ step: (state.step + 1) as StepIndex });
-  },
-
-  goBack: () => {
-    const state = get();
-    if (state.step <= 0) return;
-    set({ step: (state.step - 1) as StepIndex });
-  },
-
-  setPastedText: (text) => set({ pastedText: text }),
-
-  importText: (text) => {
-    const state = get();
-    const source = text ?? state.pastedText;
-    if (source.trim().length === 0) {
-      set({ importError: "Todavía no hay datos cargados. Pega tus valores o sube un archivo." });
-      return;
-    }
-    try {
-      const numberFormat = numberFormatOf(state.importOptions.decimal);
-      const dataset = importPastedText(source, {
-        hasHeader: state.importOptions.hasHeader,
-        ...(numberFormat ? { numberFormat } : {}),
-      });
-      saveLastDataset(dataset);
-      set({ ...stateForDataset(dataset, "texto", null), pastedText: source, availableSheets: [] });
-    } catch (error) {
-      set({ importError: messageOf(error) });
-    }
-  },
-
-  importSample: () => {
+export const useWizardStore = create<WizardStore>()((set, get) => {
+  /** Aplica cambios de columnas; si la selección es la habitual, se rehace con los tipos nuevos. */
+  const applyColumns = (columns: ColumnConfig[]): void =>
     set({
-      pastedText: SAMPLE_DATA_TEXT,
-      importOptions: { ...get().importOptions, hasHeader: true },
+      columns,
+      result: null,
+      ...(get().calculationCustomized
+        ? {}
+        : { calculation: usualSelection(columns, DEFAULT_CALCULATION) }),
     });
-    get().importText(SAMPLE_DATA_TEXT);
-    set({ sourceName: SAMPLE_DATA_NAME });
-  },
 
-  importFromFile: async (file) => {
-    set({ isImporting: true, importError: null });
-    try {
-      const options = get().importOptions;
-      const isExcel = /\.(xlsx|xls)$/i.test(file.name);
-      const sheets = isExcel ? await listAvailableSheets(file) : [];
-      const sheetName =
-        options.sheetName !== null && sheets.includes(options.sheetName) ? options.sheetName : null;
-      const numberFormat = numberFormatOf(options.decimal);
-      const dataset = await importFile(file, {
-        hasHeader: options.hasHeader,
-        ...(sheetName !== null ? { sheetName } : {}),
-        ...(numberFormat ? { numberFormat } : {}),
+  return {
+    ...INITIAL_STATE,
+
+    goToZone: (zone) => {
+      if (get().zoneBlockedReason(zone) !== null) return;
+      set({ zone });
+    },
+
+    zoneBlockedReason: (zone) => {
+      if (zone === "datos" || zone === "informe") return null;
+      const state = get();
+      for (const step of [0, 1] as const) {
+        const verdict = canProceedPure(state, step);
+        if (!verdict.ok) return verdict.message;
+      }
+      return null;
+    },
+
+    setPastedText: (text) => set({ pastedText: text }),
+
+    importText: (text) => {
+      const state = get();
+      const source = text ?? state.pastedText;
+      if (source.trim().length === 0) {
+        set({ importError: "Todavía no hay datos cargados. Pega tus valores o sube un archivo." });
+        return;
+      }
+      try {
+        const numberFormat = numberFormatOf(state.importOptions.decimal);
+        const dataset = importPastedText(source, {
+          hasHeader: state.importOptions.hasHeader,
+          ...(numberFormat ? { numberFormat } : {}),
+        });
+        // Los datos de ejemplo no pisan los últimos datos propios guardados.
+        if (source !== SAMPLE_DATA_TEXT) saveLastDataset(dataset);
+        set({
+          ...stateForDataset(dataset, "texto", null),
+          pastedText: source,
+          availableSheets: [],
+        });
+      } catch (error) {
+        set({ importError: messageOf(error) });
+      }
+    },
+
+    importSample: () => {
+      set({
+        pastedText: SAMPLE_DATA_TEXT,
+        importOptions: { ...get().importOptions, hasHeader: true },
       });
+      get().importText(SAMPLE_DATA_TEXT);
+      set({ sourceName: SAMPLE_DATA_NAME });
+    },
+
+    importGridText: (tsv) => {
+      set({ importOptions: { ...get().importOptions, hasHeader: true } });
+      get().importText(tsv);
+      const state = get();
+      if (state.importError !== null) return false;
+      set({ sourceName: "Hoja editable" });
+      return true;
+    },
+
+    openProject: (dataset, workspace) => {
+      const restored = restoreWorkspace(workspace, dataset);
       saveLastDataset(dataset);
       set({
-        ...stateForDataset(dataset, isExcel ? "xlsx" : "csv", file.name),
-        availableSheets: sheets,
-        importOptions: { ...options, sheetName },
+        ...stateForDataset(dataset, dataset.source, dataset.sourceName ?? null),
+        ...(restored ?? {}),
+        availableSheets: [],
+        pastedText: "",
+        zone: "explorar",
       });
-    } catch (error) {
-      set({ importError: messageOf(error), isImporting: false });
-    }
-  },
+    },
 
-  setImportOption: (key, value) => {
-    set({ importOptions: { ...get().importOptions, [key]: value } });
-    const state = get();
-    if (state.origin === "texto" && state.pastedText.trim().length > 0) {
-      state.importText(state.pastedText);
-    }
-  },
+    importFromFile: async (file) => {
+      set({ isImporting: true, importError: null });
+      try {
+        const options = get().importOptions;
+        const isExcel = /\.(xlsx|xls)$/i.test(file.name);
+        const sheets = isExcel ? await listAvailableSheets(file) : [];
+        const sheetName =
+          options.sheetName !== null && sheets.includes(options.sheetName)
+            ? options.sheetName
+            : null;
+        const numberFormat = numberFormatOf(options.decimal);
+        const dataset = await importFile(file, {
+          hasHeader: options.hasHeader,
+          ...(sheetName !== null ? { sheetName } : {}),
+          ...(numberFormat ? { numberFormat } : {}),
+        });
+        saveLastDataset(dataset);
+        set({
+          ...stateForDataset(dataset, isExcel ? "xlsx" : "csv", file.name),
+          availableSheets: sheets,
+          importOptions: { ...options, sheetName },
+        });
+      } catch (error) {
+        set({ importError: messageOf(error), isImporting: false });
+      }
+    },
 
-  clearImportError: () => set({ importError: null }),
+    setImportOption: (key, value) => {
+      set({ importOptions: { ...get().importOptions, [key]: value } });
+      const state = get();
+      if (state.origin === "texto" && state.pastedText.trim().length > 0) {
+        state.importText(state.pastedText);
+      }
+    },
 
-  renameColumn: (id, name) =>
-    set({
-      columns: get().columns.map((column) => (column.id === id ? { ...column, name } : column)),
-      result: null,
-    }),
+    clearImportError: () => set({ importError: null }),
 
-  setColumnKind: (id, kind) =>
-    set({
-      columns: get().columns.map((column) => (column.id === id ? { ...column, kind } : column)),
-      result: null,
-    }),
+    renameColumn: (id, name) =>
+      applyColumns(
+        get().columns.map((column) => (column.id === id ? { ...column, name } : column)),
+      ),
 
-  toggleColumn: (id, include) =>
-    set({
-      columns: get().columns.map((column) => (column.id === id ? { ...column, include } : column)),
-      result: null,
-    }),
+    setColumnKind: (id, kind) =>
+      applyColumns(
+        get().columns.map((column) => (column.id === id ? { ...column, kind } : column)),
+      ),
 
-  moveCategory: (id, index, direction) =>
-    set({
-      columns: get().columns.map((column) => {
-        if (column.id !== id) return column;
-        const order = [...column.categoryOrder];
-        const target = index + direction;
-        const current = order[index];
-        const swapped = order[target];
-        if (current === undefined || swapped === undefined) return column;
-        order[index] = swapped;
-        order[target] = current;
-        return { ...column, categoryOrder: order };
+    toggleColumn: (id, include) =>
+      applyColumns(
+        get().columns.map((column) => (column.id === id ? { ...column, include } : column)),
+      ),
+
+    moveCategory: (id, index, direction) =>
+      applyColumns(
+        get().columns.map((column) => {
+          if (column.id !== id) return column;
+          const order = [...column.categoryOrder];
+          const target = index + direction;
+          const current = order[index];
+          const swapped = order[target];
+          if (current === undefined || swapped === undefined) return column;
+          order[index] = swapped;
+          order[target] = current;
+          return { ...column, categoryOrder: order };
+        }),
+      ),
+
+    patchCalculation: (patch) =>
+      set({
+        calculation: { ...get().calculation, ...patch },
+        calculationCustomized: true,
+        result: null,
       }),
-      result: null,
-    }),
 
-  patchCalculation: (patch) =>
-    set({ calculation: { ...get().calculation, ...patch }, result: null }),
+    toggleChart: (variableId, kind, selected) => {
+      const calculation = get().calculation;
+      const current = calculation.charts[variableId] ?? [];
+      const next = selected
+        ? current.includes(kind)
+          ? current
+          : [...current, kind]
+        : current.filter((entry) => entry !== kind);
+      set({
+        calculation: { ...calculation, charts: { ...calculation.charts, [variableId]: next } },
+        calculationCustomized: true,
+        result: null,
+      });
+    },
 
-  toggleChart: (variableId, kind, selected) => {
-    const calculation = get().calculation;
-    const current = calculation.charts[variableId] ?? [];
-    const next = selected
-      ? current.includes(kind)
-        ? current
-        : [...current, kind]
-      : current.filter((entry) => entry !== kind);
-    set({
-      calculation: { ...calculation, charts: { ...calculation.charts, [variableId]: next } },
-      result: null,
-    });
-  },
+    selectUsual: () => {
+      const state = get();
+      set({
+        calculation: usualSelection(state.columns, state.calculation),
+        calculationCustomized: false,
+        result: null,
+      });
+    },
 
-  selectUsual: () => {
-    const state = get();
-    set({ calculation: usualSelection(state.columns, state.calculation), result: null });
-  },
+    computeResult: () => {
+      const state = get();
+      if (state.dataset === null) return;
+      const request = buildAnalysisRequest(state);
+      if (request === null) return;
+      const key = requestKey(request);
+      if (state.result !== null && lastRequestKey === key) return;
+      set({ isComputing: true });
+      const dataset: Dataset = {
+        ...state.dataset,
+        columns: state.dataset.columns.map((column) => {
+          const config = state.columns.find((entry) => entry.id === column.variable.id);
+          if (config === undefined) return column;
+          return {
+            ...column,
+            variable: {
+              ...column.variable,
+              name: config.name,
+              kind: config.kind,
+              kindConfirmedByUser: true,
+              ...(config.kind === "ordinal" ? { categoryOrder: config.categoryOrder } : {}),
+            },
+          };
+        }),
+      };
+      const result = runAnalysis(dataset, request);
+      lastRequestKey = key;
+      set({ result, isComputing: false });
+    },
 
-  computeResult: () => {
-    const state = get();
-    if (state.dataset === null) return;
-    const request = buildAnalysisRequest(state);
-    if (request === null) return;
-    const key = requestKey(request);
-    if (state.result !== null && lastRequestKey === key) return;
-    set({ isComputing: true });
-    const dataset: Dataset = {
-      ...state.dataset,
-      columns: state.dataset.columns.map((column) => {
-        const config = state.columns.find((entry) => entry.id === column.variable.id);
-        if (config === undefined) return column;
-        return {
-          ...column,
-          variable: {
-            ...column.variable,
-            name: config.name,
-            kind: config.kind,
-            kindConfirmedByUser: true,
-            ...(config.kind === "ordinal" ? { categoryOrder: config.categoryOrder } : {}),
-          },
-        };
-      }),
-    };
-    const result = runAnalysis(dataset, request);
-    lastRequestKey = key;
-    set({ result, isComputing: false });
-  },
+    detectStoredDataset: () => set({ hasStoredDataset: loadLastDataset() !== null }),
 
-  detectStoredDataset: () => set({ hasStoredDataset: loadLastDataset() !== null }),
+    recoverLastDataset: () => {
+      const dataset = loadLastDataset();
+      if (dataset === null) {
+        set({ hasStoredDataset: false });
+        return false;
+      }
+      set({
+        ...stateForDataset(dataset, dataset.source, dataset.sourceName ?? null),
+        zone: "datos",
+      });
+      return true;
+    },
 
-  recoverLastDataset: () => {
-    const dataset = loadLastDataset();
-    if (dataset === null) {
-      set({ hasStoredDataset: false });
-      return false;
-    }
-    set({ ...stateForDataset(dataset, dataset.source, dataset.sourceName ?? null), step: 0 });
-    return true;
-  },
+    reset: () => {
+      clearLastDataset();
+      lastRequestKey = null;
+      set({
+        ...INITIAL_STATE,
+        calculation: { ...DEFAULT_CALCULATION },
+        importOptions: { ...DEFAULT_IMPORT_OPTIONS },
+      });
+    },
 
-  reset: () => {
-    clearLastDataset();
-    lastRequestKey = null;
-    set({
-      ...INITIAL_STATE,
-      calculation: { ...DEFAULT_CALCULATION },
-      importOptions: { ...DEFAULT_IMPORT_OPTIONS },
-    });
-  },
-
-  canProceed: (step) => {
-    const state = get();
-    return canProceedPure(state, step ?? state.step);
-  },
-}));
+    canProceed: (step) => canProceedPure(get(), step),
+  };
+});

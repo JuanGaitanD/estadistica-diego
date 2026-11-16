@@ -25,7 +25,10 @@
 import type { CellValue, Column, Dataset, DatasetWarning } from "@/core/data";
 import {
   computeContingencyTable,
+  contingencySteps,
+  interpretContingency,
   runVariableAnalysis,
+  sortAscending,
   type CentralTendencyOptions,
   type FrequencyRow,
   type ObservedValue,
@@ -376,6 +379,13 @@ export function runAnalysis(
       grouped: analysis.groupedFrequency !== undefined,
       request: effective.request,
       analysis,
+      ...(kind === "discreta" || kind === "continua"
+        ? {
+            sortedValues: sortAscending(
+              values.filter((value): value is number => typeof value === "number"),
+            ),
+          }
+        : {}),
       applicability,
       unavailable: effective.unavailable,
     });
@@ -451,6 +461,12 @@ export function runAnalysis(
       rowVariableName: rowColumn.variable.name,
       columnVariableName: columnColumn.variable.name,
       table,
+      interpretation: interpretContingency(
+        table,
+        rowColumn.variable.name,
+        columnColumn.variable.name,
+      ),
+      steps: contingencySteps(table, rowColumn.variable.name, columnColumn.variable.name),
     });
   }
 
