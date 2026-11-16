@@ -11,7 +11,12 @@ import {
   ProbabilityPanel,
   type AnalysisColumn,
 } from "@/features/inference";
-import { RegressionPanel, type NumericColumn } from "@/features/regression";
+import {
+  LogisticPanel,
+  MultipleRegressionPanel,
+  RegressionPanel,
+  type NumericColumn,
+} from "@/features/regression";
 
 import { isQuantitative } from "../model/validation";
 import { useWizardStore } from "../store/wizard-store";
@@ -20,7 +25,7 @@ import { useWizardStore } from "../store/wizard-store";
 type Destination = "explorar" | Panel;
 
 /** Paneles que se abren dentro de Analizar. */
-type Panel = "regresion" | "estimar" | "probabilidad" | "probar";
+type Panel = "regresion" | "multiple" | "logistica" | "estimar" | "probabilidad" | "probar";
 
 interface Question {
   readonly id: string;
@@ -50,6 +55,20 @@ const QUESTIONS: readonly Question[] = [
     example: "Cuánto sube la nota por cada hora de estudio.",
     method: "Regresión lineal",
     destination: "regresion",
+  },
+  {
+    id: "multiple",
+    question: "¿Puedo predecir con varias cosas a la vez, o con una curva?",
+    example: "La nota según las horas de estudio y la edad juntas.",
+    method: "Regresión múltiple y polinómica",
+    destination: "multiple",
+  },
+  {
+    id: "logistica",
+    question: "¿Puedo predecir un sí o un no?",
+    example: "La probabilidad de aprobar según las horas de estudio.",
+    method: "Regresión logística",
+    destination: "logistica",
   },
   {
     id: "relacionar",
@@ -85,6 +104,8 @@ const QUESTIONS: readonly Question[] = [
 const ACTION: Readonly<Record<string, string>> = {
   comparar: "Probar si es real",
   predecir: "Ajustar una recta",
+  multiple: "Ajustar un modelo",
+  logistica: "Predecir un sí o un no",
   relacionar: "Ver si se mueven juntas",
   estimar: "Estimar con mi muestra",
   probabilidad: "Calcular una probabilidad",
@@ -125,6 +146,16 @@ const PANEL_TEXT: Readonly<Record<Panel, { title: string; subtitle: string }>> =
     subtitle:
       "Elige qué quieres saber; StatLab usa la prueba que corresponde, te dice en llano si la diferencia es real y cuánto importa, y deja los 5 pasos plegados.",
   },
+  multiple: {
+    title: "¿Puedo predecir con varias cosas a la vez, o con una curva?",
+    subtitle:
+      "Elige lo que quieres predecir y las variables que crees que influyen, o una sola X si la relación es curva. StatLab te dice cuánto explica el modelo y qué aporta cada variable.",
+  },
+  logistica: {
+    title: "¿Puedo predecir un sí o un no?",
+    subtitle:
+      "Elige la respuesta que quieres predecir y las variables que pueden influir. StatLab estima la probabilidad de «sí», te dice cómo la cambia cada variable y cuántas veces acierta.",
+  },
   estimar: {
     title: "¿Qué puedo decir de toda la población?",
     subtitle:
@@ -161,6 +192,8 @@ export function AnalyzeHub() {
         </div>
         {open === "regresion" ? <RegressionPanel columns={numeric} /> : null}
         {open === "estimar" ? <EstimationPanel columns={columns} /> : null}
+        {open === "multiple" ? <MultipleRegressionPanel columns={columns} /> : null}
+        {open === "logistica" ? <LogisticPanel columns={columns} /> : null}
         {open === "probar" ? <HypothesisPanel columns={columns} /> : null}
         {open === "probabilidad" ? <ProbabilityPanel columns={numeric} /> : null}
       </div>
