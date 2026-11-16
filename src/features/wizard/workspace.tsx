@@ -63,6 +63,7 @@ function DataZone() {
 export function Workspace() {
   const zone = useWizardStore((state) => state.zone);
   const goToZone = useWizardStore((state) => state.goToZone);
+  const importSample = useWizardStore((state) => state.importSample);
   const zoneBlockedReason = useWizardStore((state) => state.zoneBlockedReason);
   // Se suscribe a lo que cambia el bloqueo de las zonas, para volver a pintar.
   useWizardStore((state) => state.dataset);
@@ -83,21 +84,32 @@ export function Workspace() {
   }, [detectStoredDataset, hydrateReport]);
 
   // La zona vive en el hash (#explorar): se puede enlazar y el botón Atrás
-  // del navegador vuelve a la zona anterior.
+  // del navegador vuelve a la zona anterior. `#ejemplo` (enlace de la
+  // portada) carga los datos de ejemplo y abre Explorar.
   useEffect(() => {
     const fromHash = (): void => {
       const id = window.location.hash.slice(1);
+      if (id === "ejemplo") {
+        importSample();
+        goToZone("explorar");
+        return;
+      }
       if (isZone(id)) goToZone(id);
     };
     fromHash();
     window.addEventListener("hashchange", fromHash);
     return () => window.removeEventListener("hashchange", fromHash);
-  }, [goToZone]);
+  }, [goToZone, importSample]);
 
   useEffect(() => {
-    if (window.location.hash.slice(1) !== zone) {
-      window.history.pushState(null, "", `#${zone}`);
-    }
+    // Se lee la zona del store, no la del render: `#ejemplo` la cambia en el
+    // mismo commit y la del render aún sería la anterior.
+    const target = useWizardStore.getState().zone;
+    const current = window.location.hash.slice(1);
+    if (current === target) return;
+    // `#ejemplo` no queda en el historial: Atrás no vuelve a cargar los datos.
+    if (current === "ejemplo") window.history.replaceState(null, "", `#${target}`);
+    else window.history.pushState(null, "", `#${target}`);
   }, [zone]);
 
   // Accesibilidad: al cambiar de zona, el foco va al título y la vista vuelve arriba.
