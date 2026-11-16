@@ -13,7 +13,18 @@ Plan aprobado por Juan el 2026-11-16: `docs/09-plan-plataforma.md` (alcance M0�
 | F0 · Cimientos                                                         | **Cerrada** (2026-11-16) |
 | F1 · Nuevo flujo (espacio de trabajo e informe)                        | **Cerrada** (2026-11-16) |
 | FL · Landing en `/` y la app en `/app` (pedida por Juan el 2026-11-16) | **Cerrada** (2026-11-16) |
-| F2–F7                                                                  | Pendientes (sigue F2)    |
+| F2 · Descriptiva completa y explicable                                 | **Cerrada** (2026-11-16) |
+| F3–F7                                                                  | Pendientes (sigue F3)    |
+
+### F2 · qué quedó
+
+- **Forma** (`src/core/statistics/shape`): asimetría y curtosis iguales a `COEFICIENTE.ASIMETRIA` y `CURTOSIS` de Excel (probadas con el ejemplo de la ayuda de Excel), puntaje z, percentil de un valor igual a `RANGO.PERCENTIL.INC` (inverso exacto del R-7) y resumen de caja con bigotes de Tukey.
+- **Interpretación:** la de cada variable numérica describe la forma desde 8 datos (umbrales de Bulmer: |g| < 0,5 casi simétrica, 0,5–1 algo cargada, > 1 muy cargada; curtosis > 1 o < −1).
+- **Paso a paso de todo lo existente:** numéricas (ordenar, promedio, mediana, desviación, CV, cuartiles con sus posiciones y vallas, forma y, si se agrupa, K y l con la regla elegida); cualitativas (contar, proporción, moda y mediana ordinal); cruces (contar combinaciones, % por fila y sobre el total, con `CONTAR.SI.CONJUNTO`). Las fórmulas de varias líneas se parten en pantalla y en el PDF.
+- **«¿Dónde queda un valor?»** en cada variable numérica (`value-locator.tsx`, motor en `interpretation/locate-value.ts`): percentil, cuántos datos quedan por debajo y por encima y z con lectura de rareza (|z| < 1 común, < 2 algo alejado, < 3 poco común, ≥ 3 muy raro). El puntaje z se da para cualquier valor que se escriba, no como columna por dato.
+- **Gráficas:** histograma de barras contiguas cuando la variable se agrupa, caja y bigotes (SVG propio), Pareto (nominales) y barras agrupadas en cada cruce (% dentro de cada grupo; entra al informe como imagen). Los tipos salen de una sola lista, `CHART_KINDS`. Bloque «Forma» en pantalla, en el informe y en el índice.
+- **Movido a otras fases (decisión del agente):** el diagrama de dispersión llega en F3 con el par X–Y de la regresión, para no construir dos veces el selector de pares; cajas y medias por grupo, en F5 con la comparación de grupos.
+- Verificación: 492 tests, tipos, lint y `pnpm build` en verde; Explorar con los datos de ejemplo revisado a 1440 y 390 px sin desborde.
 
 ### FL · qué quedó
 
@@ -134,7 +145,7 @@ Cambios de texto/estructura declarados: desaparece el eyebrow duplicado «Paso N
 En el repo:
 
 ```bash
-pnpm check     # lint + format:check + typecheck + test (461 tests)
+pnpm check     # lint + format:check + typecheck + test (492 tests)
 pnpm build     # export estático a out/
 pnpm dev --port 3101
 ```
