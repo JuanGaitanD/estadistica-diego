@@ -1,6 +1,6 @@
 # HANDOFF · StatLab
 
-Estado del trabajo de diseño. Última actualización: 2026-11-12 (ronda 3: CSP sin `eval`, PNG oscuro, «Cerrar», decimal «Automático» y `public/` limpio).
+Estado del trabajo. Última actualización: 2026-11-16 (plataforma: fases F0–F7 y FL cerradas en `feat/plataforma-interpretacion`, sin push).
 
 ## Plataforma (desde 2026-11-16): de calculadora descriptiva a «estadística que se entiende»
 
@@ -18,7 +18,15 @@ Plan aprobado por Juan el 2026-11-16: `docs/09-plan-plataforma.md` (alcance M0�
 | F4 · Probabilidad e intervalos                                         | **Cerrada** (2026-11-16) |
 | F5 · Pruebas de hipótesis y selector                                   | **Cerrada** (2026-11-16) |
 | F6 · Múltiple, polinómica y logística                                  | **Cerrada** (2026-11-16) |
-| F7                                                                     | Pendiente (sigue F7)     |
+| F7 · Modo guiado CRISP-DM y cierre                                     | **Cerrada** (2026-11-16) |
+
+### F7 · qué quedó
+
+- **Modo guiado CRISP-DM** (`src/features/wizard/guided`): «Guíame paso a paso» en el espacio de trabajo y «¿Primera vez? Te guío paso a paso» en la portada (`/app#guiado`). Una barra de seis fases sobre las mismas zonas: la pregunta en una frase y su tipo (describir, comparar, relacionar, predecir); los datos; la **bitácora de preparación**, que compara cada variable con lo detectado al cargar (renombres, tipos cambiados, variables fuera, orden de categorías, faltantes); el método que corresponde; la **lista de evaluación** con semáforo según el tipo de pregunta; y el despliegue, que añade al informe la pregunta, la bitácora y la evaluación. El recorrido vive en memoria: si se recarga la página, vuelve a empezar.
+- **Accesibilidad:** auditor de diseñoJG sobre guiado, pruebas, modelos, logística y portada a 390 px. Corregidos: desborde horizontal de la portada por el enlace nuevo, «Salir del modo guiado» y las acciones de proyecto a 44 px, punto del semáforo con tamaño fijo y nombre accesible igual al texto visible. Los avisos de «campos sin anillo de foco» son falsos positivos (el anillo global de `:focus-visible` se ve al tabular). Siguen en 36 px los botones secundarios `size="sm"` de las barras de gráficas (Copiar, PNG, SVG), que cumplen el mínimo de 24 px de WCAG 2.2 AA.
+- **Rendimiento:** jsPDF (con html2canvas y canvg) y SheetJS se cargan al exportar o importar un Excel, no al abrir la app: el JavaScript inicial de `/app` pasa de 787 KB a 497 KB comprimido. Exportar PDF y Excel, comprobado en el navegador.
+- **Documentación:** README al día con la plataforma, el modo guiado y la validación contra R.
+- Verificación: 572 tests, tipos, lint y `pnpm build` (código 0) en verde; caso completo de punta a punta en modo guiado (test `guided.test.tsx` y en el navegador a 1440 y 390 px).
 
 ### F6 · qué quedó
 
@@ -170,20 +178,33 @@ Palotes de conteo sobre placa ciruela: `src/app/icon1.svg` (SVG), `icon2.png` (3
 
 ## Dónde estamos
 
-Rediseño visual completo en la rama `design/disenojg`, integrada en `main` por avance rápido y publicada el 2026-11-12: dirección **«cuaderno de laboratorio de estadística»**, decidida en `docs/05-diseno.md` («Decisión final (2026-11-12)»). La decisión anterior (editorial académico, verde bosque, Plus Jakarta Sans) quedó como histórico en el mismo documento.
+La plataforma del plan `docs/09-plan-plataforma.md` está completa en la rama `feat/plataforma-interpretacion` (F0–F7 y FL cerradas el 2026-11-16, detalle por fase arriba). **No se ha hecho push, merge ni despliegue**; eso queda a decisión de Juan.
 
-Qué cambió: paleta fría de papel cuadriculado con acción **ciruela `#7e306b`**, **Atkinson Hyperlegible Next y Mono** con `next/font`, botón con cuerpo, foco con anillo doble, campos y casillas propios, `select` nativo dibujado, tablas con cifras en mono, tema de gráficas con papel milimétrico y firma de **palotes de conteo** (stepper, carga, vacíos).
+- Portada en `/` y aplicación en `/app` con las zonas Datos, Explorar, Analizar e Informe y el modo guiado CRISP-DM.
+- La interpretación va primero en todos los módulos; el paso a paso, con fórmulas y su equivalente en Excel, queda tras «Ver cómo se calculó» (ADR-004).
+- El motor está validado contra R y Excel en las pruebas de cálculo.
+- Next.js actualizado a 16.4.6 por un aviso de seguridad.
+- La dirección visual sigue siendo el «cuaderno de laboratorio de estadística» de `docs/05-diseno.md` (decisión del 2026-11-12).
 
-Qué **no** cambió: motor de cálculo (`src/core`), casos de uso, modelos, stores, parsers y exportación (`src/infrastructure`), formato de números, textos de las pantallas (salvo los tres cambios declarados abajo).
+**Lo que sigue, si Juan lo pide:**
 
-Cambios de texto/estructura declarados: desaparece el eyebrow duplicado «Paso N · …» (lo dice el stepper), aparece el enlace «Saltar al contenido» y la tabla del mapa de calor gana título (`caption`).
+- Revisión del rango completo antes del PR, que es grande (más de 600 líneas, así que conviene apilarlo).
+- Push y PR a `main`.
+- Despliegue.
+
+Pendientes menores anotados en cada fase:
+
+- Predecir un caso nuevo en la múltiple y en la logística.
+- Pruebas de una cola y pruebas no paramétricas.
+- Simulación del límite central.
+- Guardar en `.statlab.json` las elecciones de los paneles.
 
 ## Cómo verificar
 
 En el repo:
 
 ```bash
-pnpm check     # lint + format:check + typecheck + test (569 tests)
+pnpm check     # lint + format:check + typecheck + test (572 tests)
 pnpm build     # export estático a out/
 pnpm dev --port 3101
 ```
