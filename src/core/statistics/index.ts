@@ -106,7 +106,9 @@ export {
 export type { VariableAnalysisInput } from "./run-variable-analysis";
 
 export {
+  categoricalSteps,
   clipStepRows,
+  contingencySteps,
   describeShape,
   groupingStep,
   locateValue,

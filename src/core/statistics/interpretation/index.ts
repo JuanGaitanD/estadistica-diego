@@ -1,4 +1,5 @@
 export {
+  categoricalSteps,
   clipStepRows,
   describeShape,
   groupingStep,
@@ -10,7 +11,7 @@ export {
   STEP_TABLE_MAX_ROWS,
 } from "./describe-variable";
 export type { CategoryCount } from "./describe-variable";
-export { ASSOCIATION_GAP, interpretContingency } from "./describe-contingency";
+export { ASSOCIATION_GAP, contingencySteps, interpretContingency } from "./describe-contingency";
 export { formatCount, formatShare, formatValue, narrativeDecimals } from "./text";
 export { locateValue } from "./locate-value";
 export type { LocatedValue } from "./locate-value";

@@ -1,4 +1,4 @@
-import type { ContingencyResult, Interpretation } from "../types";
+import type { CalculationStep, ContingencyResult, Interpretation } from "../types";
 import { formatCount, formatShare } from "./text";
 
 /** Diferencia en puntos porcentuales entre grupos a partir de la cual se sugiere relación. */
@@ -87,4 +87,43 @@ export function interpretContingency(
     caveats.push(`Con solo ${formatCount(n)} casos los porcentajes pueden cambiar mucho.`);
   }
   return { headline, details, caveats };
+}
+
+/**
+ * Paso a paso de un cruce: contar las combinaciones, sacar los totales y
+ * pasar a porcentajes por fila, con el ejemplo de la combinación más común.
+ */
+export function contingencySteps(
+  table: ContingencyResult,
+  rowName: string,
+  columnName: string,
+): CalculationStep[] {
+  const n = table.grandTotal;
+  if (n === 0) return [];
+  let best = { row: 0, column: 0, count: -1 };
+  table.cells.forEach((cells, row) =>
+    cells.forEach((cell, column) => {
+      if (cell.absolute > best.count) best = { row, column, count: cell.absolute };
+    }),
+  );
+  const rowLabel = table.rowLabels[best.row] ?? "";
+  const columnLabel = table.columnLabels[best.column] ?? "";
+  const rowTotal = table.rowTotals[best.row] ?? 0;
+  return [
+    {
+      title: "1. Contar las combinaciones",
+      text: `Para cada pareja de categorías se cuenta cuántos casos tienen las dos a la vez; los totales de fila y de columna suman esos conteos. En total hay ${formatCount(n)} casos.`,
+      formula: `${quote(rowLabel)} y ${quote(columnLabel)}: ${formatCount(best.count)} casos`,
+      excel: `=CONTAR.SI.CONJUNTO(rango_${rowName}; "${rowLabel}"; rango_${columnName}; "${columnLabel}")`,
+    },
+    {
+      title: "2. Porcentaje dentro de cada grupo",
+      text: `Para comparar grupos de distinto tamaño, cada conteo se divide entre el total de su fila (${rowName}).`,
+      formula: `${formatCount(best.count)} / ${formatCount(rowTotal)} · 100 = ${formatShare(rowTotal === 0 ? 0 : best.count / rowTotal)} de ${quote(rowLabel)} está en ${quote(columnLabel)}`,
+    },
+    {
+      title: "3. Porcentaje sobre el total",
+      formula: `${formatCount(best.count)} / ${formatCount(n)} · 100 = ${formatShare(best.count / n)} de todos los casos`,
+    },
+  ];
 }

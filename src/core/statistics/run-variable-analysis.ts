@@ -10,6 +10,7 @@ import {
   DEFAULT_FREQUENCY_OPTIONS,
 } from "./frequency/frequency-table";
 import {
+  categoricalSteps,
   interpretCategorical,
   interpretQuantitative,
   quantitativeSteps,
@@ -225,7 +226,12 @@ export function runVariableAnalysis(input: VariableAnalysisInput): VariableAnaly
         central.mode,
         ordinal?.label,
       );
-  const steps = quantitative ? quantitativeSteps(sortedNumbers, groupedTable) : [];
+  const steps = quantitative
+    ? quantitativeSteps(sortedNumbers, groupedTable)
+    : categoricalSteps(
+        (frequency?.rows ?? []).map((row) => ({ label: row.label, count: row.absolute })),
+        ordinal?.label,
+      );
   const shape = quantitative ? [skewness(sortedNumbers), kurtosis(sortedNumbers)] : undefined;
   const box = quantitative ? boxPlotSummary(sortedNumbers) : null;
 

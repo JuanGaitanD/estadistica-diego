@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { computeContingencyTable } from "../contingency/contingency";
-import { interpretContingency } from "./describe-contingency";
+import { contingencySteps, interpretContingency } from "./describe-contingency";
 
 function table(rows: string[], columns: string[]) {
   return computeContingencyTable({
@@ -35,5 +35,23 @@ describe("interpretContingency", () => {
       "Respuesta",
     );
     expect(result.details.at(-1)).toContain("no se ve una relación clara");
+  });
+});
+
+describe("contingencySteps", () => {
+  it("cuenta, pasa a porcentaje por fila y sobre el total", () => {
+    const table = computeContingencyTable({
+      rowVariableId: "g",
+      columnVariableId: "c",
+      rowValues: ["F", "F", "F", "M"],
+      columnValues: ["A", "A", "B", "B"],
+    });
+    const steps = contingencySteps(table, "Género", "Ciudad");
+    expect(steps.map((step) => step.formula)).toEqual([
+      "«F» y «A»: 2 casos",
+      "2 / 3 · 100 = 66,7 % de «F» está en «A»",
+      "2 / 4 · 100 = 50,0 % de todos los casos",
+    ]);
+    expect(steps[0]?.excel).toBe('=CONTAR.SI.CONJUNTO(rango_Género; "F"; rango_Ciudad; "A")');
   });
 });

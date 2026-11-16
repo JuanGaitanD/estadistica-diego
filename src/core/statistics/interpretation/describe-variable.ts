@@ -413,3 +413,65 @@ export function groupingStep(
     excel: "=1+LOG(CONTAR(rango);2) para K y =(MAX(rango)-MIN(rango))/K para l",
   };
 }
+
+/**
+ * Paso a paso de una variable cualitativa: contar cada categoría, pasar a
+ * proporción y porcentaje, y leer la moda (y la mediana si es ordinal).
+ *
+ * @param counts - Recuento por categoría, en el orden en que se muestran.
+ * @param ordinalMedian - Categoría mediana si la variable es ordinal.
+ */
+export function categoricalSteps(
+  counts: readonly CategoryCount[],
+  ordinalMedian?: string | null,
+): CalculationStep[] {
+  const n = counts.reduce((total, entry) => total + entry.count, 0);
+  if (n === 0) return [];
+  const rows = counts.map((entry) => [
+    entry.label,
+    formatCount(entry.count),
+    formatValue(entry.count / n, 3),
+    formatShare(entry.count / n),
+  ]);
+  const top = Math.max(...counts.map((entry) => entry.count));
+  const modes = counts.filter((entry) => entry.count === top).map((entry) => quote(entry.label));
+  const first = counts[0];
+  const steps: CalculationStep[] = [
+    {
+      title: "1. Contar cada categoría",
+      text: "Se cuenta cuántas veces aparece cada categoría (fi); la proporción es fi / n y el porcentaje, esa proporción por 100.",
+      table: {
+        columns: ["Categoría", "fi", "hi = fi / n", "%"],
+        ...clipStepRows(rows),
+        footer: ["Total", formatCount(n), formatValue(1, 3), formatShare(1)],
+      },
+      ...(first !== undefined
+        ? {
+            formula: `Por ejemplo, ${quote(first.label)}: ${formatCount(first.count)} / ${formatCount(n)} = ${formatValue(first.count / n, 3)} → ${formatShare(first.count / n)}`,
+          }
+        : {}),
+      excel: '=CONTAR.SI(rango; "categoría") y =CONTAR.SI(rango; "categoría")/CONTARA(rango)',
+    },
+    {
+      title: "2. Moda",
+      text:
+        counts.length > 1 && modes.length === counts.length
+          ? "Todas las categorías tienen la misma frecuencia: no hay moda."
+          : `La categoría con la frecuencia más alta (${formatCount(top)}) es la moda: ${modes.join(", ")}.`,
+    },
+  ];
+  if (ordinalMedian !== undefined && ordinalMedian !== null) {
+    let running = 0;
+    const position = (n + 1) / 2;
+    const reached = counts.find((entry) => {
+      running += entry.count;
+      return running >= position;
+    });
+    steps.push({
+      title: "3. Mediana (variable ordinal)",
+      text: `Con las categorías en su orden, la mediana es la categoría del dato en la posición (n + 1) / 2 = ${formatValue(position, 1)}: la primera cuya frecuencia acumulada llega a esa posición.`,
+      formula: `Categoría mediana: ${quote(reached?.label ?? ordinalMedian)}`,
+    });
+  }
+  return steps;
+}

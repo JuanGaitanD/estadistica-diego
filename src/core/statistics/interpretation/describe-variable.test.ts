@@ -187,14 +187,27 @@ describe("runVariableAnalysis incluye interpretación y paso a paso", () => {
     expect(result.shape?.map((metric) => metric.key)).toEqual(["asimetria", "curtosis"]);
   });
 
-  it("cualitativa: sin paso a paso numérico", () => {
+  it("cualitativa: contar, proporción y moda", () => {
     const result = runVariableAnalysis({
       variableId: "c",
       kind: "nominal",
       values: ["Bogotá", "Bogotá", "Cali"],
     });
     expect(result.interpretation.headline).toContain("«Bogotá»: 2 de 3 casos (66,7 %)");
-    expect(result.steps).toHaveLength(0);
+    expect(result.steps.map((step) => step.title)).toEqual(["1. Contar cada categoría", "2. Moda"]);
+    expect(result.steps[0]?.table?.rows[0]).toEqual(["Bogotá", "2", "0,667", "66,7 %"]);
+    expect(result.steps[1]?.text).toContain("moda: «Bogotá»");
+  });
+
+  it("ordinal: añade la mediana por posición", () => {
+    const result = runVariableAnalysis({
+      variableId: "o",
+      kind: "ordinal",
+      values: ["Bajo", "Medio", "Medio", "Alto", "Alto"],
+      categoryOrder: ["Bajo", "Medio", "Alto"],
+    });
+    expect(result.steps[2]?.title).toBe("3. Mediana (variable ordinal)");
+    expect(result.steps[2]?.formula).toBe("Categoría mediana: «Medio»");
   });
 });
 
