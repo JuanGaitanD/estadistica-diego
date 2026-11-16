@@ -13,10 +13,16 @@ export interface AddToReportButtonProps {
   readonly build: () => ReportItemInput | Promise<ReportItemInput>;
   /** Qué se añade, para el nombre accesible («la variable Nota»). */
   readonly what: string;
+  /** Texto visible del botón. */
+  readonly label?: string;
 }
 
 /** «Añadir al informe» (RF-43). */
-export function AddToReportButton({ build, what }: AddToReportButtonProps) {
+export function AddToReportButton({
+  build,
+  what,
+  label = "Añadir al informe",
+}: AddToReportButtonProps) {
   const add = useReportStore((state) => state.add);
   const [state, setState] = useState<"idle" | "busy" | "done">("idle");
 
@@ -42,7 +48,7 @@ export function AddToReportButton({ build, what }: AddToReportButtonProps) {
       onClick={() => void handleClick()}
     >
       {state === "done" ? <Check aria-hidden="true" /> : <FilePlus2 aria-hidden="true" />}
-      {state === "done" ? "En el informe" : "Añadir al informe"}
+      {state === "done" ? "En el informe" : label}
     </Button>
   );
 }

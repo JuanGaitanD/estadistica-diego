@@ -64,10 +64,7 @@ function splitWarnings(result: AnalysisResult): {
  * depende del tipo de cada variable), así que no se listan uno a uno: se
  * resumen en una línea y se despliegan agrupados por variable.
  */
-export function AnalysisSummary({
-  result,
-  title = "Aquí están tus resultados",
-}: AnalysisSummaryProps) {
+export function AnalysisSummary({ result, title = "Qué dicen tus datos" }: AnalysisSummaryProps) {
   const { real, informative } = splitWarnings(result);
   const omittedCount = informative.reduce((total, group) => total + group.messages.length, 0);
 
@@ -76,7 +73,7 @@ export function AnalysisSummary({
       <div>
         <h1 className="text-foreground text-[2.125rem] leading-[1.1] sm:text-[2.75rem]">{title}</h1>
         <p className="text-muted-foreground mt-3 max-w-prose text-base">
-          Revisa las tarjetas y las tablas. Puedes exportarlas cuando quieras.
+          Cada variable empieza por lo que significa. Añade al informe lo que quieras conservar.
         </p>
       </div>
 

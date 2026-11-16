@@ -61,7 +61,7 @@ function optionStateFor(
   return { disabled: true, reason: firstReason };
 }
 
-export function StepCalculations() {
+export function StepCalculations({ embedded = false }: { embedded?: boolean } = {}) {
   const columns = useWizardStore((state) => state.columns);
   const calculation = useWizardStore((state) => state.calculation);
   const patch = useWizardStore((state) => state.patchCalculation);
@@ -99,8 +99,9 @@ export function StepCalculations() {
   return (
     <div className="gap-block flex flex-col">
       <StepHeader
-        title="¿Qué cálculos y gráficas necesitas?"
+        title={embedded ? "Elige qué se calcula" : "¿Qué cálculos y gráficas necesitas?"}
         subtitle="Marca las medidas que quieres ver en tus resultados; puedes cambiarlas después."
+        level={embedded ? 2 : 1}
       />
 
       <div className="border-rule bg-secondary flex flex-wrap items-center justify-between gap-4 rounded-[var(--radius)] border p-4">

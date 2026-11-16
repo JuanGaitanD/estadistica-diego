@@ -36,6 +36,8 @@ export interface VariableResultsProps {
    * en otro feature). Recibe qué se copia y cómo obtener el texto.
    */
   copyAction?: (what: string, getText: () => string) => ReactNode;
+  /** «Añadir al informe», junto a la interpretación. */
+  reportAction?: ReactNode;
   /** Decimales de presentación. Por defecto 2. */
   decimals?: number;
 }
@@ -284,7 +286,12 @@ export function variableTablesText(variable: AnalyzedVariable, decimals = 2): Va
   return tables;
 }
 
-export function VariableResults({ variable, copyAction, decimals = 2 }: VariableResultsProps) {
+export function VariableResults({
+  variable,
+  copyAction,
+  reportAction,
+  decimals = 2,
+}: VariableResultsProps) {
   const copyTable = <TRow,>(
     what: string,
     columns: DataTableColumn<TRow>[],
@@ -328,9 +335,14 @@ export function VariableResults({ variable, copyAction, decimals = 2 }: Variable
           interpretation={analysis.interpretation}
           steps={analysis.steps}
           name={variable.variableName}
-          actions={copyAction?.("la interpretación", () =>
-            interpretationToText(analysis.interpretation),
-          )}
+          actions={
+            <>
+              {copyAction?.("la interpretación", () =>
+                interpretationToText(analysis.interpretation),
+              )}
+              {reportAction}
+            </>
+          }
         />
         <SectionCard
           title="Las cifras"

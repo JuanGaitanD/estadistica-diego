@@ -27,7 +27,8 @@ const FONT_VARIABLES = [atkinson.variable, atkinsonMono.variable].join(" ");
 
 export const metadata: Metadata = {
   title: "StatLab",
-  description: "Calculadora estadística sencilla y rigurosa, en español y accesible.",
+  description:
+    "Estadística que se entiende: carga tus datos y obtén, de lo básico a la regresión, qué significa cada resultado. En español, gratis y sin que tus datos salgan del navegador.",
   // Los iconos salen de los archivos de src/app (icon1.svg, icon2.png, apple-icon.png).
 };
 

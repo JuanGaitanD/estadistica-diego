@@ -38,7 +38,7 @@ const KIND_HELP: Readonly<Record<VariableKind, string>> = {
 
 const KINDS: readonly VariableKind[] = ["nominal", "ordinal", "discreta", "continua"];
 
-export function StepVariables() {
+export function StepVariables({ embedded = false }: { embedded?: boolean } = {}) {
   const columns = useWizardStore((state) => state.columns);
   const renameColumn = useWizardStore((state) => state.renameColumn);
   const setColumnKind = useWizardStore((state) => state.setColumnKind);
@@ -50,6 +50,7 @@ export function StepVariables() {
       <StepHeader
         title="¿Qué tipo de variables son?"
         subtitle="Ya adivinamos algunas; solo confirma o corrige lo que haga falta."
+        level={embedded ? 2 : 1}
       />
 
       {columns.map((column) => (

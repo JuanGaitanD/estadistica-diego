@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { SAMPLE_DATA_TEXT } from "../model/sample-dataset";
+import { DEFAULT_CALCULATION } from "../model/types";
 import { useWizardStore } from "./wizard-store";
 
 function reset(): void {
@@ -15,8 +16,11 @@ describe("wizard-store", () => {
     const validation = useWizardStore.getState().canProceed(0);
     expect(validation.ok).toBe(false);
     expect(validation.ok === false && validation.message).toContain("Todavía no hay datos");
-    useWizardStore.getState().goNext();
-    expect(useWizardStore.getState().step).toBe(0);
+    expect(useWizardStore.getState().zoneBlockedReason("explorar")).toContain(
+      "Todavía no hay datos",
+    );
+    useWizardStore.getState().goToZone("explorar");
+    expect(useWizardStore.getState().zone).toBe("datos");
   });
 
   it("importa los datos de ejemplo y deja avanzar", () => {
@@ -25,8 +29,8 @@ describe("wizard-store", () => {
     expect(state.dataset?.rowCount).toBe(24);
     expect(state.columns).toHaveLength(4);
     expect(state.canProceed(0).ok).toBe(true);
-    state.goNext();
-    expect(useWizardStore.getState().step).toBe(1);
+    state.goToZone("explorar");
+    expect(useWizardStore.getState().zone).toBe("explorar");
   });
 
   it("marca error de importación cuando el texto está vacío", () => {
@@ -64,6 +68,7 @@ describe("wizard-store", () => {
 
   it("exige elegir al menos un cálculo en el paso 3", () => {
     useWizardStore.getState().importSample();
+    useWizardStore.setState({ calculation: DEFAULT_CALCULATION });
     useWizardStore.getState().patchCalculation({ frequencies: false });
     const validation = useWizardStore.getState().canProceed(2);
     expect(validation.ok).toBe(false);
@@ -129,5 +134,25 @@ describe("wizard-store", () => {
     const id = useWizardStore.getState().columns[0]?.id ?? "";
     useWizardStore.getState().setColumnKind(id, "nominal");
     expect(useWizardStore.getState().result).toBeNull();
+  });
+
+  it("al cargar datos deja lista la selección habitual y la rehace al cambiar tipos", () => {
+    useWizardStore.getState().importSample();
+    const state = useWizardStore.getState();
+    expect(state.calculationCustomized).toBe(false);
+    expect(state.calculation.median).toBe(true);
+    const nota = state.columns.find((column) => column.name === "Nota");
+    useWizardStore.getState().setColumnKind(nota?.id ?? "", "nominal");
+    expect(useWizardStore.getState().calculation.charts[nota?.id ?? ""]).toContain("pie");
+  });
+
+  it("respeta la selección ajustada a mano al cambiar tipos", () => {
+    useWizardStore.getState().importSample();
+    useWizardStore.getState().patchCalculation({ contingency: false });
+    expect(useWizardStore.getState().calculationCustomized).toBe(true);
+    const before = useWizardStore.getState().calculation;
+    const first = useWizardStore.getState().columns[0];
+    useWizardStore.getState().setColumnKind(first?.id ?? "", "nominal");
+    expect(useWizardStore.getState().calculation).toBe(before);
   });
 });
