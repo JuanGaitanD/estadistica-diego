@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { SAMPLE_DATA_TEXT } from "../model/sample-dataset";
 import { DEFAULT_CALCULATION } from "../model/types";
 import { useWizardStore } from "./wizard-store";
 
@@ -119,7 +118,8 @@ describe("wizard-store", () => {
   });
 
   it("recupera el último dataset guardado en el navegador", () => {
-    useWizardStore.getState().importText(SAMPLE_DATA_TEXT);
+    // Datos propios: los de ejemplo no se guardan como «último análisis».
+    useWizardStore.getState().importText("Edad\n20\n21\n22");
     const savedRows = useWizardStore.getState().dataset?.rowCount;
     useWizardStore.setState({ dataset: null, columns: [] });
     expect(useWizardStore.getState().recoverLastDataset()).toBe(true);
@@ -154,5 +154,16 @@ describe("wizard-store", () => {
     const first = useWizardStore.getState().columns[0];
     useWizardStore.getState().setColumnKind(first?.id ?? "", "nominal");
     expect(useWizardStore.getState().calculation).toBe(before);
+  });
+});
+
+describe("datos de ejemplo y últimos datos guardados", () => {
+  it("cargar el ejemplo no pisa los últimos datos propios", async () => {
+    const { loadLastDataset } = await import("@/infrastructure/storage");
+    window.localStorage.clear();
+    useWizardStore.getState().reset();
+    useWizardStore.getState().importText("Edad\n20\n21\n22");
+    useWizardStore.getState().importSample();
+    expect(loadLastDataset()?.columns[0]?.variable.name).toBe("Edad");
   });
 });

@@ -210,7 +210,8 @@ export const useWizardStore = create<WizardStore>()((set, get) => {
           hasHeader: state.importOptions.hasHeader,
           ...(numberFormat ? { numberFormat } : {}),
         });
-        saveLastDataset(dataset);
+        // Los datos de ejemplo no pisan los últimos datos propios guardados.
+        if (source !== SAMPLE_DATA_TEXT) saveLastDataset(dataset);
         set({
           ...stateForDataset(dataset, "texto", null),
           pastedText: source,

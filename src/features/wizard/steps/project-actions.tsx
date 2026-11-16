@@ -51,6 +51,16 @@ export function ProjectActions() {
       toast.error(result.message);
       return;
     }
+    const hasWork =
+      useWizardStore.getState().dataset !== null || useReportStore.getState().items.length > 0;
+    if (
+      hasWork &&
+      !window.confirm(
+        `Abrir «${file.name}» reemplaza los datos y el informe que tienes ahora. ¿Quieres seguir?`,
+      )
+    ) {
+      return;
+    }
     openProject(result.project.dataset, result.project.workspace);
     useReportStore.getState().replace(result.project.report);
     toast.success(`Abriste el proyecto ${file.name}.`);
