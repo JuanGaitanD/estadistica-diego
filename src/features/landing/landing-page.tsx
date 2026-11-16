@@ -33,19 +33,19 @@ const STEPS = [
 const MODULES: readonly { name: string; detail: string; ready: boolean }[] = [
   {
     name: "Frecuencias y gráficos",
-    detail: "Tablas simples y por intervalos, barras, histograma y circular",
+    detail: "Tablas simples y por intervalos, histograma, caja, Pareto y circular",
     ready: true,
   },
   {
     name: "Medidas de resumen",
-    detail: "Promedio, mediana, moda, dispersión y percentiles",
+    detail: "Promedio, mediana, dispersión, forma y percentiles",
     ready: true,
   },
   { name: "Tablas cruzadas", detail: "Cómo se reparten dos variables a la vez", ready: true },
   {
     name: "Correlación y regresión lineal",
     detail: "La recta que mejor resume la relación, paso a paso",
-    ready: false,
+    ready: true,
   },
   {
     name: "Probabilidad e intervalos",
