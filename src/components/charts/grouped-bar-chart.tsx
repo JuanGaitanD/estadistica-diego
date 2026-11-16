@@ -85,7 +85,8 @@ export function GroupedBarChart({
                 })
               }
             />
-            <Legend {...LEGEND_PROPS} />
+            {/* Mismo orden que las barras, no alfabético. */}
+            <Legend {...LEGEND_PROPS} itemSorter={null} />
             {data.columnLabels.map((column) => (
               <Bar
                 key={column}
