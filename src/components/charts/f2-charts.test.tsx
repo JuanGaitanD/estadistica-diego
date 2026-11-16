@@ -70,3 +70,20 @@ describe("BoxPlot", () => {
     expect(screen.getByText(/Atípicos/)).toBeTruthy();
   });
 });
+
+describe("groupedBarRows", () => {
+  it("cada grupo trae el porcentaje de cada columna dentro de la fila", async () => {
+    const { computeContingencyTable } = await import("@/core/statistics");
+    const { groupedBarRows } = await import("./grouped-bar-chart");
+    const table = computeContingencyTable({
+      rowVariableId: "g",
+      columnVariableId: "c",
+      rowValues: ["F", "F", "F", "M"],
+      columnValues: ["A", "A", "B", "B"],
+    });
+    expect(groupedBarRows(table)).toEqual([
+      { grupo: "F", A: 200 / 3, B: 100 / 3 },
+      { grupo: "M", A: 0, B: 100 },
+    ]);
+  });
+});

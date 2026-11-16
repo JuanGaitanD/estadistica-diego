@@ -60,3 +60,26 @@ export function contingencyReportItem(cross: AnalyzedContingency): ReportItemInp
     images: [],
   };
 }
+
+/** Id del contenedor de las barras agrupadas de un cruce. */
+export function crossChartElementId(cross: AnalyzedContingency): string {
+  return `chart-${cross.request.rowVariableId}-${cross.request.columnVariableId}-grouped`;
+}
+
+/**
+ * El cruce con la imagen de sus barras agrupadas. Si la gráfica no se puede
+ * capturar (no está en pantalla), el cruce entra igual, sin imagen.
+ */
+export async function crossReportItem(
+  cross: AnalyzedContingency,
+  capture: (elementId: string) => Promise<string>,
+): Promise<ReportItemInput | null> {
+  const item = contingencyReportItem(cross);
+  if (item === null) return null;
+  try {
+    const dataUrl = await capture(crossChartElementId(cross));
+    return { ...item, images: [{ title: `Barras agrupadas · ${item.title}`, dataUrl }] };
+  } catch {
+    return item;
+  }
+}

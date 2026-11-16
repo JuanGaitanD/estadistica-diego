@@ -8,6 +8,7 @@ import {
   BoxPlot,
   ContingencyHeatmap,
   FrequencyPolygon,
+  GroupedBarChart,
   Ogive,
   ParetoChart,
   PieChart,
@@ -46,7 +47,12 @@ import type { FrequencyTableResult } from "@/core/statistics";
 
 import { chartElementId, chartsFor } from "../model/build-request";
 import { useWizardStore } from "../store/wizard-store";
-import { contingencyReportItem, variableReportItem } from "../use-cases/report-items";
+import {
+  contingencyReportItem,
+  crossChartElementId,
+  crossReportItem,
+  variableReportItem,
+} from "../use-cases/report-items";
 import { StepCalculations } from "./step-calculations";
 
 const CHART_TITLE: Readonly<Record<ChartKind, string>> = {
@@ -239,7 +245,7 @@ export function StepResults() {
                   );
                 }
                 for (const cross of result.contingencies) {
-                  const item = contingencyReportItem(cross);
+                  const item = await crossReportItem(cross, captureChartAsDataUrl);
                   if (item !== null) items.push(item);
                 }
                 const last = items.pop();
@@ -325,17 +331,32 @@ export function StepResults() {
                   return item === null ? null : (
                     <AddToReportButton
                       what={`el cruce de ${cross.rowVariableName} y ${cross.columnVariableName}`}
-                      build={() => item}
+                      build={async () =>
+                        (await crossReportItem(cross, captureChartAsDataUrl)) ?? item
+                      }
                     />
                   );
                 })()}
               />
               {cross.table !== null ? (
-                <ContingencyHeatmap
-                  data={cross.table}
-                  title={`Mapa de calor: ${cross.rowVariableName} y ${cross.columnVariableName}`}
-                  description="Cuanto más oscura la celda, más casos combinan esas dos categorías."
-                />
+                <>
+                  <GroupedBarChart
+                    data={cross.table}
+                    title={`Barras agrupadas: ${cross.columnVariableName} dentro de cada ${cross.rowVariableName}`}
+                    description={`Cada grupo de barras suma 100 %: compara cómo se reparte ${cross.columnVariableName} en cada grupo, aunque los grupos tengan tamaños distintos.`}
+                    actions={
+                      <ChartDownloadButton
+                        elementId={crossChartElementId(cross)}
+                        filename={`barras_${cross.request.rowVariableId}_${cross.request.columnVariableId}.png`}
+                      />
+                    }
+                  />
+                  <ContingencyHeatmap
+                    data={cross.table}
+                    title={`Mapa de calor: ${cross.rowVariableName} y ${cross.columnVariableName}`}
+                    description="Cuanto más oscura la celda, más casos combinan esas dos categorías."
+                  />
+                </>
               ) : null}
             </section>
           ))}
