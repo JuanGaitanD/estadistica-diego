@@ -76,5 +76,6 @@ describe("recorrido guiado de punta a punta", () => {
       "Bitácora de preparación",
       "Lista de evaluación",
     ]);
-  });
+    // Recorre la app entera con userEvent: con toda la suite en paralelo pasa de 5 s.
+  }, 20_000);
 });
