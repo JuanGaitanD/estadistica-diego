@@ -5,7 +5,7 @@
  * Informe. Reemplaza al asistente lineal de cuatro pasos; los pasos viven
  * dentro de las zonas (docs/09 §5.2).
  */
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Compass } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 import { AppShell } from "@/components/layout/app-shell";
@@ -13,6 +13,8 @@ import { ZoneNav } from "@/components/layout/zone-nav";
 import { Button } from "@/components/ui/button";
 import { ReportView, useReportStore } from "@/features/report";
 
+import { GuidedBar } from "./guided/guided-bar";
+import { useGuidedStore } from "./guided/guided-store";
 import { ZONES, type Zone } from "./model/types";
 import { AnalyzeHub } from "./steps/analyze-hub";
 import { ProjectActions } from "./steps/project-actions";
@@ -73,6 +75,8 @@ export function Workspace() {
   const recoverLastDataset = useWizardStore((state) => state.recoverLastDataset);
   const dataset = useWizardStore((state) => state.dataset);
   const reportCount = useReportStore((state) => state.items.length);
+  const guidedActive = useGuidedStore((state) => state.active);
+  const startGuided = useGuidedStore((state) => state.start);
   const hydrateReport = useReportStore((state) => state.hydrate);
 
   const contentRef = useRef<HTMLDivElement>(null);
@@ -89,6 +93,11 @@ export function Workspace() {
   useEffect(() => {
     const fromHash = (): void => {
       const id = window.location.hash.slice(1);
+      if (id === "guiado") {
+        startGuided();
+        goToZone("datos");
+        return;
+      }
       if (id === "ejemplo") {
         importSample();
         goToZone("explorar");
@@ -99,7 +108,7 @@ export function Workspace() {
     fromHash();
     window.addEventListener("hashchange", fromHash);
     return () => window.removeEventListener("hashchange", fromHash);
-  }, [goToZone, importSample]);
+  }, [goToZone, importSample, startGuided]);
 
   useEffect(() => {
     // Se lee la zona del store, no la del render: `#ejemplo` la cambia en el
@@ -108,7 +117,8 @@ export function Workspace() {
     const current = window.location.hash.slice(1);
     if (current === target) return;
     // `#ejemplo` no queda en el historial: Atrás no vuelve a cargar los datos.
-    if (current === "ejemplo") window.history.replaceState(null, "", `#${target}`);
+    if (current === "ejemplo" || current === "guiado")
+      window.history.replaceState(null, "", `#${target}`);
     else window.history.pushState(null, "", `#${target}`);
   }, [zone]);
 
@@ -142,10 +152,18 @@ export function Workspace() {
               if (isZone(id)) goToZone(id);
             }}
           />
-          <div className="flex justify-end">
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            {guidedActive ? null : (
+              <Button type="button" variant="ghost" onClick={startGuided}>
+                <Compass aria-hidden="true" />
+                Guíame paso a paso
+              </Button>
+            )}
             <ProjectActions />
           </div>
         </div>
+
+        <GuidedBar />
 
         {zone === "datos" && dataset === null && hasStoredDataset ? (
           <div className="border-rule bg-muted/40 flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius)] border p-4">
