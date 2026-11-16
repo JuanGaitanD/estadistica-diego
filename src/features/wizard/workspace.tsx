@@ -15,6 +15,7 @@ import { ReportView, useReportStore } from "@/features/report";
 
 import { ZONES, type Zone } from "./model/types";
 import { AnalyzeHub } from "./steps/analyze-hub";
+import { ProjectActions } from "./steps/project-actions";
 import { StepData } from "./steps/step-data";
 import { StepResults } from "./steps/step-results";
 import { StepVariables } from "./steps/step-variables";
@@ -121,13 +122,18 @@ export function Workspace() {
   return (
     <AppShell width={zone === "explorar" ? "wide" : "narrow"}>
       <div className="flex flex-col gap-10 pb-16">
-        <ZoneNav
-          items={items}
-          current={zone}
-          onSelect={(id) => {
-            if (isZone(id)) goToZone(id);
-          }}
-        />
+        <div className="flex flex-col gap-3">
+          <ZoneNav
+            items={items}
+            current={zone}
+            onSelect={(id) => {
+              if (isZone(id)) goToZone(id);
+            }}
+          />
+          <div className="flex justify-end">
+            <ProjectActions />
+          </div>
+        </div>
 
         {zone === "datos" && dataset === null && hasStoredDataset ? (
           <div className="border-rule bg-muted/40 flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius)] border p-4">

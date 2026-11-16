@@ -37,6 +37,7 @@ import {
   type WizardState,
   type Zone,
 } from "../model/types";
+import { restoreWorkspace } from "../model/project";
 import { usualSelection } from "../model/usual-selection";
 import { canProceed as canProceedPure } from "../model/validation";
 
@@ -52,6 +53,8 @@ export interface WizardActions {
   importSample: () => void;
   /** Usa el texto tabulado de la hoja editable (con fila de nombres); `true` si se pudo leer. */
   importGridText: (tsv: string) => boolean;
+  /** Abre un proyecto ya validado: datos y configuración del espacio de trabajo. */
+  openProject: (dataset: Dataset, workspace: unknown) => void;
   importFromFile: (file: File) => Promise<void>;
   setImportOption: <K extends keyof ImportOptions>(key: K, value: ImportOptions[K]) => void;
   clearImportError: () => void;
@@ -234,6 +237,18 @@ export const useWizardStore = create<WizardStore>()((set, get) => {
       if (state.importError !== null) return false;
       set({ sourceName: "Hoja editable" });
       return true;
+    },
+
+    openProject: (dataset, workspace) => {
+      const restored = restoreWorkspace(workspace, dataset);
+      saveLastDataset(dataset);
+      set({
+        ...stateForDataset(dataset, dataset.source, dataset.sourceName ?? null),
+        ...(restored ?? {}),
+        availableSheets: [],
+        pastedText: "",
+        zone: "explorar",
+      });
     },
 
     importFromFile: async (file) => {
