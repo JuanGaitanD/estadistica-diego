@@ -28,6 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import type { AnalyzedVariable, VariableKind } from "../model/types";
 import { variableSectionId } from "../use-cases/sections";
 import { explanationText } from "./metric-explanation";
+import { ValueLocator } from "./value-locator";
 
 export interface VariableResultsProps {
   variable: AnalyzedVariable;
@@ -283,6 +284,13 @@ export function variableTablesText(variable: AnalyzedVariable, decimals = 2): Va
       ...dataTableText(model.metricTableColumns, metricRows(variability)),
     });
   }
+  const shape = model.analysis.shape ?? [];
+  if (shape.length > 0) {
+    tables.push({
+      title: `Forma · ${variable.variableName}`,
+      ...dataTableText(model.metricTableColumns, metricRows(shape)),
+    });
+  }
   return tables;
 }
 
@@ -513,6 +521,31 @@ export function VariableResults({
             ) : null}
           </SectionCard>
         </div>
+      ) : null}
+
+      {analysis.shape && analysis.shape.length > 0 ? (
+        <div id={variableSectionId(variable.variableId, "forma")}>
+          <SectionCard
+            title="Forma"
+            description="Si los datos se cargan hacia un lado y cuánto pesan los extremos. Son las mismas cifras que COEFICIENTE.ASIMETRIA y CURTOSIS de Excel."
+            actions={copyTable(
+              "las medidas de forma",
+              metricTableColumns,
+              metricRows(analysis.shape),
+            )}
+          >
+            <DataTable
+              columns={metricTableColumns}
+              rows={metricRows(analysis.shape)}
+              caption={`Medidas de forma de ${variable.variableName}`}
+              getRowKey={(row) => row.key}
+            />
+          </SectionCard>
+        </div>
+      ) : null}
+
+      {variable.sortedValues !== undefined && variable.sortedValues.length >= 2 ? (
+        <ValueLocator variableName={variable.variableName} sortedValues={variable.sortedValues} />
       ) : null}
 
       {analysis.notes.length > 0 ? (

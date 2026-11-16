@@ -209,6 +209,12 @@ export interface ResultSection {
   readonly id: string;
   readonly title: string;
   readonly kind:
-    "resumen" | "frecuencias" | "tendencia-central" | "posicion" | "variabilidad" | "contingencia";
+    | "resumen"
+    | "frecuencias"
+    | "tendencia-central"
+    | "posicion"
+    | "variabilidad"
+    | "forma"
+    | "contingencia";
   readonly variableId?: string;
 }

@@ -12,7 +12,7 @@
 import type { AnalysisResult, ResultSection } from "../model/types";
 
 /** Bloques que puede tener una variable en la pantalla de resultados. */
-export type VariableSectionKind = "resumen" | "frecuencias" | "posicion" | "variabilidad";
+export type VariableSectionKind = "resumen" | "frecuencias" | "posicion" | "variabilidad" | "forma";
 
 /** Id estable de un bloque de una variable, p. ej. `section-edad-frecuencias`. */
 export function variableSectionId(variableId: string, kind: VariableSectionKind): string {
@@ -32,6 +32,7 @@ const TITLES: Readonly<Record<VariableSectionKind, string>> = {
   frecuencias: "Tabla de frecuencias",
   posicion: "Medidas de posición",
   variabilidad: "Medidas de variabilidad",
+  forma: "Forma",
 };
 
 /**
@@ -64,6 +65,7 @@ export function RESULT_SECTIONS(result: AnalysisResult): ResultSection[] {
     }
     if (variable.analysis.position !== undefined) push("posicion", "posicion");
     if (variable.analysis.variability !== undefined) push("variabilidad", "variabilidad");
+    if ((variable.analysis.shape?.length ?? 0) > 0) push("forma", "forma");
   }
 
   for (const cross of result.contingencies) {
