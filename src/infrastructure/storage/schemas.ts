@@ -70,7 +70,8 @@ const reportTableSchema = z.object({
 /** Imagen de una gráfica guardada en el informe (data URL PNG). */
 const reportImageSchema = z.object({
   title: z.string(),
-  dataUrl: z.string().startsWith("data:image/"),
+  // Solo PNG o JPEG: el PDF no sabe dibujar otros formatos.
+  dataUrl: z.string().regex(/^data:image\/(png|jpeg);base64,/),
 });
 
 /** Un resultado añadido al informe: copia fija de lo que se veía al añadirlo. */
