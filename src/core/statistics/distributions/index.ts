@@ -1,5 +1,6 @@
 export { lnGamma, regularizedBeta } from "./special";
 export { tCdf, tQuantile, tTwoTailedP } from "./student-t";
+export { studentizedRangeCdf, studentizedRangeQuantile } from "./studentized-range";
 export {
   chiSquareCdf,
   chiSquarePdf,
