@@ -96,7 +96,7 @@ export function GuidedBar() {
             Fase {guided.phase + 1} de 6: {phase.title}
           </h2>
         </div>
-        <Button type="button" variant="ghost" size="sm" onClick={guided.stop}>
+        <Button type="button" variant="ghost" className="-mr-3 shrink-0" onClick={guided.stop}>
           <X aria-hidden="true" />
           Salir del modo guiado
         </Button>

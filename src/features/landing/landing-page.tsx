@@ -159,10 +159,13 @@ export function LandingPage() {
             </div>
             <a
               href={GUIDED}
-              className={buttonVariants({ variant: "ghost", className: "-ml-4 self-start" })}
+              className={buttonVariants({
+                variant: "ghost",
+                className: "-ml-4 h-auto min-h-11 self-start py-2 text-left whitespace-normal",
+              })}
             >
               <Compass aria-hidden="true" />
-              ¿Primera vez? Te guío paso a paso, de la pregunta al informe
+              ¿Primera vez? Te guío paso a paso
             </a>
             <ResumeLink />
           </div>
