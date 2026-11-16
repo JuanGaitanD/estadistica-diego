@@ -1,8 +1,6 @@
-"use client";
+import { LandingPage } from "@/features/landing/landing-page";
 
-import { Workspace } from "@/features/wizard";
-
-/** Página única de StatLab: el asistente completo, 100 % en el cliente. */
+/** Portada de StatLab; la app vive en `/app`. */
 export default function HomePage() {
-  return <Workspace />;
+  return <LandingPage />;
 }
