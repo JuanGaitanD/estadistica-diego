@@ -189,7 +189,9 @@ export function polynomialCenter(x: readonly number[]): number {
   const mean = neumaierSum(x) / x.length;
   const sd = Math.sqrt(neumaierSum(x.map((v) => (v - mean) ** 2)) / x.length);
   if (Math.abs(mean) <= 3 * sd) return 0;
-  return sd >= 1 ? Math.round(mean) : Number(mean.toPrecision(3));
+  // Se redondea a la escala de la dispersión: 2012 para años, 123456,5 para décimas.
+  const step = 10 ** Math.floor(Math.log10(sd));
+  return Number((Math.round(mean / step) * step).toFixed(Math.max(0, -Math.log10(step))));
 }
 
 /** Valores de los términos (X − c), (X − c)², … de una curva para un x. */
@@ -208,7 +210,7 @@ export function polynomialRegression(
   const base =
     center === 0
       ? xName
-      : `(${xName} − ${Number.isInteger(center) ? String(center) : formatValue(center, 3)})`;
+      : `(${xName} − ${Number.isInteger(center) ? String(center) : String(center).replace(".", ",")})`;
   const predictors = Array.from({ length: degree }, (_, i) => ({
     name: `${base}${SUPERSCRIPT[i + 1] ?? `^${i + 1}`}`,
     values: x.map((v) => (v - center) ** (i + 1)),

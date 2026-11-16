@@ -8,6 +8,7 @@ import {
   interpretMultiple,
   multipleRegression,
   multipleSteps,
+  polynomialCenter,
   polynomialRegression,
 } from "./multiple";
 
@@ -149,5 +150,14 @@ describe("polinómica con X lejos del cero", () => {
     if (!result.ok) return;
     expect(result.model.coefficients[1]!.name).toBe("(Año − 2012)");
     expect(result.model.r2).toBeCloseTo(1, 8);
+  });
+});
+
+describe("centro de la polinómica según la dispersión", () => {
+  it("con décimas cerca de 123456 centra en 123456,5 y ajusta el grado 4", () => {
+    const x = Array.from({ length: 10 }, (_, i) => 123456 + i / 10);
+    const y = x.map((v, i) => 1 + (v - 123456.5) ** 2 + 0.01 * (i % 3));
+    expect(polynomialCenter(x)).toBe(123456.5);
+    expect(polynomialRegression(x, y, 4).ok).toBe(true);
   });
 });
