@@ -2,9 +2,10 @@
 
 /** Paso 1: "¿Qué datos vamos a analizar?" (RF-01 a RF-09). */
 import { useRef, useState, type ChangeEvent, type DragEvent } from "react";
-import { AlertCircle, Info, UploadCloud } from "lucide-react";
+import { AlertCircle, Info, Table2, UploadCloud } from "lucide-react";
 
 import { StepHeader } from "@/components/layout/step-header";
+import { DataGridEditor } from "./data-grid-editor";
 import { formatCellValue } from "@/components/shared/format";
 import { HelpHint } from "@/components/shared/help-hint";
 import { SectionCard } from "@/components/shared/section-card";
@@ -47,6 +48,7 @@ export function StepData() {
 
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [editingGrid, setEditingGrid] = useState(false);
 
   const handleFiles = (files: FileList | null): void => {
     const file = files?.[0];
@@ -163,6 +165,35 @@ export function StepData() {
             </Button>
           </div>
         </div>
+      </div>
+
+      <div className="flex flex-col gap-4">
+        <div>
+          <Button
+            type="button"
+            variant="outline"
+            aria-expanded={editingGrid}
+            aria-controls="hoja-de-datos"
+            onClick={() => setEditingGrid((open) => !open)}
+          >
+            <Table2 aria-hidden="true" />
+            {editingGrid
+              ? "Cerrar la hoja de datos"
+              : dataset === null
+                ? "Escribir los datos en una tabla"
+                : "Corregir los datos en una tabla"}
+          </Button>
+        </div>
+        {editingGrid ? (
+          <div id="hoja-de-datos">
+            <SectionCard
+              title="Hoja de datos"
+              description="Escribe o corrige celda por celda; la primera fila son los nombres."
+            >
+              <DataGridEditor onDone={() => setEditingGrid(false)} />
+            </SectionCard>
+          </div>
+        ) : null}
       </div>
 
       <SectionCard

@@ -50,6 +50,8 @@ export interface WizardActions {
   setPastedText: (text: string) => void;
   importText: (text?: string) => void;
   importSample: () => void;
+  /** Usa el texto tabulado de la hoja editable (con fila de nombres); `true` si se pudo leer. */
+  importGridText: (tsv: string) => boolean;
   importFromFile: (file: File) => Promise<void>;
   setImportOption: <K extends keyof ImportOptions>(key: K, value: ImportOptions[K]) => void;
   clearImportError: () => void;
@@ -223,6 +225,15 @@ export const useWizardStore = create<WizardStore>()((set, get) => {
       });
       get().importText(SAMPLE_DATA_TEXT);
       set({ sourceName: SAMPLE_DATA_NAME });
+    },
+
+    importGridText: (tsv) => {
+      set({ importOptions: { ...get().importOptions, hasHeader: true } });
+      get().importText(tsv);
+      const state = get();
+      if (state.importError !== null) return false;
+      set({ sourceName: "Hoja editable" });
+      return true;
     },
 
     importFromFile: async (file) => {
