@@ -1,34 +1,31 @@
 # StatLab
 
-Calculadora estadística web, **solo cliente** (sin backend), en español. Está pensada para un profesor de estadística experto en la materia y poco hábil con tecnología, y para sus estudiantes: se pegan o importan datos, se responde un asistente de pasos en lenguaje natural, y StatLab calcula, explica y grafica.
+**Estadística que se entiende: de lo básico a la regresión.** Plataforma web de estadística, **solo cliente** (sin backend) y en español, para personas sin formación en estadística: se cargan o escriben los datos, se elige una pregunta en palabras simples y StatLab responde con la **interpretación primero**; el paso a paso, con las fórmulas y su equivalente en Excel, queda plegado tras «Ver cómo se calculó» (`docs/03-adr/ADR-004-interpretacion-primero.md`).
 
-Todo el cálculo ocurre en el navegador. No hay servidor, no hay base de datos y, salvo que se active explícitamente en una fase futura, no se envía ningún dato a ningún servicio externo.
+La portada está en `/` y la aplicación en `/app`. Todo el cálculo ocurre en el navegador: no hay servidor, no hay base de datos y no se envía ningún dato a ningún servicio externo.
 
 ## Privacidad
 
-**Todos los datos que se ingresan o importan se procesan en el navegador del usuario y nunca salen del dispositivo.** No hay backend que los reciba, no se suben archivos a ningún servidor y no se llama a ninguna API externa con la información cargada. Lo único que persiste es la configuración del análisis en `localStorage` del propio navegador, con un botón para borrarla ("Empezar de cero").
+**Todos los datos que se ingresan o importan se procesan en el navegador del usuario y nunca salen del dispositivo.** No hay backend que los reciba, no se suben archivos a ningún servidor y no se llama a ninguna API externa con la información cargada. Lo único que persiste, en el `localStorage` del propio navegador, son los últimos datos analizados (para «Recuperar último análisis») y el informe en curso. Para llevarlos a otro equipo se guarda un archivo de proyecto `.statlab.json`.
 
 ## Para quién es
 
-- Profesores de estadística que quieren generar tablas, gráficas y reportes a partir de datos de clase, sin depender de hojas de cálculo ni de software especializado.
-- Estudiantes que necesitan resolver ejercicios de estadística descriptiva y entender, con explicaciones en español y sin jerga, qué significa cada resultado y para qué sirve.
+- Personas que tienen datos y una pregunta, pero no un título en estadística.
+- Estudiantes que quieren entender qué significa cada resultado y comprobarlo a mano o en Excel.
+- Docentes que necesitan tablas, gráficas e informes a partir de datos de clase.
 
 ## Características
 
-- **Entrada de datos por tres vías equivalentes:** texto pegado (con detección automática de coma, punto y coma, tabulador o salto de línea), archivo CSV o archivo Excel (`.xlsx`/`.xls`, con selección de hoja).
-- **Detección automática del tipo de variable** (cualitativa nominal, cualitativa ordinal, cuantitativa discreta, cuantitativa continua), siempre editable por el usuario.
-- **Asistente de pasos (wizard)** en lenguaje natural: qué datos analizar, qué tipo de variables son, qué cálculos se necesitan, qué gráficas se necesitan, y resultados.
-- **Cálculos de estadística descriptiva:**
-  - Distribución de frecuencias (absoluta, relativa o porcentual, acumuladas) por valores únicos o agrupada en intervalos (reglas de Sturges, raíz, Rice, Scott, Freedman–Diaconis o manual).
-  - Mínimo, máximo y rango.
-  - Medidas de tendencia central: moda (amodal, unimodal, multimodal), mediana (datos crudos y agrupados), media aritmética, ponderada, geométrica y armónica.
-  - Medidas de posición: cuartiles, deciles y percentiles (método inclusivo R-7 o exclusivo R-6).
-  - Medidas de variabilidad: varianza muestral y poblacional, desviación estándar, coeficiente de variación, rango intercuartílico y valores atípicos (criterio de Tukey).
-  - Tabla de contingencia entre dos variables, con porcentajes por fila, columna o total, y resaltado interactivo del máximo y el mínimo de cada fila y columna.
-- **Gráficas:** circular, barras, histograma, polígono de frecuencia, ojiva (acumulada) y barras agrupadas/apiladas para contingencia, todas con la misma paleta de colores por variable y con tabla accesible equivalente.
-- **Explicación obligatoria en cada métrica**, tabla y gráfica: un texto corto de "qué significa" y "para qué sirve", visible en pantalla e incluible en el PDF.
-- **Exportación:** datos y tablas a CSV y XLSX, gráficas a imagen (PNG/SVG), y reporte completo o parcial a PDF con portada y secciones seleccionables.
-- **Fase 2 (prevista, no implementada):** puerto `AiReportProvider` para un reporte narrado con IA (Gemini). Ver `docs/06-preguntas-para-el-profesor.md` para las preguntas pendientes sobre alcance.
+- **Espacio de trabajo en cuatro zonas:** Datos (pegar, importar CSV o Excel, o escribir en una tabla; tipos de variable detectados y editables), Explorar, Analizar e Informe.
+- **Explorar (estadística descriptiva):** frecuencias simples y por intervalos, promedio, mediana, moda, dispersión, cuartiles y percentiles, forma (asimetría y curtosis), puntaje z y «¿dónde queda un valor?», tablas cruzadas; gráficas circular, barras, histograma, caja, Pareto, polígono, ojiva y barras agrupadas.
+- **Analizar, por preguntas en llano:**
+  - Regresión lineal simple por los 5 pasos de la clase, correlación de Pearson y Spearman, predicción con intervalo y Excel con fórmulas vivas.
+  - Regresión múltiple (R² ajustado, F, VIF, variables indicadoras), polinómica (elección de grado) y logística (razones de momios, matriz de confusión, McFadden).
+  - Pruebas de hipótesis con guion de 5 pasos y tamaño del efecto: t de una muestra, Welch o Student, pareada, z de proporciones, ANOVA con Tukey y chi-cuadrado.
+  - Intervalos de confianza, tamaño de muestra, normalidad con Q-Q y calculadora de probabilidades (normal, t, χ², F, binomial y Poisson).
+- **Modo guiado CRISP-DM:** recorre las seis fases (problema, datos, preparación, modelado, evaluación y despliegue) con bitácora de preparación y lista de evaluación con semáforo, y lo deja en el informe.
+- **Informe:** se añade cualquier resultado con su interpretación, sus pasos, tablas y gráficas; exporta a PDF, XLSX y texto. Los proyectos se guardan y abren como `.statlab.json`.
+- **Validado contra R y Excel:** las pruebas de cálculo comparan con `lm`, `glm`, `t.test`, `aov`, `TukeyHSD`, `chisq.test` y las funciones de Excel equivalentes.
 
 ## Stack
 
