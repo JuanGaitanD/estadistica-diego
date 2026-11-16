@@ -116,7 +116,7 @@ export function loadReport(): StoredReport | null {
   if (raw === null) return null;
   const envelope = versionedEnvelopeSchema(reportSchema).safeParse(raw);
   if (!envelope.success || envelope.data.schemaVersion !== SCHEMA_VERSION) return null;
-  return sanitize(envelope.data.payload);
+  return sanitize(envelope.data.payload) as StoredReport;
 }
 
 /** Borra el informe guardado. */

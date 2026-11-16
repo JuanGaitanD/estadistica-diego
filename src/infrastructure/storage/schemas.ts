@@ -1,6 +1,8 @@
 import "@/lib/zod-config";
 import { z } from "zod";
 
+import type { CalculationStep, Interpretation } from "@/core/statistics";
+
 /** Versión vigente del esquema persistido en localStorage. */
 export const SCHEMA_VERSION = 1;
 
@@ -90,8 +92,21 @@ export const reportSchema = z.object({
   items: z.array(reportItemSchema),
 });
 
-export type StoredReport = z.infer<typeof reportSchema>;
-export type StoredReportItem = z.infer<typeof reportItemSchema>;
+/**
+ * Con `exactOptionalPropertyTypes`, zod infiere los opcionales como
+ * `T | undefined`; el tipo guardado reutiliza los del dominio, que son los
+ * que valida el esquema.
+ */
+export type StoredReportItem = Omit<
+  z.infer<typeof reportItemSchema>,
+  "steps" | "interpretation"
+> & {
+  readonly steps: readonly CalculationStep[];
+  readonly interpretation: Interpretation;
+};
+export type StoredReport = Omit<z.infer<typeof reportSchema>, "items"> & {
+  readonly items: readonly StoredReportItem[];
+};
 
 /** Preferencias de usuario persistidas localmente. */
 export const preferencesSchema = z.object({
