@@ -232,12 +232,18 @@ export function MultipleRegressionPanel({ columns }: { columns: readonly ModelCo
   } else {
     const used = mode === "varias" ? others.filter((c) => picked.includes(c.id)) : [xColumn!];
     const design = buildDesign(target, used, numericY);
+    const single =
+      design.singleCategory.length > 0
+        ? `${design.singleCategory.map((name) => `«${name}»`).join(" y ")} ${design.singleCategory.length > 1 ? "tienen" : "tiene"} una sola categoría en las filas completas: no sirve para predecir. Desmárcala.`
+        : null;
     const x = design.predictors[0]?.values ?? [];
     const result =
       mode === "varias"
         ? multipleRegression(design.predictors, design.y)
         : polynomialRegression(x, design.y, degree, xColumn!.name);
-    if (!result.ok) {
+    if (single !== null) {
+      body = <Message>{single}</Message>;
+    } else if (!result.ok) {
       body = <Message>{MULTIPLE_REASONS[result.reason]}</Message>;
     } else {
       const model = result.model;
@@ -417,8 +423,14 @@ export function LogisticPanel({ columns }: { columns: readonly ModelColumn[] }) 
   } else {
     const used = others.filter((c) => picked.includes(c.id));
     const design = buildDesign(target, used, binaryY(yesLabel));
+    const singleText =
+      design.singleCategory.length > 0
+        ? `${design.singleCategory.map((name) => `«${name}»`).join(" y ")} ${design.singleCategory.length > 1 ? "tienen" : "tiene"} una sola categoría en las filas completas: no sirve para predecir. Desmárcala.`
+        : null;
     const result = logisticRegression(design.predictors, design.y);
-    if (!result.ok) {
+    if (singleText !== null) {
+      body = <Message>{singleText}</Message>;
+    } else if (!result.ok) {
       body = <Message>{LOGISTIC_REASONS[result.reason]}</Message>;
     } else {
       const model = result.model;

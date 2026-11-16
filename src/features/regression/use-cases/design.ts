@@ -14,6 +14,8 @@ export interface Design {
   readonly predictors: Predictor[];
   /** Filas descartadas porque les faltaba algún valor. */
   readonly dropped: number;
+  /** Variables de categorías que quedaron con una sola categoría (no aportan nada). */
+  readonly singleCategory: string[];
 }
 
 const isNumber = (v: CellValue | undefined): v is number =>
@@ -36,18 +38,21 @@ export function buildDesign(
     );
     if (complete) rows.push(i);
   });
-  const predictors = columns.flatMap((c): Predictor[] =>
-    c.quantitative
-      ? [{ name: c.name, values: rows.map((i) => c.values[i] as number) }]
-      : dummyCode(
-          c.name,
-          rows.map((i) => String(c.values[i])),
-        ),
-  );
+  const singleCategory: string[] = [];
+  const predictors = columns.flatMap((c): Predictor[] => {
+    if (c.quantitative) return [{ name: c.name, values: rows.map((i) => c.values[i] as number) }];
+    const dummies = dummyCode(
+      c.name,
+      rows.map((i) => String(c.values[i])),
+    );
+    if (dummies.length === 0) singleCategory.push(c.name);
+    return dummies;
+  });
   return {
     y: rows.map((i) => toY(target.values[i] ?? null)!),
     predictors,
     dropped: target.values.length - rows.length,
+    singleCategory,
   };
 }
 
