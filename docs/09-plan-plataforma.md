@@ -28,17 +28,17 @@ Cambio de público a tener presente: `docs/01-requisitos.md` describe al usuario
 
 ### 2.1 Motor (`src/core`)
 
-| Área | Qué hay | Dónde |
-|---|---|---|
-| Datos | Parseo de texto con autodetección de separador, número con coma o punto y resolución por columna (`4.125`), faltantes (`NA`, `-`, `#N/A`…), inferencia de tipo (nominal, ordinal, discreta, continua), límites de tamaño | `core/data/*` |
-| Frecuencias | Tabla simple y agrupada (fi, hi/pi, Fi, Hi/Pi, marca de clase) | `core/statistics/frequency` |
-| Agrupación | K por Sturges, raíz, Rice, Scott, Freedman–Diaconis o manual; longitud l; intervalos [a, b) | `core/statistics/grouping` |
-| Tendencia central | Media aritmética, ponderada, geométrica, armónica, agrupada; mediana cruda, agrupada y ordinal; moda (amodal, uni, multi) y moda agrupada | `core/statistics/central-tendency` |
-| Posición | Cuartiles (R-7 inclusivo / R-6 exclusivo), deciles, percentiles | `core/statistics/position` |
-| Variabilidad | Rango, varianza muestral y poblacional (Welford), desviación, CV, RIC, límites de Tukey y atípicos | `core/statistics/variability` |
-| Bivariado | Tabla de contingencia con marginales y porcentajes | `core/statistics/contingency` |
-| Explicaciones | Catálogo «qué / para qué / fórmula» por métrica | `core/statistics/explanations/catalog.ts` |
-| Precisión | Suma de Neumaier, Welford, comparación con tolerancia | `core/statistics/numeric` |
+| Área              | Qué hay                                                                                                                                                                                                                  | Dónde                                     |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------- |
+| Datos             | Parseo de texto con autodetección de separador, número con coma o punto y resolución por columna (`4.125`), faltantes (`NA`, `-`, `#N/A`…), inferencia de tipo (nominal, ordinal, discreta, continua), límites de tamaño | `core/data/*`                             |
+| Frecuencias       | Tabla simple y agrupada (fi, hi/pi, Fi, Hi/Pi, marca de clase)                                                                                                                                                           | `core/statistics/frequency`               |
+| Agrupación        | K por Sturges, raíz, Rice, Scott, Freedman–Diaconis o manual; longitud l; intervalos [a, b)                                                                                                                              | `core/statistics/grouping`                |
+| Tendencia central | Media aritmética, ponderada, geométrica, armónica, agrupada; mediana cruda, agrupada y ordinal; moda (amodal, uni, multi) y moda agrupada                                                                                | `core/statistics/central-tendency`        |
+| Posición          | Cuartiles (R-7 inclusivo / R-6 exclusivo), deciles, percentiles                                                                                                                                                          | `core/statistics/position`                |
+| Variabilidad      | Rango, varianza muestral y poblacional (Welford), desviación, CV, RIC, límites de Tukey y atípicos                                                                                                                       | `core/statistics/variability`             |
+| Bivariado         | Tabla de contingencia con marginales y porcentajes                                                                                                                                                                       | `core/statistics/contingency`             |
+| Explicaciones     | Catálogo «qué / para qué / fórmula» por métrica                                                                                                                                                                          | `core/statistics/explanations/catalog.ts` |
+| Precisión         | Suma de Neumaier, Welford, comparación con tolerancia                                                                                                                                                                    | `core/statistics/numeric`                 |
 
 ### 2.2 Aplicación
 
@@ -85,21 +85,21 @@ Pregunta: «¿Qué datos tengo?»
   - **Preparación** (la fase de CRISP-DM que hoy no se ve): faltantes (excluir o no), atípicos marcados, recodificar categorías (unir «M» y «Masculino»), variable calculada simple (ej. `Peso / Altura²`). Solo lo mínimo; nada de un lenguaje de fórmulas.
   - **Guardar y abrir proyecto** (`.statlab.json`): datos + análisis + informe. Justificación: el trabajo de una persona dura más de una sesión y `localStorage` no viaja entre equipos.
 - Explicación: tipos de variable con ejemplos («¿Se puede sacar promedio? Entonces es cuantitativa»).
-- Interpretación: «24 filas, 4 variables, 0 faltantes. *Nota* y *Edad* son números; *Género* y *Ciudad* son categorías».
+- Interpretación: «24 filas, 4 variables, 0 faltantes. _Nota_ y _Edad_ son números; _Género_ y _Ciudad_ son categorías».
 - Exporta: CSV, XLSX y proyecto `.json`.
 
 ### M1 · Descriptiva de una variable
 
 Pregunta: «¿Cómo son mis datos?»
 
-| Tema | Existe | Falta |
-|---|---|---|
-| Tablas de frecuencia | Simple, agrupada, acumuladas | Mostrar la regla de K con nombre legible y el cálculo de K y l paso a paso |
-| Tendencia central | Media (4 tipos), mediana, moda, agrupadas | Interpretación comparada media vs. mediana (detecta asimetría en palabras) |
-| Dispersión | Rango, varianza, desviación, CV, RIC | Interpretación del CV («variación baja / moderada / alta» con umbrales declarados); tabla de desviaciones paso a paso |
-| Posición | Cuartiles, deciles, percentiles, atípicos de Tukey | **Diagrama de caja y bigotes**; **puntaje z** de cada dato; «¿en qué percentil está el valor X?» (búsqueda inversa) |
-| Forma | Nada | **Asimetría** (coeficiente de Fisher ajustado, el de `COEFICIENTE.ASIMETRIA` de Excel) y **curtosis** (exceso, el de `CURTOSIS`), con interpretación |
-| Gráficos | Circular, barras, polígono, ojiva | **Histograma** propio (barras contiguas con eje continuo), **caja y bigotes**, **gráfico de puntos/tallo** para n pequeño, **Pareto** para categorías |
+| Tema                 | Existe                                             | Falta                                                                                                                                                 |
+| -------------------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tablas de frecuencia | Simple, agrupada, acumuladas                       | Mostrar la regla de K con nombre legible y el cálculo de K y l paso a paso                                                                            |
+| Tendencia central    | Media (4 tipos), mediana, moda, agrupadas          | Interpretación comparada media vs. mediana (detecta asimetría en palabras)                                                                            |
+| Dispersión           | Rango, varianza, desviación, CV, RIC               | Interpretación del CV («variación baja / moderada / alta» con umbrales declarados); tabla de desviaciones paso a paso                                 |
+| Posición             | Cuartiles, deciles, percentiles, atípicos de Tukey | **Diagrama de caja y bigotes**; **puntaje z** de cada dato; «¿en qué percentil está el valor X?» (búsqueda inversa)                                   |
+| Forma                | Nada                                               | **Asimetría** (coeficiente de Fisher ajustado, el de `COEFICIENTE.ASIMETRIA` de Excel) y **curtosis** (exceso, el de `CURTOSIS`), con interpretación  |
+| Gráficos             | Circular, barras, polígono, ojiva                  | **Histograma** propio (barras contiguas con eje continuo), **caja y bigotes**, **gráfico de puntos/tallo** para n pequeño, **Pareto** para categorías |
 
 - Paso a paso: tabla de trabajo xi, xi − x̄, (xi − x̄)², suma, división por n − 1, raíz. Igual para mediana (posición (n+1)/2) y cuartiles (posición R-7).
 - Interpretación ejemplo: «La nota típica es 3,7 (media) y la mitad saca más de 3,75 (mediana). Como son casi iguales, la distribución es simétrica. La desviación de 0,73 indica que la mayoría está entre 3,0 y 4,5. No hay atípicos».
@@ -146,15 +146,15 @@ Pregunta: «¿Es real esta diferencia o pudo ser casualidad?»
 
 - Falta todo. Conjunto mínimo que cubre las preguntas habituales:
 
-| Pregunta en llano | Prueba | Datos |
-|---|---|---|
-| ¿El promedio es distinto de un valor? | t de una muestra | 1 numérica |
-| ¿Una proporción es distinta de un valor? | z de proporción | 1 categórica |
-| ¿Dos grupos tienen promedios distintos? | t de Welch (no supone varianzas iguales; Student como opción) | numérica + categórica de 2 niveles |
-| ¿Antes y después cambió? | t pareada | 2 numéricas emparejadas |
-| ¿Tres o más grupos difieren? | ANOVA de un factor (con Tukey HSD opcional) | numérica + categórica de 3+ niveles |
-| ¿Dos categorías están relacionadas? | Chi-cuadrado de independencia (+ V de Cramér) | 2 categóricas (reusa la contingencia) |
-| ¿Dos proporciones difieren? | z de dos proporciones | categórica + grupo |
+| Pregunta en llano                        | Prueba                                                        | Datos                                 |
+| ---------------------------------------- | ------------------------------------------------------------- | ------------------------------------- |
+| ¿El promedio es distinto de un valor?    | t de una muestra                                              | 1 numérica                            |
+| ¿Una proporción es distinta de un valor? | z de proporción                                               | 1 categórica                          |
+| ¿Dos grupos tienen promedios distintos?  | t de Welch (no supone varianzas iguales; Student como opción) | numérica + categórica de 2 niveles    |
+| ¿Antes y después cambió?                 | t pareada                                                     | 2 numéricas emparejadas               |
+| ¿Tres o más grupos difieren?             | ANOVA de un factor (con Tukey HSD opcional)                   | numérica + categórica de 3+ niveles   |
+| ¿Dos categorías están relacionadas?      | Chi-cuadrado de independencia (+ V de Cramér)                 | 2 categóricas (reusa la contingencia) |
+| ¿Dos proporciones difieren?              | z de dos proporciones                                         | categórica + grupo                    |
 
 - Cada prueba sigue el mismo guion de **5 pasos** (paralelo al método de la clase): 1) hipótesis en palabras y en símbolos, 2) nivel de significancia, 3) estadístico con sustitución, 4) valor p (con la curva y el área sombreada), 5) decisión y conclusión en llano. Más **tamaño del efecto** (d de Cohen, η², V de Cramér) para no confundir «significativo» con «importante».
 - Comprobación de supuestos visible (normalidad aproximada, frecuencias esperadas ≥ 5 en chi-cuadrado) con aviso y alternativa sugerida.
@@ -212,14 +212,14 @@ Pregunta: «¿Puedo predecir un sí/no?»
 - **Justificación**: se vio en clase y ordena exactamente lo que necesita una persona sin formación: primero la pregunta, luego los datos, luego el método, y al final evaluar y comunicar. Además resuelve el problema del flujo actual (casillas técnicas sin contexto).
 - No es un módulo de cálculo: es el **modo guiado** que recorre los demás módulos y deja cada fase documentada en el informe:
 
-| Fase CRISP-DM | En StatLab | Qué queda en el informe |
-|---|---|---|
-| 1. Comprensión del problema | La persona escribe su pregunta y elige su tipo («describir», «comparar», «relacionar», «predecir») | Objetivo en una frase |
-| 2. Comprensión de los datos | M0 + M1 automático: resumen de cada variable | Tabla resumen, faltantes, atípicos |
-| 3. Preparación | Limpieza de M0 (faltantes, recodificar, atípicos) | Bitácora de cambios aplicados |
-| 4. Modelado | El método que recomienda el selector (§5.3) | Resultado con paso a paso |
-| 5. Evaluación | Supuestos, R², residuos, tamaño del efecto, matriz de confusión | Lista de verificación con semáforo |
-| 6. Despliegue | Informe final y exportación | El PDF o XLSX final |
+| Fase CRISP-DM               | En StatLab                                                                                         | Qué queda en el informe            |
+| --------------------------- | -------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| 1. Comprensión del problema | La persona escribe su pregunta y elige su tipo («describir», «comparar», «relacionar», «predecir») | Objetivo en una frase              |
+| 2. Comprensión de los datos | M0 + M1 automático: resumen de cada variable                                                       | Tabla resumen, faltantes, atípicos |
+| 3. Preparación              | Limpieza de M0 (faltantes, recodificar, atípicos)                                                  | Bitácora de cambios aplicados      |
+| 4. Modelado                 | El método que recomienda el selector (§5.3)                                                        | Resultado con paso a paso          |
+| 5. Evaluación               | Supuestos, R², residuos, tamaño del efecto, matriz de confusión                                    | Lista de verificación con semáforo |
+| 6. Despliegue               | Informe final y exportación                                                                        | El PDF o XLSX final                |
 
 ### Añadidos menores, justificados
 
@@ -260,7 +260,7 @@ Pregunta: «¿Puedo predecir un sí/no?»
 
 1. **Pregunta primero, método después.** La persona dice qué quiere saber; la app elige el método y explica por qué.
 2. **La interpretación primero.** Cada resultado abre con la frase de interpretación, la conclusión práctica y el número clave. Tablas de trabajo, fórmulas y paso a paso **no se ven** hasta que la persona pulsa «Ver cómo se calculó».
-3. **Tres capas de profundidad**, siempre en el mismo orden y solo la primera abierta: *Qué significa* (llano, visible) → *Cómo se calculó* (paso a paso con sus números, oculto) → *Fórmula y equivalente en Excel* (dentro del mismo desplegable).
+3. **Tres capas de profundidad**, siempre en el mismo orden y solo la primera abierta: _Qué significa_ (llano, visible) → _Cómo se calculó_ (paso a paso con sus números, oculto) → _Fórmula y equivalente en Excel_ (dentro del mismo desplegable).
 4. **Nada bloqueado sin motivo** (regla que ya existe): lo no aplicable se ve deshabilitado con su porqué y con la alternativa.
 5. **Todo resultado se puede llevar**: cada tarjeta tiene «Copiar», «Descargar» y «Añadir al informe».
 
@@ -308,49 +308,49 @@ La recomendación siempre se muestra con su razón («Elegimos t de Welch porque
 
 Leyenda: **Existe** · **Parcial** (hay base, falta lo pedido) · **Falta**.
 
-| Tema | Estado | Evidencia |
-|---|---|---|
-| Carga por texto, CSV, Excel | Existe | `infrastructure/import/*`, `features/wizard/steps/step-data.tsx` |
-| Escribir datos en una tabla | Falta | Solo `textarea` de pegado en `step-data.tsx` |
-| Tipos de variable e inferencia | Existe | `core/data/infer-kind.ts`, `step-variables.tsx` |
-| Faltantes | Existe | `core/data/missing.ts`, RF-07 |
-| Preparación (recodificar, calculadas) | Falta | Sin código |
-| Guardar/abrir proyecto | Parcial | Solo `localStorage` (`infrastructure/storage`) |
-| Tablas de frecuencia (simple, agrupada, acumuladas) | Existe | `core/statistics/frequency`, `grouping` |
-| Tendencia central | Existe | `core/statistics/central-tendency` |
-| Dispersión | Existe | `core/statistics/variability` |
-| Posición (cuartiles, percentiles) | Existe | `core/statistics/position` |
-| Atípicos (Tukey) | Existe | `variability.ts:142` `detectOutliers` |
-| Caja y bigotes | Falta | `chart-registry.ts:20` solo `pie`, `bar`, `polygon`, `ogive` |
-| Puntaje z, percentil de un valor | Falta | Sin código |
-| Asimetría y curtosis | Falta | Sin código en `core` |
-| Histograma propio | Parcial | Barras sobre la tabla agrupada; requisitos lo marcan como pendiente |
-| Polígono, ojiva, circular, barras | Existe | `components/charts/*` |
-| Pareto, dispersión, barras agrupadas | Falta | Barras agrupadas previstas en RF-25, no hechas |
-| Tabla de contingencia | Existe | `core/statistics/contingency`, `contingency-heatmap.tsx` |
-| Explicación llana por métrica | Parcial | Catálogo genérico `explanations/catalog.ts`; no habla de los datos de la persona |
-| Paso a paso del cálculo | Falta | Solo fórmula en texto en el catálogo |
-| Interpretación automática del resultado | Falta | Sin código |
-| Probabilidad y distribuciones | Falta | Sin código |
-| Muestreo, error estándar, límite central | Falta | Sin código |
-| Intervalos de confianza | Falta | Sin código |
-| Pruebas de hipótesis | Falta | Sin código (preguntas al profesor §5.1 lo dejaron para después) |
-| Correlación | Falta | Sin código |
-| Regresión lineal simple | Falta | Sin código |
-| Regresión múltiple y polinómica | Falta | Sin código |
-| Regresión logística | Falta | Sin código |
-| Selector «¿qué prueba uso?» | Falta | Solo «Seleccionar lo habitual» (`usual-selection.ts`) |
-| Flujo CRISP-DM | Falta | Sin código |
-| Informe acumulativo | Parcial | PDF con selección de secciones de un solo análisis (`export-dialog.tsx`) |
-| Exportar CSV / XLSX | Existe | `csv-exporter.ts`, `xlsx-exporter.ts` |
-| Exportar PDF | Parcial | Funciona; pesa ~40 MB (HANDOFF) |
-| Imagen PNG de gráficas | Existe | `image-exporter.ts`; incluye por error el enlace «Descargar PNG» (HANDOFF) |
-| Imagen SVG | Falta | Declarado en `export-selection.ts:27`, sin implementar |
-| Copiar al portapapeles | Falta | Sin uso de `navigator.clipboard` |
-| XLSX con fórmulas vivas | Falta | Sin código |
-| Ayuda general | Parcial | Hoja de ayuda (`app-shell.tsx`) |
-| Accesibilidad, tema oscuro, CSP | Existe | HANDOFF rondas 1–3 |
-| Textos crudos de código en pantalla | Defecto | «regla: sturges» en `variable-results.tsx:334` |
+| Tema                                                | Estado  | Evidencia                                                                        |
+| --------------------------------------------------- | ------- | -------------------------------------------------------------------------------- |
+| Carga por texto, CSV, Excel                         | Existe  | `infrastructure/import/*`, `features/wizard/steps/step-data.tsx`                 |
+| Escribir datos en una tabla                         | Falta   | Solo `textarea` de pegado en `step-data.tsx`                                     |
+| Tipos de variable e inferencia                      | Existe  | `core/data/infer-kind.ts`, `step-variables.tsx`                                  |
+| Faltantes                                           | Existe  | `core/data/missing.ts`, RF-07                                                    |
+| Preparación (recodificar, calculadas)               | Falta   | Sin código                                                                       |
+| Guardar/abrir proyecto                              | Parcial | Solo `localStorage` (`infrastructure/storage`)                                   |
+| Tablas de frecuencia (simple, agrupada, acumuladas) | Existe  | `core/statistics/frequency`, `grouping`                                          |
+| Tendencia central                                   | Existe  | `core/statistics/central-tendency`                                               |
+| Dispersión                                          | Existe  | `core/statistics/variability`                                                    |
+| Posición (cuartiles, percentiles)                   | Existe  | `core/statistics/position`                                                       |
+| Atípicos (Tukey)                                    | Existe  | `variability.ts:142` `detectOutliers`                                            |
+| Caja y bigotes                                      | Falta   | `chart-registry.ts:20` solo `pie`, `bar`, `polygon`, `ogive`                     |
+| Puntaje z, percentil de un valor                    | Falta   | Sin código                                                                       |
+| Asimetría y curtosis                                | Falta   | Sin código en `core`                                                             |
+| Histograma propio                                   | Parcial | Barras sobre la tabla agrupada; requisitos lo marcan como pendiente              |
+| Polígono, ojiva, circular, barras                   | Existe  | `components/charts/*`                                                            |
+| Pareto, dispersión, barras agrupadas                | Falta   | Barras agrupadas previstas en RF-25, no hechas                                   |
+| Tabla de contingencia                               | Existe  | `core/statistics/contingency`, `contingency-heatmap.tsx`                         |
+| Explicación llana por métrica                       | Parcial | Catálogo genérico `explanations/catalog.ts`; no habla de los datos de la persona |
+| Paso a paso del cálculo                             | Falta   | Solo fórmula en texto en el catálogo                                             |
+| Interpretación automática del resultado             | Falta   | Sin código                                                                       |
+| Probabilidad y distribuciones                       | Falta   | Sin código                                                                       |
+| Muestreo, error estándar, límite central            | Falta   | Sin código                                                                       |
+| Intervalos de confianza                             | Falta   | Sin código                                                                       |
+| Pruebas de hipótesis                                | Falta   | Sin código (preguntas al profesor §5.1 lo dejaron para después)                  |
+| Correlación                                         | Falta   | Sin código                                                                       |
+| Regresión lineal simple                             | Falta   | Sin código                                                                       |
+| Regresión múltiple y polinómica                     | Falta   | Sin código                                                                       |
+| Regresión logística                                 | Falta   | Sin código                                                                       |
+| Selector «¿qué prueba uso?»                         | Falta   | Solo «Seleccionar lo habitual» (`usual-selection.ts`)                            |
+| Flujo CRISP-DM                                      | Falta   | Sin código                                                                       |
+| Informe acumulativo                                 | Parcial | PDF con selección de secciones de un solo análisis (`export-dialog.tsx`)         |
+| Exportar CSV / XLSX                                 | Existe  | `csv-exporter.ts`, `xlsx-exporter.ts`                                            |
+| Exportar PDF                                        | Parcial | Funciona; pesa ~40 MB (HANDOFF)                                                  |
+| Imagen PNG de gráficas                              | Existe  | `image-exporter.ts`; incluye por error el enlace «Descargar PNG» (HANDOFF)       |
+| Imagen SVG                                          | Falta   | Declarado en `export-selection.ts:27`, sin implementar                           |
+| Copiar al portapapeles                              | Falta   | Sin uso de `navigator.clipboard`                                                 |
+| XLSX con fórmulas vivas                             | Falta   | Sin código                                                                       |
+| Ayuda general                                       | Parcial | Hoja de ayuda (`app-shell.tsx`)                                                  |
+| Accesibilidad, tema oscuro, CSP                     | Existe  | HANDOFF rondas 1–3                                                               |
+| Textos crudos de código en pantalla                 | Defecto | «regla: sturges» en `variable-results.tsx:334`                                   |
 
 ---
 
@@ -358,14 +358,14 @@ Leyenda: **Existe** · **Parcial** (hay base, falta lo pedido) · **Falta**.
 
 La nota da las ecuaciones normales 20 = 5·b0 + 15·b1 y 66 = 15·b0 + 55·b1, es decir n = 5, ΣX = 15, ΣY = 20, ΣX² = 55, ΣXY = 66. Un conjunto que reproduce exactamente esas sumas (la nota no trae la tabla; **Juan debe confirmar si los datos originales de clase son otros**):
 
-| X | Y | X² | XY | Ŷ = 2,2 + 0,6X | e = Y − Ŷ | e² | (Y − Ȳ)² |
-|---|---|---|---|---|---|---|---|
-| 1 | 3 | 1 | 3 | 2,8 | 0,2 | 0,04 | 1 |
-| 2 | 3 | 4 | 6 | 3,4 | −0,4 | 0,16 | 1 |
-| 3 | 4 | 9 | 12 | 4,0 | 0,0 | 0,00 | 0 |
-| 4 | 5 | 16 | 20 | 4,6 | 0,4 | 0,16 | 1 |
-| 5 | 5 | 25 | 25 | 5,2 | −0,2 | 0,04 | 1 |
-| **15** | **20** | **55** | **66** | | **0** | **SCE = 0,40** | **SCT = 4** |
+| X      | Y      | X²     | XY     | Ŷ = 2,2 + 0,6X | e = Y − Ŷ | e²             | (Y − Ȳ)²    |
+| ------ | ------ | ------ | ------ | -------------- | --------- | -------------- | ----------- |
+| 1      | 3      | 1      | 3      | 2,8            | 0,2       | 0,04           | 1           |
+| 2      | 3      | 4      | 6      | 3,4            | −0,4      | 0,16           | 1           |
+| 3      | 4      | 9      | 12     | 4,0            | 0,0       | 0,00           | 0           |
+| 4      | 5      | 16     | 20     | 4,6            | 0,4       | 0,16           | 1           |
+| 5      | 5      | 25     | 25     | 5,2            | −0,2      | 0,04           | 1           |
+| **15** | **20** | **55** | **66** |                | **0**     | **SCE = 0,40** | **SCT = 4** |
 
 Resultados esperados (pruebas del motor con tolerancia `toBeCloseTo(…, 10)`):
 
@@ -381,18 +381,18 @@ Resultados esperados (pruebas del motor con tolerancia `toBeCloseTo(…, 10)`):
 
 **Base de la estimación.** Medido en este repo: el rediseño completo con tres rondas de revisión ocupó una jornada de trabajo con agentes (2026-11-12, ~9 h entre el primer archivo tocado y el último commit). Cada fase se estimó por analogía con ese volumen (archivos, tests, revisión) y se le suma el **50 %** de margen. Incluye implementación, tests, revisión independiente y verificación en el navegador; no incluye el tiempo de Juan aprobando.
 
-| Fase | Contenido | Entrega verificable | Base | Con margen |
-|---|---|---|---|---|
-| **F0 · Cimientos** | Contrato de resultado ampliado (`steps`, `interpretation`); arreglar PDF de 40 MB, PNG con enlace, «regla: sturges»; SVG y portapapeles genéricos; `wigi.json` | Toda tarjeta actual se puede copiar y bajar en SVG; PDF < 5 MB | 6 h | **9 h** |
-| **F1 · Nuevo flujo** | Espacio de trabajo (Datos, Explorar, Analizar, Informe), hoja editable, proyecto `.json`, informe acumulativo con «Añadir al informe» | Se hacen dos análisis y salen juntos en un PDF | 10 h | **15 h** |
-| **F2 · Descriptiva completa y explicable** | Asimetría, curtosis, z, percentil de un valor; caja, histograma, Pareto, dispersión, barras agrupadas; paso a paso e interpretación de todo lo existente | Cada métrica muestra sus tres capas | 9 h | **13,5 h** |
-| **F3 · Regresión simple y correlación** | M6 completo con los 5 pasos, residuos, SCE/SCT/R²/R, predicción, XLSX con fórmulas; caso de la §7 como prueba | El ejemplo de clase da b1 = 0,6, b0 = 2,2, R² = 0,9 en pantalla, PDF y Excel | 8 h | **12 h** |
-| **F4 · Probabilidad e intervalos** | Motor de distribuciones, calculadora visual, normalidad (Q-Q), límite central, IC, tamaño de muestra | Valores iguales a R/Excel en las tablas de prueba | 9 h | **13,5 h** |
-| **F5 · Pruebas de hipótesis y selector** | t (una, Welch, pareada), proporciones, ANOVA + Tukey, chi-cuadrado; guion de 5 pasos; tamaño del efecto; selector «¿Qué quieres saber?» | Las 6 preguntas del selector llevan a su prueba con razón | 11 h | **16,5 h** |
-| **F6 · Múltiple, polinómica y logística** | Solucionador QR, R² ajustado, F, VIF, indicadoras; polinómica con grado; logística IRLS, momios, matriz de confusión | Coinciden con `ESTIMACION.LINEAL` y con R `glm` | 10 h | **15 h** |
-| **F7 · Modo guiado CRISP-DM y cierre** | Recorrido de 6 fases, bitácora de preparación, lista de evaluación; revisión integral de accesibilidad, rendimiento, textos; documentación | Un caso completo de punta a punta en modo guiado | 7 h | **10,5 h** |
-| **Total** | | | **70 h** | **105 h** |
-| F8 · Opcional | No paramétricas, Shapiro-Wilk, informe con IA | | 6 h | 9 h |
+| Fase                                       | Contenido                                                                                                                                                      | Entrega verificable                                                          | Base     | Con margen |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | -------- | ---------- |
+| **F0 · Cimientos**                         | Contrato de resultado ampliado (`steps`, `interpretation`); arreglar PDF de 40 MB, PNG con enlace, «regla: sturges»; SVG y portapapeles genéricos; `wigi.json` | Toda tarjeta actual se puede copiar y bajar en SVG; PDF < 5 MB               | 6 h      | **9 h**    |
+| **F1 · Nuevo flujo**                       | Espacio de trabajo (Datos, Explorar, Analizar, Informe), hoja editable, proyecto `.json`, informe acumulativo con «Añadir al informe»                          | Se hacen dos análisis y salen juntos en un PDF                               | 10 h     | **15 h**   |
+| **F2 · Descriptiva completa y explicable** | Asimetría, curtosis, z, percentil de un valor; caja, histograma, Pareto, dispersión, barras agrupadas; paso a paso e interpretación de todo lo existente       | Cada métrica muestra sus tres capas                                          | 9 h      | **13,5 h** |
+| **F3 · Regresión simple y correlación**    | M6 completo con los 5 pasos, residuos, SCE/SCT/R²/R, predicción, XLSX con fórmulas; caso de la §7 como prueba                                                  | El ejemplo de clase da b1 = 0,6, b0 = 2,2, R² = 0,9 en pantalla, PDF y Excel | 8 h      | **12 h**   |
+| **F4 · Probabilidad e intervalos**         | Motor de distribuciones, calculadora visual, normalidad (Q-Q), límite central, IC, tamaño de muestra                                                           | Valores iguales a R/Excel en las tablas de prueba                            | 9 h      | **13,5 h** |
+| **F5 · Pruebas de hipótesis y selector**   | t (una, Welch, pareada), proporciones, ANOVA + Tukey, chi-cuadrado; guion de 5 pasos; tamaño del efecto; selector «¿Qué quieres saber?»                        | Las 6 preguntas del selector llevan a su prueba con razón                    | 11 h     | **16,5 h** |
+| **F6 · Múltiple, polinómica y logística**  | Solucionador QR, R² ajustado, F, VIF, indicadoras; polinómica con grado; logística IRLS, momios, matriz de confusión                                           | Coinciden con `ESTIMACION.LINEAL` y con R `glm`                              | 10 h     | **15 h**   |
+| **F7 · Modo guiado CRISP-DM y cierre**     | Recorrido de 6 fases, bitácora de preparación, lista de evaluación; revisión integral de accesibilidad, rendimiento, textos; documentación                     | Un caso completo de punta a punta en modo guiado                             | 7 h      | **10,5 h** |
+| **Total**                                  |                                                                                                                                                                |                                                                              | **70 h** | **105 h**  |
+| F8 · Opcional                              | No paramétricas, Shapiro-Wilk, informe con IA                                                                                                                  |                                                                              | 6 h      | 9 h        |
 
 **Orden y dependencias.** F0 → F1 son obligatorias primero (cambian el contrato y el flujo; hacer módulos antes obligaría a rehacerlos). **F3 va antes que F4 y F5** a propósito: es lo visto en clase y lo que más valor da ya; su prueba t de la pendiente y los IC de b0 y b1 se agregan cuando llegue F4/F5. F2 puede ir en paralelo con F3. F6 depende de F3 (y su parte inferencial de F4). F7 cierra.
 
