@@ -1,4 +1,4 @@
-import { ArrowRight, Check, Clock } from "lucide-react";
+import { ArrowRight, Check, Clock, Compass } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -14,6 +14,7 @@ import { sampleInsights } from "./sample-insights";
 
 const APP = "/app";
 const SAMPLE = "/app#ejemplo";
+const GUIDED = "/app#guiado";
 
 const STEPS = [
   {
@@ -156,6 +157,13 @@ export function LandingPage() {
                 Probar con datos de ejemplo
               </a>
             </div>
+            <a
+              href={GUIDED}
+              className={buttonVariants({ variant: "ghost", className: "-ml-4 self-start" })}
+            >
+              <Compass aria-hidden="true" />
+              ¿Primera vez? Te guío paso a paso, de la pregunta al informe
+            </a>
             <ResumeLink />
           </div>
           <div className="sl-cascada-tarde min-w-0">
