@@ -13,6 +13,7 @@ import type { MissingPolicy, VariableKind } from "@/core/data";
 import type {
   CentralTendencyOptions,
   ContingencyResult,
+  Interpretation,
   FrequencyOptions,
   GroupingOptions,
   PositionOptions,
@@ -182,6 +183,8 @@ export interface AnalyzedContingency {
   readonly columnVariableName: string;
   readonly table: ContingencyResult | null;
   readonly unavailableReason?: string;
+  /** Qué dice el cruce, en llano (RF-37). Solo si hay tabla. */
+  readonly interpretation?: Interpretation;
 }
 
 /** Resultado completo del análisis. */

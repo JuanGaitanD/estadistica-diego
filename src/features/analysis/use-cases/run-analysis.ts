@@ -25,6 +25,7 @@
 import type { CellValue, Column, Dataset, DatasetWarning } from "@/core/data";
 import {
   computeContingencyTable,
+  interpretContingency,
   runVariableAnalysis,
   type CentralTendencyOptions,
   type FrequencyRow,
@@ -451,6 +452,11 @@ export function runAnalysis(
       rowVariableName: rowColumn.variable.name,
       columnVariableName: columnColumn.variable.name,
       table,
+      interpretation: interpretContingency(
+        table,
+        rowColumn.variable.name,
+        columnColumn.variable.name,
+      ),
     });
   }
 

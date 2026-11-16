@@ -98,6 +98,8 @@ export type { VariableAnalysisInput } from "./run-variable-analysis";
 export {
   clipStepRows,
   interpretCategorical,
+  interpretContingency,
+  ASSOCIATION_GAP,
   interpretQuantitative,
   quantitativeSteps,
   formatCount,
