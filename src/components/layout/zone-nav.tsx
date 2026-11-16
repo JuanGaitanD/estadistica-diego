@@ -50,7 +50,7 @@ export function ZoneNav({ items, current, onSelect, className }: ZoneNavProps) {
                   onSelect(item.id);
                 }}
                 className={cn(
-                  "group -mb-px flex w-full min-w-0 flex-col items-start gap-0.5 border-b-[3px] px-2 pt-2 pb-3 text-left transition-colors duration-[90ms] sm:px-4",
+                  "group -mb-px flex min-h-11 w-full min-w-0 flex-col items-start justify-center gap-0.5 border-b-[3px] px-1.5 pt-2 pb-3 text-left transition-colors duration-[90ms] sm:px-4",
                   active
                     ? "border-primary text-foreground"
                     : "text-muted-foreground border-transparent",
@@ -59,15 +59,20 @@ export function ZoneNav({ items, current, onSelect, className }: ZoneNavProps) {
                     : "hover:bg-accent/60 hover:text-foreground",
                 )}
               >
-                <span className="flex items-center gap-2">
-                  <span className="sl-number text-xs" aria-hidden="true">
+                <span className="flex max-w-full min-w-0 items-center gap-1 sm:gap-2">
+                  <span className="sl-number hidden text-xs sm:inline" aria-hidden="true">
                     {index + 1}
                   </span>
-                  <span className={cn("text-base", active ? "font-bold" : "font-semibold")}>
+                  <span
+                    className={cn(
+                      "truncate text-[0.8125rem] sm:text-base",
+                      active ? "font-bold" : "font-semibold",
+                    )}
+                  >
                     {item.title}
                   </span>
                   {item.badge !== undefined && item.badge > 0 ? (
-                    <span className="sl-number bg-primary text-primary-foreground rounded-full px-1.5 text-xs leading-5">
+                    <span className="sl-number bg-primary text-primary-foreground shrink-0 rounded-full px-1 text-[0.6875rem] leading-4 sm:px-1.5 sm:text-xs sm:leading-5">
                       {item.badge}
                       <span className="sr-only"> resultados</span>
                     </span>
