@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "src/components/shared/interpretation-panel.tsx"
+        ],
+        "createdAt": "2026-11-16T17:49:46.147Z",
+        "reason": "Decisión documentada en docs/05-diseno.md (aterrizaje FL y ADR-004): el filete ciruela del panel «Qué significa» es la firma del sistema; Juan pidió disenojg, no impeccable"
+      }
+    ]
+  }
+}
