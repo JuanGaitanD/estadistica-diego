@@ -54,8 +54,8 @@ const MODULES: readonly { name: string; detail: string; ready: boolean }[] = [
   },
   {
     name: "Pruebas de hipótesis",
-    detail: "Comparar promedios y proporciones, con un selector que te guía",
-    ready: false,
+    detail: "Comparar grupos, promedios y proporciones, con un selector que te guía",
+    ready: true,
   },
   {
     name: "Regresión múltiple y logística",
