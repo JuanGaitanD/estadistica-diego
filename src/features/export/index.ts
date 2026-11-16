@@ -12,3 +12,4 @@ export {
   ChartDownloadButton,
   type ChartDownloadButtonProps,
 } from "./components/chart-download-button";
+export { CopyButton, type CopyButtonProps } from "./components/copy-button";

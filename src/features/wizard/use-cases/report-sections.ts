@@ -9,7 +9,7 @@ import { formatMetricValue, formatNumber } from "@/components/shared/format";
 import type { AnalysisResult, AnalyzedVariable } from "@/features/analysis";
 import { RESULT_SECTIONS } from "@/features/analysis";
 import type { AvailableSection } from "@/features/export";
-import type { Metric } from "@/core/statistics";
+import { CLASS_RULE_LABEL, type Metric } from "@/core/statistics";
 
 function metricItems(metrics: readonly Metric[], decimals = 2) {
   return metrics.map((metric) => ({
@@ -32,7 +32,9 @@ function frequencyTableContent(variable: AnalyzedVariable) {
       row.cumulativeAbsolute,
       formatNumber(row.cumulativeRelative, { decimals: 4 }),
     ]),
-    ...(table?.rule !== undefined ? { note: `Regla usada para K: ${table.rule}.` } : {}),
+    ...(table?.rule !== undefined
+      ? { note: `Regla usada para K: ${CLASS_RULE_LABEL[table.rule]}.` }
+      : {}),
   };
 }
 
@@ -71,6 +73,21 @@ export function buildAvailableSections(
     if (variable === undefined) continue;
 
     if (section.kind === "resumen") {
+      // La interpretación va con «Resumen», que el informe ordena primero (ADR-004).
+      const { interpretation } = variable.analysis;
+      sections.push({
+        id: "resumen",
+        title: `Qué significa: ${variable.variableName}`,
+        kind: "text",
+        getContent: () => ({
+          kind: "text",
+          paragraphs: [
+            interpretation.headline,
+            ...interpretation.details,
+            ...interpretation.caveats.map((caveat) => `Ten en cuenta: ${caveat}`),
+          ],
+        }),
+      });
       sections.push({
         id: "tendencia-central",
         title: section.title,

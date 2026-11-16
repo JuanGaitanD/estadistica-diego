@@ -6,6 +6,16 @@ import type { ClassRule, GroupingOptions } from "../types";
 
 /** Cota inferior y superior del número de clases K (ADR-003 §2.1). */
 export const MIN_CLASSES = 2;
+
+/** Nombre legible de cada regla de K, para pantalla e informe. */
+export const CLASS_RULE_LABEL: Readonly<Record<ClassRule, string>> = {
+  sturges: "Sturges",
+  raiz: "raíz de n",
+  rice: "Rice",
+  scott: "Scott",
+  "freedman-diaconis": "Freedman–Diaconis",
+  manual: "elegido a mano",
+};
 export const MAX_CLASSES = 50;
 
 /** Máximo de decimales que se detectan en los datos. */

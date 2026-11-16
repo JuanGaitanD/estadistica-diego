@@ -33,7 +33,8 @@ import {
   VariableResults,
 } from "@/features/analysis";
 import type { AnalysisResult, AnalyzedVariable } from "@/features/analysis";
-import { ChartDownloadButton, ExportToolbar } from "@/features/export";
+import { interpretationToText } from "@/components/shared/interpretation-panel";
+import { ChartDownloadButton, CopyButton, ExportToolbar } from "@/features/export";
 import type { FrequencyTableResult } from "@/core/statistics";
 
 import { chartElementId, chartsFor } from "../model/build-request";
@@ -221,7 +222,15 @@ export function StepResults() {
                 className="gap-block flex scroll-mt-28 flex-col"
                 aria-labelledby={`titulo-${variable.variableId}`}
               >
-                <VariableResults variable={variable} />
+                <VariableResults
+                  variable={variable}
+                  interpretationActions={
+                    <CopyButton
+                      what="la interpretación"
+                      getText={() => interpretationToText(variable.analysis.interpretation)}
+                    />
+                  }
+                />
                 {kinds.length > 0 ? (
                   <div className="flex flex-col gap-6">
                     <h3 className="sl-label">Gráficas</h3>

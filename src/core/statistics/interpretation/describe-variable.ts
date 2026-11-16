@@ -211,8 +211,10 @@ export function quantitativeSteps(sorted: readonly number[]): CalculationStep[] 
   const n = sorted.length;
   if (n === 0) return [];
   // Resultados con un decimal más que la narración; datos con sus propios decimales.
-  const f = (value: number): string => formatValue(value, narrativeDecimals(sorted) + 1);
-  const raw = (value: number): string => formatValue(value, Math.min(6, detectDecimals(sorted)));
+  const resultDecimals = narrativeDecimals(sorted) + 1;
+  const dataDecimals = Math.min(6, detectDecimals(sorted));
+  const f = (value: number): string => formatValue(value, resultDecimals);
+  const raw = (value: number): string => formatValue(value, dataDecimals);
   const sum = neumaierSum(sorted);
   const mean = sum / n;
   const steps: CalculationStep[] = [];
@@ -244,7 +246,10 @@ export function quantitativeSteps(sorted: readonly number[]): CalculationStep[] 
     for (const [index, value] of sorted.entries()) {
       const deviation = value - mean;
       squares += deviation * deviation;
-      rows.push([formatCount(index + 1), raw(value), f(deviation), f(deviation * deviation)]);
+      // Solo se formatean las filas que se muestran; el resto solo suma.
+      if (index < STEP_TABLE_MAX_ROWS) {
+        rows.push([formatCount(index + 1), raw(value), f(deviation), f(deviation * deviation)]);
+      }
     }
     const variance = squares / (n - 1);
     steps.push({
@@ -252,7 +257,8 @@ export function quantitativeSteps(sorted: readonly number[]): CalculationStep[] 
       text: "Se mide cuánto se aleja cada dato del promedio, esas distancias se elevan al cuadrado, se suman y se dividen entre n − 1; la raíz cuadrada devuelve las unidades originales.",
       table: {
         columns: ["#", "x", "x − x̄", "(x − x̄)²"],
-        ...clipStepRows(rows),
+        rows,
+        ...(n > STEP_TABLE_MAX_ROWS ? { omittedRows: n - STEP_TABLE_MAX_ROWS } : {}),
         footer: ["Σ", f(sum), f(0), f(squares)],
       },
       formula: `s² = Σ(x − x̄)² / (n − 1) = ${f(squares)} / ${formatCount(n - 1)} = ${f(variance)};  s = √${f(variance)} = ${f(Math.sqrt(variance))}`,

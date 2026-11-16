@@ -2,7 +2,12 @@
 
 import type { ReactNode } from "react";
 
-import { explanationFor, type FrequencyRow, type Metric } from "@/core/statistics";
+import {
+  CLASS_RULE_LABEL,
+  explanationFor,
+  type FrequencyRow,
+  type Metric,
+} from "@/core/statistics";
 import {
   formatMetricValue,
   formatNumber,
@@ -10,6 +15,7 @@ import {
   isPercentMetric,
 } from "@/components/shared/format";
 import { HelpHint } from "@/components/shared/help-hint";
+import { InterpretationPanel } from "@/components/shared/interpretation-panel";
 import { MetricCard } from "@/components/shared/metric-card";
 import { SectionCard } from "@/components/shared/section-card";
 import { DataTable, type DataTableColumn } from "@/components/tables/data-table";
@@ -21,6 +27,8 @@ import { explanationText } from "./metric-explanation";
 
 export interface VariableResultsProps {
   variable: AnalyzedVariable;
+  /** Acciones del bloque «Qué significa» (copiar, añadir al informe). */
+  interpretationActions?: ReactNode;
   /** Decimales de presentación. Por defecto 2. */
   decimals?: number;
 }
@@ -129,7 +137,11 @@ function metricRows(metrics: readonly Metric[]): MetricRow[] {
  * frecuencias, posición y variabilidad. Recibe todo ya calculado; no tiene
  * estado propio ni accede al store.
  */
-export function VariableResults({ variable, decimals = 2 }: VariableResultsProps) {
+export function VariableResults({
+  variable,
+  interpretationActions,
+  decimals = 2,
+}: VariableResultsProps) {
   const { analysis, request } = variable;
   const frequency = analysis.groupedFrequency ?? analysis.frequency;
   const grouped = analysis.groupedFrequency !== undefined;
@@ -236,10 +248,15 @@ export function VariableResults({ variable, decimals = 2 }: VariableResultsProps
         </div>
       </header>
 
-      <div id={variableSectionId(variable.variableId, "resumen")}>
+      <div id={variableSectionId(variable.variableId, "resumen")} className="flex flex-col gap-6">
+        <InterpretationPanel
+          interpretation={analysis.interpretation}
+          steps={analysis.steps}
+          actions={interpretationActions}
+        />
         <SectionCard
-          title="Resumen"
-          description="Lo esencial de la variable, con su explicación en cada tarjeta."
+          title="Las cifras"
+          description="Cada medida con su explicación en el icono de ayuda."
         >
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {analysis.summary.map((metric) => metricCard(metric, decimals))}
@@ -331,7 +348,7 @@ export function VariableResults({ variable, decimals = 2 }: VariableResultsProps
               <p className="text-muted-foreground mt-3 flex flex-wrap items-center gap-1.5 text-sm">
                 <span>
                   Número de intervalos K = {frequency.k}
-                  {frequency.rule ? ` (regla: ${frequency.rule})` : ""}
+                  {frequency.rule ? ` (regla de ${CLASS_RULE_LABEL[frequency.rule]})` : ""}
                 </span>
                 <HelpHint label={explanationText(explanationFor("numero-de-intervalos"))} />
                 {frequency.intervalLength !== undefined ? (
