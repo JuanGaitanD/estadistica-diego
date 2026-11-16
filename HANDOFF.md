@@ -43,7 +43,28 @@ Queda anotado, sin corregir:
 
 ### Pila de PR
 
-El rango se publica como una pila de 25 PR apilados (`pila/01-…` a `pila/25-…`), uno o varios por fase y sin mezclar fases. Cada PR va contra la rama anterior y el primero contra `main`. Se cortan en los límites de commit, con unas 600 líneas de código sin tests por PR. Se pasan de ese tamaño los commits que ya lo superan solos, como el del espacio de trabajo (1.771 líneas) o el de la portada (803). Se revisan y se fusionan en orden; el merge y la producción quedan a decisión de Juan.
+El rango se publica como una pila de 26 PR apilados (`pila/01-…` a `pila/26-…`), uno o varios por fase y sin mezclar fases. Cada PR va contra la rama anterior y el primero contra `main`. Se cortan en los límites de commit, con unas 600 líneas de código sin tests por PR. Se pasan de ese tamaño los commits que ya lo superan solos, como el del espacio de trabajo (1.771 líneas) o el de la portada (803). Se revisan y se fusionan en orden; el merge y la producción quedan a decisión de Juan.
+
+### Vista previa en Vercel (2026-11-16)
+
+Las vistas previas del proyecto tienen Vercel Authentication; no se creó secreto de bypass ni se cambió la protección. Juan generó un enlace para compartir de la rama `pila/24-f7-…` (el token no se guarda en el repo). Esa cookie no abre la vista previa de la #25, así que se comprobó en la 24. Entre la 24 y la 25 no cambian `vercel.json`, `next.config` ni `src/app`; solo los arreglos de la revisión.
+
+Resultado a 1440 y 390 px:
+
+- `/` → 200, portada.
+- `/app` → 200, `/app#datos`.
+- `/app#ejemplo` → abre Explorar con los datos de ejemplo.
+- `/app#guiado` → abre el modo guiado.
+- `/#datos` → `/app#datos`; `/#informe` → `/app#informe`.
+- `/#explorar` y `/#analizar` redirigen a `/app#explorar` y `/app#analizar`. Sin datos cargados, esas zonas están bloqueadas y la app se queda en Datos (comportamiento esperado).
+- `/app.html` → 200, sirve la app.
+- Una ruta inexistente → 404.
+- Exportar PDF y Excel funciona. jsPDF, html2canvas, canvg y SheetJS no están en los scripts iniciales de `/app`: se cargan al exportar.
+
+Arreglado en `pila/26-vista-previa-arreglos`:
+
+- A 390 px, «Salir del modo guiado», «Siguiente: …» y «Añadir el recorrido CRISP-DM al informe» se salían del recuadro (la página desbordaba 6 px).
+- Un enlace a una zona bloqueada (`/#explorar` sin datos) ahora explica por qué se queda en Datos.
 
 ### F7 · qué quedó
 
@@ -225,7 +246,7 @@ Pendientes menores anotados en cada fase:
 En el repo:
 
 ```bash
-pnpm check     # lint + format:check + typecheck + test (577 tests)
+pnpm check     # lint + format:check + typecheck + test (578 tests)
 pnpm build     # export estático a out/
 pnpm dev --port 3101
 ```
