@@ -50,7 +50,7 @@ const MODULES: readonly { name: string; detail: string; ready: boolean }[] = [
   {
     name: "Probabilidad e intervalos",
     detail: "Distribuciones, normalidad e intervalos de confianza",
-    ready: false,
+    ready: true,
   },
   {
     name: "Pruebas de hipótesis",
