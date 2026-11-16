@@ -7,6 +7,7 @@ export * from "./ogive";
 export * from "./box-plot";
 export * from "./pareto-chart";
 export * from "./grouped-bar-chart";
+export * from "./regression-charts";
 export * from "./contingency-heatmap";
 export * from "./chart-registry";
 export * from "./chart-thumbnail";
