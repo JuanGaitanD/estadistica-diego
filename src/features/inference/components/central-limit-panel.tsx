@@ -13,6 +13,7 @@ import { SectionCard } from "@/components/shared/section-card";
 import { Button } from "@/components/ui/button";
 import {
   computeGroupedFrequencyTable,
+  detectDecimals,
   simulateSampleMeans,
   type FrequencyTableResult,
 } from "@/core/statistics";
@@ -27,12 +28,20 @@ const MEANS_VARIABLE = "tlc-promedios";
 const DATA_ID = `chart-${DATA_VARIABLE}-bar`;
 const MEANS_ID = `chart-${MEANS_VARIABLE}-bar`;
 
-/** Histograma (Sturges) de valores con muchos decimales, redondeados para que las clases se lean. */
-function histogram(values: readonly number[], variableId: string): FrequencyTableResult {
+/**
+ * Histograma (Sturges). Los promedios arrastran muchos decimales: se redondean
+ * a dos más que los datos para que las clases se lean sin aplastarlos.
+ */
+function histogram(
+  values: readonly number[],
+  decimals: number,
+  variableId: string,
+): FrequencyTableResult {
+  const factor = 10 ** Math.min(10, decimals);
   return {
     ...computeGroupedFrequencyTable({
       variableId,
-      values: values.map((v) => Math.round(v * 1000) / 1000),
+      values: values.map((v) => Math.round(v * factor) / factor),
       grouping: { enabled: true, rule: "sturges", closure: "cerrado-abierto" },
     }),
     variableId,
@@ -53,6 +62,7 @@ export function CentralLimitPanel({ columns }: { columns: readonly NumericColumn
       column?.values.filter((v): v is number => typeof v === "number" && Number.isFinite(v)) ?? [],
     [column],
   );
+  const decimals = detectDecimals(values);
   const sim = useMemo(
     () =>
       column === undefined
@@ -133,14 +143,14 @@ export function CentralLimitPanel({ columns }: { columns: readonly NumericColumn
               />
               <div className="grid min-w-0 gap-6 lg:grid-cols-2">
                 <BarChart
-                  data={histogram(values, DATA_VARIABLE)}
+                  data={histogram(values, decimals, DATA_VARIABLE)}
                   title={`Los datos de ${column.name}`}
                   description="La población de la que se sacan las muestras."
                   colorMode="single"
                   actions={<ChartDownloadButton elementId={DATA_ID} filename="tlc_datos.png" />}
                 />
                 <BarChart
-                  data={histogram(sim.means, MEANS_VARIABLE)}
+                  data={histogram(sim.means, decimals + 2, MEANS_VARIABLE)}
                   title={`Los promedios de 1.000 muestras de ${sizeText}`}
                   description="Cada barra cuenta cuántas muestras dieron un promedio en esa clase."
                   colorMode="single"

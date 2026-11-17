@@ -95,7 +95,7 @@ export function simulateSampleMeans(
     interpretation: {
       headline: `${name} ${shapeWords(gData)}, pero los promedios de ${formatCount(repetitions)} muestras de ${n} datos se agrupan alrededor de ${f(meanOfMeans)}, muy cerca del promedio de los datos (${f(mu)}).`,
       details: [
-        `Los promedios varían mucho menos que los datos: su desviación es ${f2(sdOfMeans)}, casi lo que anticipa el teorema, σ/√n = ${f2(sigma)}/√${n} = ${f2(expectedSe)}. Con muestras cuatro veces más grandes, varían la mitad.`,
+        `Los promedios varían menos que los datos: su desviación es ${f2(sdOfMeans)} frente a ${f2(sigma)} (un ${formatValue((100 * sdOfMeans) / sigma, 0)} %), casi lo que anticipa el teorema, σ/√n = ${f2(sigma)}/√${n} = ${f2(expectedSe)}. Con muestras cuatro veces más grandes, varían la mitad.`,
         gData !== null && gMeans !== null
           ? `La asimetría baja de ${formatValue(gData, 2)} en los datos a ${formatValue(gMeans, 2)} en los promedios: por eso la t y los intervalos funcionan con muestras grandes aunque los datos no sean normales.`
           : "Por eso la t y los intervalos funcionan con muestras grandes aunque los datos no sean normales.",
