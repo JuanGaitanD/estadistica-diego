@@ -1,6 +1,6 @@
 # HANDOFF · StatLab
 
-Estado del trabajo. Última actualización: 2026-11-16 (plataforma: fases F0–F7 y FL cerradas en `feat/plataforma-interpretacion`, sin push).
+Estado del trabajo. Última actualización: 2026-11-16 (plataforma en producción desde `main` = `5609ef7`; los pendientes menores, en `feat/menores-post-lanzamiento` con un PR a `main` sin fusionar).
 
 ## Plataforma (desde 2026-11-16): de calculadora descriptiva a «estadística que se entiende»
 
@@ -20,6 +20,29 @@ Plan aprobado por Juan el 2026-11-16: `docs/09-plan-plataforma.md` (alcance M0�
 | F6 · Múltiple, polinómica y logística                                  | **Cerrada** (2026-11-16) |
 | F7 · Modo guiado CRISP-DM y cierre                                     | **Cerrada** (2026-11-16) |
 
+### Pendientes menores tras el lanzamiento (2026-11-16)
+
+Pedidos por Juan después de publicar. Rama `feat/menores-post-lanzamiento`, un solo PR contra `main`. Cada punto lleva sus tests y sus valores de referencia de R, Excel o la literatura.
+
+- **Pruebas de una cola:** las pruebas t, las z de proporciones, Mann-Whitney, Wilcoxon, la prueba del signo y Fisher tienen un selector «Qué quieres probar». Según la cola cambian el valor p, las hipótesis, la fórmula de Excel y el sombreado. La pantalla advierte que la cola se elige antes de ver los datos.
+- **Pruebas no paramétricas** (`core/statistics/inference/nonparametric.ts`):
+  - Mann-Whitney, Wilcoxon de rangos con signo (pareada), Kruskal-Wallis y la prueba del signo para una muestra. Siguen a `wilcox.test`, `kruskal.test` y `binom.test` de R: el valor p es exacto con menos de 50 datos y sin empates; si no, se usa la aproximación normal con corrección por continuidad y por empates.
+  - La exacta de Fisher para tablas 2×2, como `fisher.test`.
+  - Cuando no se cumplen los supuestos, el selector cambia solo de prueba y dice por qué. Usa la de rangos si los datos tienen menos de 30 casos y |asimetría| ≥ 1, y la de Fisher si alguna celda espera menos de 5 casos. La persona puede forzar la prueba clásica o la alternativa.
+  - Con una muestra se usa la prueba del signo y no Wilcoxon, porque Wilcoxon supone simetría.
+- **Chi-cuadrado en Explorar:** cada cruce trae «¿La relación es real o casualidad?», con el chi-cuadrado o con Fisher (2×2 con pocos casos). La prueba entra también en el informe.
+- **Intervalo de Newcombe** para la diferencia de porcentajes, ya en pantalla. Contrastado con la tabla II de Newcombe (1998), método 10.
+- **Histograma de residuos** (clases de Sturges) en la recta simple y en los modelos, con su lectura; también entra en el informe.
+- **Teorema del límite central** en Probabilidad. Toma una variable como población y saca 1.000 muestras con una semilla reproducible. Compara el histograma de los datos con el de los promedios: el centro queda en μ y la desviación cerca de σ/√n.
+- **Seguridad:**
+  - «Copiar» una tabla antepone un apóstrofo a las celdas que empiezan con `=`, `+`, `-` o `@`, como ya hacía el CSV. En Word ese apóstrofo queda visible.
+  - Al abrir un `.statlab.json`:
+    - se comprueba que los tamaños cuadren, que no se pase el máximo de celdas y que los ids no se repitan;
+    - solo se aceptan opciones conocidas, K entre 2 y 50 e ids de columnas que existan;
+    - los archivos de más de 50 MB se rechazan sin leerlos.
+- **Accesibilidad:** Copiar, PNG y SVG de las gráficas miden 44 × 44 px.
+- **Revisión:** un subagente Opus (`ciclo-revisor-codigo`) dio «apto» en la primera vuelta. Arreglé sus hallazgos: la prueba del signo en lugar de Wilcoxon de una muestra, Fisher sin filas vacías, el valor p de Kruskal-Wallis acotado a 0, la lectura del límite central en proporción, el tope de tamaño del proyecto y los tests que faltaban. La segunda vuelta repitió «apto» con un hallazgo menor, que también corregí: la fórmula de Excel de la prueba del signo usaba un argumento negativo cuando S = 0. Validación local: 621 tests, `tsc`, ESLint, prettier y `next build` en verde.
+
 ### Revisión del rango completo (2026-11-16)
 
 Un subagente revisor (Opus) revisó `main..feat/plataforma-interpretacion`: corrección, seguridad, exactitud estadística frente a R y Excel, y accesibilidad. Veredicto en la primera vuelta: **apto**, sin bloqueantes. En la segunda vuelta revisó los arreglos y repitió **apto**.
@@ -37,8 +60,8 @@ Corregido, con test donde aplica:
 
 Queda anotado, sin corregir:
 
-- Al copiar una tabla y pegarla en Excel, un texto que empiece por `=` se vuelve fórmula. Los datos son de la propia persona.
-- Las opciones del `.statlab.json` se validan por tipo, no por rango.
+- ~~Al copiar una tabla y pegarla en Excel, un texto que empiece por `=` se vuelve fórmula.~~ Corregido en los pendientes menores.
+- ~~Las opciones del `.statlab.json` se validan por tipo, no por rango.~~ Corregido en los pendientes menores.
 - En la polinómica centrada, el paso a paso muestra las sumas de los términos centrados. `ESTIMACION.LINEAL` sobre X sin centrar da otros coeficientes, aunque el mismo R², la misma F y el mismo p.
 
 ### Pila de PR
@@ -224,7 +247,7 @@ Palotes de conteo sobre placa ciruela: `src/app/icon1.svg` (SVG), `icon2.png` (3
 
 ## Dónde estamos
 
-La plataforma del plan `docs/09-plan-plataforma.md` está completa en la rama `feat/plataforma-interpretacion` (F0–F7 y FL cerradas el 2026-11-16, detalle por fase arriba). Revisión completa con veredicto «apto». Juan autorizó el push de la pila de PR y una vista previa en Vercel; **no** el merge ni la promoción a producción.
+La plataforma del plan `docs/09-plan-plataforma.md` está en producción en https://estadistica.juandgaitan.com. La pila de 26 PR se fusionó en `main` (`5609ef7`) y se desplegó como `dpl_ER4YTWQqMbaxGiB4Ja2popHSftJQ` el 2026-11-16. Los pendientes menores están en `feat/menores-post-lanzamiento`, con un PR a `main` que espera la aprobación de Juan para fusionarse.
 
 - Portada en `/` y aplicación en `/app` con las zonas Datos, Explorar, Analizar e Informe y el modo guiado CRISP-DM.
 - La interpretación va primero en todos los módulos; el paso a paso, con fórmulas y su equivalente en Excel, queda tras «Ver cómo se calculó» (ADR-004).
@@ -232,13 +255,11 @@ La plataforma del plan `docs/09-plan-plataforma.md` está completa en la rama `f
 - Next.js actualizado a 16.4.6 por un aviso de seguridad.
 - La dirección visual sigue siendo el «cuaderno de laboratorio de estadística» de `docs/05-diseno.md` (decisión del 2026-11-12).
 
-**Lo que sigue, si Juan lo pide:** revisar y fusionar la pila de PR en orden, y después promover a producción.
+**Lo que sigue, si Juan lo aprueba:** fusionar el PR de los pendientes menores; producción se despliega sola desde `main`.
 
 Pendientes menores anotados en cada fase:
 
 - Predecir un caso nuevo en la múltiple y en la logística.
-- Pruebas de una cola y pruebas no paramétricas.
-- Simulación del límite central.
 - Guardar en `.statlab.json` las elecciones de los paneles.
 
 ## Cómo verificar
