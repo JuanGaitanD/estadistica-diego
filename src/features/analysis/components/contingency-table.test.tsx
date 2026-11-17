@@ -21,8 +21,10 @@ function contingency(): AnalyzedContingency {
   };
 }
 
+/** Filas del cuerpo de la tabla del cruce (el paso a paso plegado trae otras tablas). */
 function bodyRows(): HTMLElement[] {
-  return screen.getAllByRole("row").slice(1);
+  const table = screen.getByRole("table", { name: /^Cruce: Sexo y Respuesta/ });
+  return within(table).getAllByRole("row").slice(1);
 }
 
 describe("ContingencyTable", () => {
@@ -60,7 +62,8 @@ describe("ContingencyTable", () => {
 
   it("resalta el máximo y el mínimo de la columna señalada", () => {
     render(<ContingencyTable contingency={contingency()} />);
-    const header = screen.getByRole("columnheader", { name: "sí" });
+    const table = screen.getByRole("table", { name: /^Cruce: Sexo y Respuesta/ });
+    const header = within(table).getByRole("columnheader", { name: "sí" });
     fireEvent.mouseEnter(header);
 
     const rows = bodyRows();
@@ -113,5 +116,41 @@ describe("ContingencyTable", () => {
       />,
     );
     expect(screen.getByText(/ya no está en los datos/)).toBeInTheDocument();
+  });
+});
+
+describe("ContingencyTable · prueba de la relación", () => {
+  it("con una 2×2 de pocos casos dice si la relación es real con la exacta de Fisher", () => {
+    render(<ContingencyTable contingency={contingency()} />);
+    expect(
+      screen.getByRole("region", {
+        name: /¿La relación es real o casualidad\? \(exacta de fisher\)/,
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/podría deberse al azar/)).toBeInTheDocument();
+  });
+
+  it("con más categorías usa el chi-cuadrado", () => {
+    const cross: AnalyzedContingency = {
+      ...contingency(),
+      table: computeContingencyTable({
+        rowVariableId: "sexo",
+        columnVariableId: "respuesta",
+        rowValues: [...Array(30).fill("M"), ...Array(30).fill("F")] as string[],
+        columnValues: [
+          ...Array(20).fill("sí"),
+          ...Array(5).fill("no"),
+          ...Array(5).fill("ns"),
+          ...Array(5).fill("sí"),
+          ...Array(15).fill("no"),
+          ...Array(10).fill("ns"),
+        ] as string[],
+      }),
+    };
+    render(<ContingencyTable contingency={cross} />);
+    expect(
+      screen.getByRole("region", { name: /\(chi-cuadrado de independencia\)/ }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Sexo y Respuesta están relacionadas/)).toBeInTheDocument();
   });
 });

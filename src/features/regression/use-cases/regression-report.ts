@@ -1,4 +1,4 @@
-import { formatValue, type SimpleRegression } from "@/core/statistics";
+import { formatValue, residualHistogram, type SimpleRegression } from "@/core/statistics";
 import type { ReportItemInput } from "@/features/report";
 
 import type { RegressionAnalysis } from "./run-regression";
@@ -7,6 +7,9 @@ import type { RegressionAnalysis } from "./run-regression";
 export const SCATTER_CHART_ID = "chart-regresion-dispersion";
 /** Id del contenedor de la gráfica de residuos. */
 export const RESIDUAL_CHART_ID = "chart-regresion-residuos";
+/** El histograma de residuos es un BarChart: su id es `chart-${variableId}-bar`. */
+export const RESIDUAL_HISTOGRAM_VARIABLE = "regresion-histograma-residuos";
+export const RESIDUAL_HISTOGRAM_ID = `chart-${RESIDUAL_HISTOGRAM_VARIABLE}-bar`;
 
 const f = (value: number, decimals = 4): string => formatValue(value, decimals);
 
@@ -77,9 +80,29 @@ export async function regressionReportItem(
   } catch {
     // Sin la gráfica en pantalla, la regresión entra igual, sin imagen.
   }
+  const histogram = residualHistogram(
+    model.rows.map((row) => row.residual),
+    model.rows.map((row) => row.y),
+  );
+  if (histogram !== null) {
+    try {
+      images.push({
+        title: `Histograma de los residuos · ${title}`,
+        dataUrl: await capture(RESIDUAL_HISTOGRAM_ID),
+      });
+    } catch {
+      // Sin el histograma en pantalla, su lectura entra igual como texto.
+    }
+  }
   return {
     title,
-    interpretation: analysis.interpretation,
+    interpretation:
+      histogram === null
+        ? analysis.interpretation
+        : {
+            ...analysis.interpretation,
+            details: [...analysis.interpretation.details, histogram.reading],
+          },
     steps: analysis.steps,
     tables: [
       { title: `Coeficientes · ${title}`, ...coefficientTable(model) },

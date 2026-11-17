@@ -1,4 +1,8 @@
-import type { AnalyzedContingency, AnalyzedVariable } from "@/features/analysis";
+import {
+  contingencyTestOf,
+  type AnalyzedContingency,
+  type AnalyzedVariable,
+} from "@/features/analysis";
 import { variableTablesText } from "@/features/analysis";
 import type { ReportItemInput } from "@/features/report";
 
@@ -37,10 +41,30 @@ export function contingencyReportItem(cross: AnalyzedContingency): ReportItemInp
   const table = cross.table;
   if (table === null || cross.interpretation === undefined) return null;
   const title = `${cross.rowVariableName} y ${cross.columnVariableName}`;
+  const test = contingencyTestOf(cross);
   return {
     title,
-    interpretation: cross.interpretation,
-    steps: cross.steps ?? [],
+    interpretation:
+      test === null
+        ? cross.interpretation
+        : {
+            ...cross.interpretation,
+            details: [
+              ...cross.interpretation.details,
+              `${test.test}: ${test.interpretation.headline}`,
+              ...test.interpretation.details,
+            ],
+            caveats: [
+              ...cross.interpretation.caveats,
+              ...test.interpretation.caveats.filter(
+                (caveat) => !cross.interpretation!.caveats.includes(caveat),
+              ),
+            ],
+          },
+    steps: [
+      ...(cross.steps ?? []),
+      ...(test?.steps.map((step) => ({ ...step, title: `${test.test} · ${step.title}` })) ?? []),
+    ],
     tables: [
       {
         title: `Cruce · ${title}`,

@@ -4,6 +4,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+
+import { TARGET_44 } from "./copy-button";
 import {
   captureElementAsPng,
   copyImage,
@@ -50,6 +52,7 @@ export function ChartDownloadButton({ elementId, filename }: ChartDownloadButton
         type="button"
         variant="ghost"
         size="sm"
+        className={TARGET_44}
         disabled={busy !== null}
         onClick={() => void run("copiar")}
       >
@@ -59,6 +62,7 @@ export function ChartDownloadButton({ elementId, filename }: ChartDownloadButton
         type="button"
         variant="ghost"
         size="sm"
+        className={TARGET_44}
         disabled={busy !== null}
         aria-label="Descargar la gráfica en PNG"
         onClick={() => void run("png")}
@@ -69,6 +73,7 @@ export function ChartDownloadButton({ elementId, filename }: ChartDownloadButton
         type="button"
         variant="ghost"
         size="sm"
+        className={TARGET_44}
         disabled={busy !== null}
         aria-label="Descargar la gráfica en SVG"
         onClick={() => void run("svg")}

@@ -8,6 +8,7 @@
 export * from "./model";
 export { getApplicability, CALCULATION_LABELS } from "./use-cases/applicability";
 export { runAnalysis } from "./use-cases/run-analysis";
+export { contingencyTestOf } from "./use-cases/contingency-test";
 export type { RunAnalysisOptions } from "./use-cases/run-analysis";
 export {
   RESULT_SECTIONS,

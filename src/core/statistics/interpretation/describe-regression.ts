@@ -1,7 +1,9 @@
+import { computeGroupedFrequencyTable } from "../frequency/frequency-table";
 import { detectDecimals } from "../grouping/intervals";
+import { skewness } from "../shape/shape";
 import type { Correlation } from "../regression/correlation";
 import type { Prediction, SimpleRegression } from "../regression/simple";
-import type { CalculationStep, Interpretation } from "../types";
+import type { CalculationStep, FrequencyTableResult, Interpretation } from "../types";
 import { formatCount, formatShare, formatValue } from "./text";
 import { clipStepRows, SMALL_SAMPLE } from "./describe-variable";
 
@@ -216,4 +218,41 @@ export function interpretCorrelation(
     ],
     caveats: ["Correlación no es causalidad."],
   };
+}
+
+/** Con menos residuos la forma del histograma no dice nada. */
+const RESIDUAL_SHAPE_MIN = 8;
+
+/**
+ * Histograma de los residuos (clases de Sturges) y su lectura: si el modelo
+ * es adecuado, forman una campana centrada en 0. Los residuos se redondean a
+ * un decimal más que Y para que las clases no arrastren ruido de coma flotante.
+ */
+export function residualHistogram(
+  residuals: readonly number[],
+  y: readonly number[],
+): { table: FrequencyTableResult; reading: string } | null {
+  if (residuals.length < 2) return null;
+  const factor = 10 ** Math.min(4, detectDecimals(y) + 1);
+  const rounded = residuals.map((e) => Math.round(e * factor) / factor);
+  const table = computeGroupedFrequencyTable({
+    variableId: "residuos",
+    values: rounded,
+    grouping: { enabled: true, rule: "sturges", closure: "cerrado-abierto" },
+  });
+  if (table.rows.length === 0) return null;
+  const g = skewness(residuals).value;
+  let reading: string;
+  if (residuals.length < RESIDUAL_SHAPE_MIN || g === null) {
+    reading = `Con ${formatCount(residuals.length)} residuos la forma todavía no se puede juzgar.`;
+  } else if (Math.abs(g) < 0.5) {
+    reading = `Los residuos se reparten casi simétricos alrededor de 0 (asimetría ${formatValue(g, 2)}): el supuesto de que los errores son normales se ve razonable.`;
+  } else {
+    const side = g > 0 ? "hacia los valores altos" : "hacia los valores bajos";
+    reading =
+      Math.abs(g) <= 1
+        ? `Los residuos tienen algo de cola ${side} (asimetría ${formatValue(g, 2)}): el supuesto de errores normales se cumple a medias; con muchos datos importa poco.`
+        : `Los residuos tienen una cola marcada ${side} (asimetría ${formatValue(g, 2)}): los valores p y los intervalos del modelo son orientativos. Revisa si hay datos atípicos o si conviene transformar Y.`;
+  }
+  return { table, reading };
 }

@@ -17,6 +17,7 @@ import {
   meanDifferenceInterval,
   meanInterval,
   normalQqPoints,
+  proportionDifferenceInterval,
   proportionInterval,
   sampleSizeForMean,
   sampleSizeForProportion,
@@ -34,12 +35,13 @@ export interface AnalysisColumn {
   readonly values: readonly CellValue[];
 }
 
-type Goal = "media" | "proporcion" | "diferencia" | "tamano";
+type Goal = "media" | "proporcion" | "diferencia" | "diferencia-proporciones" | "tamano";
 
 const GOALS: readonly { id: Goal; label: string }[] = [
   { id: "media", label: "El promedio de una variable" },
   { id: "proporcion", label: "El porcentaje de una categoría" },
   { id: "diferencia", label: "La diferencia de promedios entre dos grupos" },
+  { id: "diferencia-proporciones", label: "La diferencia de porcentajes entre dos grupos" },
   { id: "tamano", label: "Cuántos datos necesito" },
 ];
 
@@ -101,6 +103,8 @@ export function EstimationPanel({ columns }: { columns: readonly AnalysisColumn[
   const [category, setCategory] = useState("");
   const [groupA, setGroupA] = useState("");
   const [groupB, setGroupB] = useState("");
+  const [outcomeVarId, setOutcomeVarId] = useState(categorical[1]?.id ?? categorical[0]?.id ?? "");
+  const [outcome, setOutcome] = useState("");
   const [marginText, setMarginText] = useState("");
   const [sdText, setSdText] = useState("");
   const [pMarginText, setPMarginText] = useState("5");
@@ -113,6 +117,9 @@ export function EstimationPanel({ columns }: { columns: readonly AnalysisColumn[
   const groupOptions = categories.map((label) => ({ id: label, label }));
   const chosenA = categories.includes(groupA) ? groupA : (categories[0] ?? "");
   const chosenB = categories.includes(groupB) ? groupB : (categories[1] ?? "");
+  const outcomeColumn = categorical.find((column) => column.id === outcomeVarId);
+  const outcomes = outcomeColumn ? categoriesOf(outcomeColumn.values) : [];
+  const chosenOutcome = outcomes.includes(outcome) ? outcome : (outcomes[0] ?? "");
 
   let body: ReactNode = null;
   if (goal === "media") {
@@ -192,6 +199,53 @@ export function EstimationPanel({ columns }: { columns: readonly AnalysisColumn[
         ) : (
           <IntervalResult
             title={`Diferencia de ${numericColumn.name}: «${chosenA}» − «${chosenB}»`}
+            ci={ci}
+          />
+        );
+    }
+  } else if (goal === "diferencia-proporciones") {
+    if (categoryColumn === undefined || outcomeColumn === undefined || categories.length < 2) {
+      body = (
+        <Empty>
+          Hace falta una variable que separe dos grupos y otra con el resultado (sí/no).
+        </Empty>
+      );
+    } else if (categoryColumn.id === outcomeColumn.id) {
+      body = (
+        <Empty>
+          Elige dos variables distintas: una separa los grupos y la otra es el resultado.
+        </Empty>
+      );
+    } else if (chosenA === chosenB) {
+      body = <Empty>Elige dos grupos distintos.</Empty>;
+    } else {
+      const count = (group: string) => {
+        const inGroup = outcomeColumn.values.filter(
+          (v, i) => v !== null && String(categoryColumn.values[i]) === group,
+        );
+        return {
+          n: inGroup.length,
+          hits: inGroup.filter((v) => String(v) === chosenOutcome).length,
+        };
+      };
+      const a = count(chosenA);
+      const b = count(chosenB);
+      const ci = proportionDifferenceInterval(
+        a.hits,
+        a.n,
+        b.hits,
+        b.n,
+        chosenA,
+        chosenB,
+        `«${chosenOutcome}»`,
+        confidence,
+      );
+      body =
+        ci === null ? (
+          <Empty>Los dos grupos necesitan al menos un dato en {outcomeColumn.name}.</Empty>
+        ) : (
+          <IntervalResult
+            title={`Diferencia del porcentaje de «${chosenOutcome}»: «${chosenA}» − «${chosenB}»`}
             ci={ci}
           />
         );
@@ -280,11 +334,11 @@ export function EstimationPanel({ columns }: { columns: readonly AnalysisColumn[
             options={numeric.map((column) => ({ id: column.id, label: column.name }))}
           />
         ) : null}
-        {goal === "proporcion" || goal === "diferencia" ? (
+        {goal === "proporcion" || goal === "diferencia" || goal === "diferencia-proporciones" ? (
           <div className="grid gap-5 sm:grid-cols-2">
             <Field
               label={
-                goal === "diferencia" ? "Variable que separa los grupos" : "Variable de categorías"
+                goal === "proporcion" ? "Variable de categorías" : "Variable que separa los grupos"
               }
               value={categoryVarId}
               onChange={setCategoryVarId}
@@ -298,9 +352,25 @@ export function EstimationPanel({ columns }: { columns: readonly AnalysisColumn[
                 options={groupOptions}
               />
             ) : null}
+            {goal === "diferencia-proporciones" ? (
+              <>
+                <Field
+                  label="Variable del resultado"
+                  value={outcomeVarId}
+                  onChange={setOutcomeVarId}
+                  options={categorical.map((column) => ({ id: column.id, label: column.name }))}
+                />
+                <Field
+                  label="Categoría que cuenta como «sí»"
+                  value={chosenOutcome}
+                  onChange={setOutcome}
+                  options={outcomes.map((label) => ({ id: label, label }))}
+                />
+              </>
+            ) : null}
           </div>
         ) : null}
-        {goal === "diferencia" && categories.length >= 2 ? (
+        {(goal === "diferencia" || goal === "diferencia-proporciones") && categories.length >= 2 ? (
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label="Grupo 1" value={chosenA} onChange={setGroupA} options={groupOptions} />
             <Field label="Grupo 2" value={chosenB} onChange={setGroupB} options={groupOptions} />

@@ -1,26 +1,13 @@
 import type { Dataset } from "@/core/data";
 
+import { neutralizeFormula } from "./formula-safety";
+
 /** Opciones de exportación a CSV. */
 export interface ExportCsvOptions {
   /** Separador de campos; por defecto `,`. */
   readonly separator?: "," | ";";
   /** Si se antepone BOM UTF-8 (recomendado para Excel). Por defecto `true`. */
   readonly withBom?: boolean;
-}
-
-/**
- * Caracteres con los que una hoja de cálculo interpreta la celda como fórmula
- * (inyección CSV). Se neutralizan anteponiendo un apóstrofo, que Excel y
- * Sheets tratan como marca de texto literal.
- */
-const FORMULA_TRIGGERS = new Set(["=", "+", "-", "@", "\t", "\r"]);
-
-function neutralizeFormula(value: string): string {
-  const first = value[0];
-  if (first === undefined || !FORMULA_TRIGGERS.has(first)) return value;
-  // Un número negativo legítimo ("-3,5") no es una fórmula: se deja intacto.
-  if (first === "-" && /^-\d[\d.,]*$/.test(value)) return value;
-  return `'${value}`;
 }
 
 function escapeCell(value: string, separator: string): string {

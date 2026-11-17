@@ -7,6 +7,7 @@ import {
   interpretPrediction,
   interpretRegression,
   regressionSteps,
+  residualHistogram,
 } from "./describe-regression";
 
 const result = simpleRegression([1, 2, 3, 4, 5], [3, 3, 4, 5, 5]);
@@ -83,6 +84,30 @@ describe("predicción y correlación", () => {
     if (corr === null) throw new Error("sin correlación");
     expect(interpretCorrelation(corr, "Horas", "Nota").headline).toBe(
       "La relación entre Horas y Nota es fuerte: cuando Horas sube, Nota tiende a subir (r de Pearson = 0,95).",
+    );
+  });
+});
+
+describe("residualHistogram", () => {
+  it("caso de la clase: residuos 0,2; −0,4; 0; 0,4; −0,2 en 4 clases de Sturges", () => {
+    const h = residualHistogram([0.2, -0.4, 0, 0.4, -0.2], [3, 3, 4, 5, 5])!;
+    expect(h.table.rows.map((row) => row.absolute)).toEqual([1, 1, 1, 2]);
+    expect(h.table.rows[0]!.label).toContain("-0,4");
+    expect(h.reading).toBe("Con 5 residuos la forma todavía no se puede juzgar.");
+  });
+
+  it("limpia el ruido de coma flotante de los residuos", () => {
+    const h = residualHistogram([0.30000000000000004, -0.1, -0.2], [1, 2, 3])!;
+    expect(h.table.rows.every((row) => !row.label.includes("0000"))).toBe(true);
+  });
+
+  it("lee la forma: simétrica o con cola marcada", () => {
+    const y = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    expect(residualHistogram([-2, -1, -1, 0, 0, 0, 1, 1, 2], y)!.reading).toContain(
+      "casi simétricos",
+    );
+    expect(residualHistogram([-1, -1, -1, -1, -1, -1, -1, 0, 7], y)!.reading).toContain(
+      "cola marcada hacia los valores altos",
     );
   });
 });

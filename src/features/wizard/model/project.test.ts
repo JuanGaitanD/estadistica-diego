@@ -33,6 +33,41 @@ describe("restoreWorkspace", () => {
     expect(restored?.calculationCustomized).toBe(true);
   });
 
+  it("descarta valores fuera de rango y deja los de por defecto", () => {
+    const edad = columns[0]!.id;
+    const restored = restoreWorkspace(
+      {
+        columns,
+        calculation: {
+          manualK: 100000,
+          rule: "inventada",
+          quartileMethod: "exclusivo",
+          relativeMode: "ninguna",
+          contingencyRowId: "no-existe",
+          contingencyColumnId: edad,
+          percentilesText: "1, ".repeat(400),
+          charts: { [edad]: ["bar"], otra: ["pie"] },
+        },
+        calculationCustomized: true,
+      },
+      dataset,
+    )!;
+    expect(restored.calculation.manualK).toBe(DEFAULT_CALCULATION.manualK);
+    expect(restored.calculation.rule).toBe(DEFAULT_CALCULATION.rule);
+    expect(restored.calculation.quartileMethod).toBe("exclusivo");
+    expect(restored.calculation.relativeMode).toBe(DEFAULT_CALCULATION.relativeMode);
+    expect(restored.calculation.contingencyRowId).toBeNull();
+    expect(restored.calculation.contingencyColumnId).toBe(edad);
+    expect(restored.calculation.percentilesText).toBe(DEFAULT_CALCULATION.percentilesText);
+    expect(restored.calculation.charts).toEqual({ [edad]: ["bar"] });
+    expect(
+      restoreWorkspace(
+        { columns, calculation: { manualK: 2.5 }, calculationCustomized: true },
+        dataset,
+      )!.calculation.manualK,
+    ).toBe(DEFAULT_CALCULATION.manualK);
+  });
+
   it("descarta una configuración que no corresponde a los datos", () => {
     expect(
       restoreWorkspace(

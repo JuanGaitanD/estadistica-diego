@@ -120,6 +120,7 @@ export {
   interpretPrediction,
   interpretRegression,
   regressionSteps,
+  residualHistogram,
   describeShape,
   groupingStep,
   locateValue,

@@ -1,3 +1,5 @@
+import { neutralizeFormula } from "./formula-safety";
+
 /**
  * Copiar al portapapeles (RF-54). `navigator.clipboard` existe en todos los
  * navegadores del suelo declarado (Safari 16.4+, Chrome 111+, Firefox 128+)
@@ -34,12 +36,15 @@ export async function copyImage(blob: Blob): Promise<void> {
 /**
  * Tabla como texto separado por tabuladores: se pega en Excel, Hojas de
  * cálculo o Word como tabla. Los tabuladores y saltos dentro de una celda se
- * reemplazan por espacios para no romper la cuadrícula.
+ * reemplazan por espacios para no romper la cuadrícula, y una celda que
+ * empieza con `=`, `+`, `-` o `@` lleva un apóstrofo para que Excel no la
+ * ejecute como fórmula al pegarla.
  */
 export function tableToTsv(
   columns: readonly string[],
   rows: readonly (readonly (string | number)[])[],
 ): string {
-  const clean = (cell: string | number): string => String(cell).replace(/[\t\r\n]+/g, " ");
+  const clean = (cell: string | number): string =>
+    typeof cell === "number" ? String(cell) : neutralizeFormula(cell.replace(/[\t\r\n]+/g, " "));
   return [columns, ...rows].map((row) => row.map(clean).join("\t")).join("\n");
 }

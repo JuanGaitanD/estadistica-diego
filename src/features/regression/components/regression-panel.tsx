@@ -3,7 +3,7 @@
 import { FileSpreadsheet } from "lucide-react";
 import { useId, useMemo, useState, type FormEvent } from "react";
 
-import { ResidualChart, ScatterRegressionChart } from "@/components/charts";
+import { BarChart, ResidualChart, ScatterRegressionChart } from "@/components/charts";
 import {
   InterpretationPanel,
   interpretationToText,
@@ -21,7 +21,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { parseLocaleNumber } from "@/core/data";
-import { formatValue, interpretPrediction, predict, type Interpretation } from "@/core/statistics";
+import {
+  formatValue,
+  interpretPrediction,
+  predict,
+  residualHistogram,
+  type Interpretation,
+} from "@/core/statistics";
 import { captureChartAsDataUrl, ChartDownloadButton, CopyButton } from "@/features/export";
 import { AddToReportButton } from "@/features/report";
 import { downloadBlob, exportDatasetToXlsx, tableToTsv } from "@/infrastructure/export";
@@ -33,6 +39,8 @@ import {
   fitTable,
   regressionReportItem,
   RESIDUAL_CHART_ID,
+  RESIDUAL_HISTOGRAM_ID,
+  RESIDUAL_HISTOGRAM_VARIABLE,
   SCATTER_CHART_ID,
 } from "../use-cases/regression-report";
 import { runRegression, type NumericColumn } from "../use-cases/run-regression";
@@ -352,6 +360,27 @@ export function RegressionPanel({ columns }: RegressionPanelProps) {
               />
             }
           />
+
+          {(() => {
+            const histogram = residualHistogram(
+              model.rows.map((row) => row.residual),
+              model.rows.map((row) => row.y),
+            );
+            return histogram === null ? null : (
+              <BarChart
+                data={{ ...histogram.table, variableId: RESIDUAL_HISTOGRAM_VARIABLE }}
+                title="Histograma de los residuos"
+                description={histogram.reading}
+                colorMode="single"
+                actions={
+                  <ChartDownloadButton
+                    elementId={RESIDUAL_HISTOGRAM_ID}
+                    filename="regresion_histograma_residuos.png"
+                  />
+                }
+              />
+            );
+          })()}
 
           <div className="border-rule flex flex-wrap items-center gap-3 border-t pt-6">
             <Button

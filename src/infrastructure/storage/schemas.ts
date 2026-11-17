@@ -1,6 +1,7 @@
 import "@/lib/zod-config";
 import { z } from "zod";
 
+import { MAX_CELLS } from "@/core/data";
 import type { CalculationStep, Interpretation } from "@/core/statistics";
 
 /** Versión vigente del esquema persistido en localStorage. */
@@ -29,16 +30,58 @@ const datasetWarningSchema = z.object({
   message: z.string(),
 });
 
-/** Esquema de validación de un `Dataset` persistido, nunca se confía en el valor crudo. */
-export const datasetSchema = z.object({
-  id: z.string(),
-  source: z.enum(["texto", "csv", "xlsx"]),
-  sourceName: z.string().optional(),
-  columns: z.array(columnSchema),
-  rowCount: z.number(),
-  createdAt: z.string(),
-  warnings: z.array(datasetWarningSchema),
-});
+/**
+ * Esquema de validación de un `Dataset` persistido, nunca se confía en el
+ * valor crudo: además de la forma, comprueba que los tamaños cuadren entre sí
+ * y no pasen del límite de celdas de la importación.
+ */
+export const datasetSchema = z
+  .object({
+    id: z.string(),
+    source: z.enum(["texto", "csv", "xlsx"]),
+    sourceName: z.string().optional(),
+    columns: z.array(columnSchema).min(1),
+    rowCount: z.int().min(0),
+    createdAt: z.string(),
+    warnings: z.array(datasetWarningSchema),
+  })
+  .superRefine((dataset, ctx) => {
+    if (dataset.rowCount * dataset.columns.length > MAX_CELLS) {
+      ctx.addIssue({ code: "custom", message: "Supera el máximo de celdas." });
+    }
+    const ids = new Set<string>();
+    dataset.columns.forEach((column, index) => {
+      const { variable, values, missingCount } = column;
+      if (values.length !== dataset.rowCount) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["columns", index, "values"],
+          message: "La columna no tiene tantos valores como filas.",
+        });
+      }
+      if (!Number.isInteger(missingCount) || missingCount < 0 || missingCount > values.length) {
+        ctx.addIssue({ code: "custom", path: ["columns", index, "missingCount"], message: "" });
+      }
+      if (
+        variable.decimals !== undefined &&
+        !(Number.isInteger(variable.decimals) && variable.decimals >= 0 && variable.decimals <= 30)
+      ) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["columns", index, "variable", "decimals"],
+          message: "",
+        });
+      }
+      if (ids.has(variable.id)) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["columns", index, "variable", "id"],
+          message: "Hay dos columnas con el mismo identificador.",
+        });
+      }
+      ids.add(variable.id);
+    });
+  });
 
 const interpretationSchema = z.object({
   headline: z.string(),

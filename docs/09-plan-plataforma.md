@@ -231,7 +231,7 @@ Pregunta: «¿Puedo predecir un sí/no?»
 ### Deliberadamente fuera de alcance (y por qué)
 
 - Series de tiempo, agrupamiento, árboles, redes: otro curso; diluyen el producto.
-- Batería completa de no paramétricas (Mann-Whitney, Kruskal-Wallis, Wilcoxon): se ofrecen como **fase opcional** (F8); en la versión base la app avisa cuando el supuesto falla y nombra la alternativa.
+- Batería completa de no paramétricas (Mann-Whitney, Kruskal-Wallis, Wilcoxon): se ofrecen como **fase opcional** (F8); en la versión base la app avisa cuando el supuesto falla y nombra la alternativa. **Hecho el 2026-11-16** (pendientes menores): el selector las usa cuando el supuesto falla, junto con la prueba del signo y la exacta de Fisher.
 - Shapiro-Wilk: opcional; Q-Q + asimetría/curtosis bastan para el nivel del curso.
 - Informe narrado con IA (RF-36): la interpretación por reglas cubre la necesidad sin enviar datos fuera del navegador (RNF-01). Se puede retomar después.
 

@@ -16,5 +16,11 @@ export {
   loadReport,
   clearReport,
 } from "./local-storage";
-export { PROJECT_FILE_VERSION, parseProjectText, projectToBlob } from "./project-file";
+export {
+  MAX_PROJECT_BYTES,
+  PROJECT_FILE_VERSION,
+  parseProjectText,
+  projectToBlob,
+  readProjectFile,
+} from "./project-file";
 export type { ProjectFile } from "./project-file";

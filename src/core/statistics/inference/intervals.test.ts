@@ -47,6 +47,20 @@ describe("proporciones", () => {
     // Newcombe (1998), método 10: el límite inferior queda apenas por encima de 0.
     expect(ci?.lower).toBeCloseTo(0.0019, 2);
   });
+
+  it("coincide con la tabla II de Newcombe (1998), método 10", () => {
+    const cases: [number, number, number, number, number, number][] = [
+      [56, 70, 48, 80, 0.0524, 0.3339],
+      [9, 10, 3, 10, 0.1705, 0.809],
+      [6, 7, 2, 7, 0.0582, 0.8062],
+      [5, 56, 0, 29, -0.0381, 0.1926],
+    ];
+    for (const [x1, n1, x2, n2, lower, upper] of cases) {
+      const ci = proportionDifferenceInterval(x1, n1, x2, n2, "A", "B", "sí")!;
+      expect(ci.lower).toBeCloseTo(lower, 4);
+      expect(ci.upper).toBeCloseTo(upper, 4);
+    }
+  });
 });
 
 describe("diferencia de medias (Welch)", () => {

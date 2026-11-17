@@ -34,3 +34,11 @@ describe("RegressionPanel", () => {
     expect(screen.getByText("Hacen falta dos columnas de números")).toBeTruthy();
   });
 });
+
+describe("RegressionPanel · histograma de residuos", () => {
+  it("muestra el histograma con su lectura", () => {
+    render(<RegressionPanel columns={columns} />);
+    expect(screen.getByText("Histograma de los residuos")).toBeTruthy();
+    expect(screen.getByText("Con 5 residuos la forma todavía no se puede juzgar.")).toBeTruthy();
+  });
+});

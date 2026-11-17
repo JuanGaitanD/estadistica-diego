@@ -11,7 +11,9 @@ export {
 export type { ConfidenceInterval } from "./intervals";
 export {
   chiSquareIndependence,
+  fewExpectedInTwoGroups,
   formatP,
+  normalityDoubtful,
   oneProportionZ,
   oneSampleT,
   oneWayAnova,
@@ -20,10 +22,24 @@ export {
   twoProportionZ,
   twoSampleT,
 } from "./hypothesis-tests";
+export {
+  compactTable,
+  fisherExact,
+  fisherRecommended,
+  independenceTest,
+  kruskalWallis,
+  mannWhitney,
+  signTest,
+  wilcoxonSignedRank,
+} from "./nonparametric";
+export { seededRandom, simulateSampleMeans } from "./sampling";
+export type { SamplingSimulation } from "./sampling";
 export type {
+  Alternative,
   AnovaTest,
   EffectSize,
   HypothesisTest,
   NamedGroup,
+  TestOptions,
   TukeyPair,
 } from "./hypothesis-tests";
