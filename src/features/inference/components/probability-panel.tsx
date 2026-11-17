@@ -35,6 +35,8 @@ import { AddToReportButton } from "@/features/report";
 
 import { NumberField, readNumber } from "@/components/shared/form-fields";
 
+import { CentralLimitPanel } from "./central-limit-panel";
+
 type Kind = DistributionSpec["kind"];
 
 /** Parámetros de cada distribución: etiqueta y valor inicial. */
@@ -275,6 +277,8 @@ export function ProbabilityPanel({ columns }: { columns: readonly NumericColumn[
           </p>
         </SectionCard>
       )}
+
+      <CentralLimitPanel columns={columns} />
     </div>
   );
 }

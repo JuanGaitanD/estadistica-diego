@@ -31,6 +31,8 @@ export {
   wilcoxonOneSample,
   wilcoxonSignedRank,
 } from "./nonparametric";
+export { seededRandom, simulateSampleMeans } from "./sampling";
+export type { SamplingSimulation } from "./sampling";
 export type {
   Alternative,
   AnovaTest,

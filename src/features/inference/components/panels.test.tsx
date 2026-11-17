@@ -172,3 +172,20 @@ describe("EstimationPanel · diferencia de porcentajes", () => {
     ).toBeTruthy();
   });
 });
+
+describe("ProbabilityPanel · teorema del límite central", () => {
+  it("simula los promedios con la lectura primero", () => {
+    render(
+      <ProbabilityPanel
+        columns={[
+          { id: "w", name: "Espera", values: [1, 1, 1, 1, 2, 2, 2, 3, 3, 4, 5, 6, 8, 12, 20, 35] },
+        ]}
+      />,
+    );
+    expect(screen.getByText("¿Por qué los promedios forman una campana?")).toBeTruthy();
+    expect(
+      screen.getByText(/Espera tiene una cola marcada hacia los valores altos, pero los promedios/),
+    ).toBeTruthy();
+    expect(screen.getByText("Los promedios de 1.000 muestras de 5")).toBeTruthy();
+  });
+});
