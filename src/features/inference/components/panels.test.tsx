@@ -142,3 +142,33 @@ describe("HypothesisPanel · supuestos y una cola", () => {
     expect(screen.getAllByText(/p = 0,486/).length).toBeGreaterThan(0);
   });
 });
+
+describe("EstimationPanel · diferencia de porcentajes", () => {
+  it("muestra el intervalo de Newcombe con la interpretación primero", () => {
+    const group = [...Array(10).fill("A"), ...Array(10).fill("B")] as string[];
+    const result = [
+      ...Array(9).fill("sí"),
+      "no",
+      ...Array(3).fill("sí"),
+      ...Array(7).fill("no"),
+    ] as string[];
+    const { container } = render(
+      <EstimationPanel
+        columns={[
+          { id: "g", name: "Grupo", quantitative: false, values: group },
+          { id: "r", name: "Aprobó", quantitative: false, values: result },
+        ]}
+      />,
+    );
+    const goal = [...container.querySelectorAll("select")].find((select) =>
+      [...select.options].some((option) => option.value === "diferencia-proporciones"),
+    )!;
+    fireEvent.change(goal, { target: { value: "diferencia-proporciones" } });
+    // 9/10 − 3/10: Newcombe da de 17,1 a 80,9 puntos.
+    expect(
+      screen.getByText(
+        "Con un método que acierta el 95 % de las veces, el porcentaje de «sí» en «A» menos el de «B» está entre 17,1 puntos y 80,9 puntos.",
+      ),
+    ).toBeTruthy();
+  });
+});
