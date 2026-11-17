@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useReportStore } from "@/features/report";
 import { downloadBlob } from "@/infrastructure/export";
-import { parseProjectText, projectToBlob } from "@/infrastructure/storage";
+import { projectToBlob, readProjectFile } from "@/infrastructure/storage";
 
 import type { WorkspaceSnapshot } from "../model/project";
 import { useWizardStore } from "../store/wizard-store";
@@ -46,7 +46,7 @@ export function ProjectActions() {
     const file = event.target.files?.[0];
     event.target.value = "";
     if (file === undefined) return;
-    const result = parseProjectText(await file.text());
+    const result = await readProjectFile(file);
     if (!result.ok) {
       toast.error(result.message);
       return;

@@ -74,3 +74,26 @@ export function parseProjectText(
     },
   };
 }
+
+/**
+ * Tope de un archivo de proyecto. Lleva las imágenes del informe, así que es
+ * mayor que el de los datos sueltos; más que esto no lo arma StatLab y leerlo
+ * entero congelaría la pestaña antes de validarlo.
+ */
+export const MAX_PROJECT_BYTES = 50 * 1024 * 1024;
+
+/** Lee y valida un archivo de proyecto, rechazando antes los que pesan de más. */
+export async function readProjectFile(
+  file: Blob,
+): Promise<
+  | { readonly ok: true; readonly project: ProjectFile }
+  | { readonly ok: false; readonly message: string }
+> {
+  if (file.size > MAX_PROJECT_BYTES) {
+    return {
+      ok: false,
+      message: `El archivo pesa más de ${MAX_PROJECT_BYTES / (1024 * 1024)} MB: no es un proyecto de StatLab.`,
+    };
+  }
+  return parseProjectText(await file.text());
+}

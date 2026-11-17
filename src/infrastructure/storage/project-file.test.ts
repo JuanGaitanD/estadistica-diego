@@ -2,7 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import { buildDataset } from "@/core/data";
 
-import { parseProjectText, projectToBlob } from "./project-file";
+import {
+  MAX_PROJECT_BYTES,
+  parseProjectText,
+  projectToBlob,
+  readProjectFile,
+} from "./project-file";
 
 describe("archivo de proyecto", () => {
   const dataset = buildDataset([["1"], ["2"]], { source: "texto", headers: ["n"] });
@@ -58,5 +63,26 @@ describe("archivo de proyecto", () => {
         p.dataset.columns[0].values = Array(300_001).fill(1);
       }),
     ).toBe(false);
+  });
+});
+
+describe("readProjectFile", () => {
+  it("rechaza un archivo demasiado grande sin leerlo", async () => {
+    const huge = { size: MAX_PROJECT_BYTES + 1, text: () => Promise.reject(new Error("leído")) };
+    const result = await readProjectFile(huge as unknown as Blob);
+    expect(result).toEqual({
+      ok: false,
+      message: "El archivo pesa más de 50 MB: no es un proyecto de StatLab.",
+    });
+  });
+
+  it("lee uno normal", async () => {
+    const dataset = buildDataset([["1"]], { source: "texto", headers: ["n"] });
+    const blob = projectToBlob({
+      dataset,
+      report: { title: "Informe", includeSteps: true, items: [] },
+      workspace: {},
+    });
+    expect((await readProjectFile(blob)).ok).toBe(true);
   });
 });
