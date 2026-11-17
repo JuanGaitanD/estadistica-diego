@@ -7,6 +7,9 @@ import type { RegressionAnalysis } from "./run-regression";
 export const SCATTER_CHART_ID = "chart-regresion-dispersion";
 /** Id del contenedor de la gráfica de residuos. */
 export const RESIDUAL_CHART_ID = "chart-regresion-residuos";
+/** El histograma de residuos es un BarChart: su id es `chart-${variableId}-bar`. */
+export const RESIDUAL_HISTOGRAM_VARIABLE = "regresion-histograma-residuos";
+export const RESIDUAL_HISTOGRAM_ID = `chart-${RESIDUAL_HISTOGRAM_VARIABLE}-bar`;
 
 const f = (value: number, decimals = 4): string => formatValue(value, decimals);
 

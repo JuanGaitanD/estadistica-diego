@@ -2,7 +2,7 @@
 
 import { useId, useState, type ReactNode } from "react";
 
-import { ModelChart } from "@/components/charts";
+import { BarChart, ModelChart } from "@/components/charts";
 import { Field, NumberField, readNumber } from "@/components/shared/form-fields";
 import {
   InterpretationPanel,
@@ -32,6 +32,7 @@ import {
   polynomialTerms,
   predictLogistic,
   predictMultiple,
+  residualHistogram,
   type CalculationStep,
   type Interpretation,
 } from "@/core/statistics";
@@ -42,6 +43,9 @@ import { binaryY, buildDesign, numericY, type ModelColumn } from "../use-cases/d
 
 const FIT_ID = "chart-modelo-ajuste";
 const RESIDUAL_ID = "chart-modelo-residuos";
+/** BarChart arma su id como `chart-${variableId}-bar`. */
+const HISTOGRAM_VARIABLE = "modelo-histograma-residuos";
+const HISTOGRAM_ID = `chart-${HISTOGRAM_VARIABLE}-bar`;
 
 interface TextTable {
   readonly title: string;
@@ -276,6 +280,7 @@ export function MultipleRegressionPanel({ columns }: { columns: readonly ModelCo
           `${formatValue(c.lower, 3)} a ${formatValue(c.upper, 3)}`,
         ]),
       };
+      const histogram = residualHistogram(model.residuals, design.y);
       const fitPoints =
         mode === "curva"
           ? x.map((v, i) => ({ x: v, y: design.y[i]! }))
@@ -300,6 +305,9 @@ export function MultipleRegressionPanel({ columns }: { columns: readonly ModelCo
           chartIds={[
             { id: FIT_ID, title: mode === "curva" ? "Curva ajustada" : "Real contra predicho" },
             { id: RESIDUAL_ID, title: "Residuos" },
+            ...(histogram !== null
+              ? [{ id: HISTOGRAM_ID, title: "Histograma de los residuos" }]
+              : []),
           ]}
           charts={
             <>
@@ -331,6 +339,20 @@ export function MultipleRegressionPanel({ columns }: { columns: readonly ModelCo
                   <ChartDownloadButton elementId={RESIDUAL_ID} filename="modelo_residuos.png" />
                 }
               />
+              {histogram !== null ? (
+                <BarChart
+                  data={{ ...histogram.table, variableId: HISTOGRAM_VARIABLE }}
+                  title="Histograma de los residuos"
+                  description={histogram.reading}
+                  colorMode="single"
+                  actions={
+                    <ChartDownloadButton
+                      elementId={HISTOGRAM_ID}
+                      filename="modelo_histograma_residuos.png"
+                    />
+                  }
+                />
+              ) : null}
             </>
           }
         />

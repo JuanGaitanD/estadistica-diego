@@ -22,4 +22,5 @@ export {
   interpretPrediction,
   interpretRegression,
   regressionSteps,
+  residualHistogram,
 } from "./describe-regression";
