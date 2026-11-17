@@ -1,4 +1,4 @@
-import { formatValue, type SimpleRegression } from "@/core/statistics";
+import { formatValue, residualHistogram, type SimpleRegression } from "@/core/statistics";
 import type { ReportItemInput } from "@/features/report";
 
 import type { RegressionAnalysis } from "./run-regression";
@@ -80,9 +80,29 @@ export async function regressionReportItem(
   } catch {
     // Sin la gráfica en pantalla, la regresión entra igual, sin imagen.
   }
+  const histogram = residualHistogram(
+    model.rows.map((row) => row.residual),
+    model.rows.map((row) => row.y),
+  );
+  if (histogram !== null) {
+    try {
+      images.push({
+        title: `Histograma de los residuos · ${title}`,
+        dataUrl: await capture(RESIDUAL_HISTOGRAM_ID),
+      });
+    } catch {
+      // Sin el histograma en pantalla, su lectura entra igual como texto.
+    }
+  }
   return {
     title,
-    interpretation: analysis.interpretation,
+    interpretation:
+      histogram === null
+        ? analysis.interpretation
+        : {
+            ...analysis.interpretation,
+            details: [...analysis.interpretation.details, histogram.reading],
+          },
     steps: analysis.steps,
     tables: [
       { title: `Coeficientes · ${title}`, ...coefficientTable(model) },
