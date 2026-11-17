@@ -391,13 +391,14 @@ export function signTest(
         alternative === "distinto"
           ? `p = Σ P(S = k) de las cuentas tan raras o más que ${formatCount(above)} ${p4(p)}`
           : `${pFormulaOf("S", formatCount(above), alternative)} ${p4(p)}`,
-      // Con p = 0,5 la binomial es simétrica: las dos colas de binom.test son el doble de la menor.
+      // Con p = 0,5 la binomial es simétrica: P(S ≥ k) = P(S ≤ n − k), sin argumentos negativos
+      // en Excel, y las dos colas de binom.test son el doble de la menor.
       pExcel:
         alternative === "mayor"
-          ? `=1-DISTR.BINOM.N(${above - 1}; ${n}; 0,5; VERDADERO)`
+          ? `=DISTR.BINOM.N(${n - above}; ${n}; 0,5; VERDADERO)`
           : alternative === "menor"
             ? `=DISTR.BINOM.N(${above}; ${n}; 0,5; VERDADERO)`
-            : `=MIN(1; 2*MIN(DISTR.BINOM.N(${above}; ${n}; 0,5; VERDADERO); 1-DISTR.BINOM.N(${above - 1}; ${n}; 0,5; VERDADERO)))`,
+            : `=MIN(1; 2*MIN(DISTR.BINOM.N(${above}; ${n}; 0,5; VERDADERO); DISTR.BINOM.N(${n - above}; ${n}; 0,5; VERDADERO)))`,
       p,
       alpha,
     }),

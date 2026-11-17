@@ -105,6 +105,19 @@ describe("prueba del signo (binom.test)", () => {
       10,
     );
     expect(r.interpretation.details.join(" ")).toContain("1 dato es igual a 0");
+    // P(S ≥ 5) = P(S ≤ 9 − 5) por simetría.
+    expect(signTest(SLEEP_1, 0, "horas", { alternative: "mayor" })!.steps[3]!.excel).toBe(
+      "=DISTR.BINOM.N(4; 9; 0,5; VERDADERO)",
+    );
+  });
+
+  it("con todos los datos abajo la fórmula de Excel no usa argumentos negativos", () => {
+    const r = signTest([1, 2, 3], 10, "x")!;
+    expect(r.statistic).toBe(0);
+    expect(r.steps[3]!.excel).toBe(
+      "=MIN(1; 2*MIN(DISTR.BINOM.N(0; 3; 0,5; VERDADERO); DISTR.BINOM.N(3; 3; 0,5; VERDADERO)))",
+    );
+    expect(r.pValue).toBeCloseTo(0.25, 10);
   });
 
   it("con la mediana igual al valor dice «igual a» y no ve diferencia", () => {
