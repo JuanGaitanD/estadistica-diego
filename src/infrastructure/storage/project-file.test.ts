@@ -32,4 +32,31 @@ describe("archivo de proyecto", () => {
       message: "El proyecto está dañado o es de otra versión de StatLab.",
     });
   });
+
+  it("rechaza un proyecto con tamaños que no cuadran o fuera de rango", async () => {
+    const valid = JSON.parse(await projectToBlob({ dataset, report, workspace: {} }).text());
+    const broken = (change: (project: typeof valid) => void) => {
+      const copy = structuredClone(valid);
+      change(copy);
+      return parseProjectText(JSON.stringify(copy)).ok;
+    };
+    expect(broken(() => undefined)).toBe(true);
+    expect(broken((p) => (p.dataset.rowCount = 5))).toBe(false);
+    expect(broken((p) => (p.dataset.rowCount = -1))).toBe(false);
+    expect(broken((p) => (p.dataset.rowCount = 1.5))).toBe(false);
+    expect(broken((p) => p.dataset.columns[0].values.push(3))).toBe(false);
+    expect(broken((p) => (p.dataset.columns[0].missingCount = 9))).toBe(false);
+    expect(broken((p) => (p.dataset.columns[0].variable.decimals = -2))).toBe(false);
+    expect(broken((p) => p.dataset.columns.push(structuredClone(p.dataset.columns[0])))).toBe(
+      false,
+    );
+    expect(broken((p) => (p.dataset.columns = []))).toBe(false);
+    // 300.001 filas superan el máximo de 200.000 celdas.
+    expect(
+      broken((p) => {
+        p.dataset.rowCount = 300_001;
+        p.dataset.columns[0].values = Array(300_001).fill(1);
+      }),
+    ).toBe(false);
+  });
 });
