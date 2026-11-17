@@ -5,6 +5,9 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+
+/** Objetivo táctil de 44 × 44 px (WCAG 2.5.5), con el texto pequeño de una acción secundaria. */
+export const TARGET_44 = "h-11 min-w-11";
 import { copyText } from "@/infrastructure/export";
 
 export interface CopyButtonProps {
@@ -35,6 +38,7 @@ export function CopyButton({ getText, what, label = "Copiar" }: CopyButtonProps)
       type="button"
       variant="ghost"
       size="sm"
+      className={TARGET_44}
       aria-label={`${label} ${what}`}
       onClick={() => void handleClick()}
     >
