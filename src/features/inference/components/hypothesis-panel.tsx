@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import type { CellValue } from "@/core/data";
 import {
   chiSquareIndependence,
+  compactTable,
   densityPoints,
   fewExpectedInTwoGroups,
   fisherExact,
@@ -28,9 +29,9 @@ import {
   oneSampleT,
   oneWayAnova,
   pairedT,
+  signTest,
   twoProportionZ,
   twoSampleT,
-  wilcoxonOneSample,
   wilcoxonSignedRank,
   type Alternative,
   type AnovaTest,
@@ -76,7 +77,7 @@ const GOALS: readonly { id: Goal; label: string; reason: string }[] = [
     id: "media",
     label: "¿El promedio es distinto de un valor?",
     reason:
-      "Para comparar el promedio de una variable con una meta o un dato conocido se usa la t de una muestra. Si los datos no se parecen a una normal, Wilcoxon de una muestra (compara la mediana).",
+      "Para comparar el promedio de una variable con una meta o un dato conocido se usa la t de una muestra. Si los datos no se parecen a una normal, la prueba del signo (compara la mediana).",
   },
   {
     id: "proporcion",
@@ -87,7 +88,7 @@ const GOALS: readonly { id: Goal; label: string; reason: string }[] = [
 
 /** Nombre de la prueba clásica y de la alternativa en cada pregunta. */
 const METHOD_NAMES: Partial<Record<Goal, readonly [string, string]>> = {
-  media: ["t de una muestra", "Wilcoxon de una muestra"],
+  media: ["t de una muestra", "prueba del signo"],
   pareada: ["t pareada", "Wilcoxon de rangos con signo"],
   "dos-proporciones": ["z de dos proporciones", "exacta de Fisher"],
   relacion: ["chi-cuadrado", "exacta de Fisher"],
@@ -327,9 +328,9 @@ export function HypothesisPanel({ columns }: { columns: readonly AnalysisColumn[
       const values = numericColumn.values.filter(isNumber);
       const rank = pickAlternative(
         normalityDoubtful([{ label: numericColumn.name, values }]),
-        skewNote("Wilcoxon de una muestra"),
+        skewNote("la prueba del signo"),
       );
-      result = (rank ? wilcoxonOneSample : oneSampleT)(values, mu0, numericColumn.name, {
+      result = (rank ? signTest : oneSampleT)(values, mu0, numericColumn.name, {
         alternative: alt,
       });
       if (result === null) needs("Hacen falta al menos 2 datos que no sean todos iguales.");
@@ -422,13 +423,15 @@ export function HypothesisPanel({ columns }: { columns: readonly AnalysisColumn[
         observed[rows.indexOf(String(v))]![cols.indexOf(String(w))]! += 1;
       });
       title = `${groupColumn.name} y ${otherColumn.name}`;
-      const twoByTwo = rows.length === 2 && cols.length === 2;
+      // Una categoría sin pares completos deja una fila o columna vacía: no cuenta.
+      const table = compactTable(observed, rows, cols);
+      const twoByTwo = table.rowLabels.length === 2 && table.columnLabels.length === 2;
       if (!twoByTwo) methodNames = null;
-      const exact = twoByTwo && pickAlternative(fisherRecommended(observed), fisherNote);
+      const exact = twoByTwo && pickAlternative(fisherRecommended(table.observed), fisherNote);
       result = exact
-        ? fisherExact(observed, {
-            rows: [rows[0]!, rows[1]!],
-            columns: [cols[0]!, cols[1]!],
+        ? fisherExact(table.observed, {
+            rows: [table.rowLabels[0]!, table.rowLabels[1]!],
+            columns: [table.columnLabels[0]!, table.columnLabels[1]!],
             rowName: groupColumn.name,
             columnName: otherColumn.name,
           })

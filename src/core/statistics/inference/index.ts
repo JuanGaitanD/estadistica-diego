@@ -23,12 +23,13 @@ export {
   twoSampleT,
 } from "./hypothesis-tests";
 export {
+  compactTable,
   fisherExact,
   fisherRecommended,
   independenceTest,
   kruskalWallis,
   mannWhitney,
-  wilcoxonOneSample,
+  signTest,
   wilcoxonSignedRank,
 } from "./nonparametric";
 export { seededRandom, simulateSampleMeans } from "./sampling";

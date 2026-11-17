@@ -31,6 +31,8 @@ import {
 
 const EXACT_LIMIT = 50;
 
+const lnChoose = (n: number, k: number) => lnGamma(n + 1) - lnGamma(k + 1) - lnGamma(n - k + 1);
+
 function middle(values: readonly number[]): number {
   const sorted = [...values].sort((x, y) => x - y);
   const m = sorted.length >> 1;
@@ -303,56 +305,76 @@ export function wilcoxonSignedRank(
   };
 }
 
-/** Wilcoxon de rangos con signo de una muestra: ¿la mediana es distinta de μ₀? */
-export function wilcoxonOneSample(
+/**
+ * Prueba del signo (`binom.test(#{x > μ₀}, #{x ≠ μ₀}, 0,5)` de R): ¿la mediana
+ * es distinta de μ₀? Solo cuenta cuántos datos quedan arriba y abajo, así que
+ * no supone normalidad ni simetría y sirve con datos muy cargados.
+ */
+export function signTest(
   values: readonly number[],
   mu0: number,
   name: string,
   { alpha = SIGNIFICANCE, alternative = "distinto" }: TestOptions = {},
 ): HypothesisTest | null {
-  const r = signedRank(
-    values.map((x) => x - mu0),
-    alternative,
-  );
-  if (r === null) return null;
-  const n = r.n;
-  const effect = rankBiserial((4 * r.v) / (n * (n + 1)) - 1);
+  const above = values.filter((x) => x > mu0).length;
+  const below = values.filter((x) => x < mu0).length;
+  const n = above + below;
+  if (n < 1) return null;
+  const lnHalf = n * Math.log(0.5);
+  const probs = Array.from({ length: n + 1 }, (_, k) => Math.exp(lnChoose(n, k) + lnHalf));
+  let p: number;
+  if (alternative === "mayor") p = upper(probs, above);
+  else if (alternative === "menor") p = lower(probs, above);
+  // Dos colas como binom.test: las cuentas tan raras o más que la observada.
+  else p = probs.filter((q) => q <= probs[above]! * (1 + 1e-7)).reduce((s, q) => s + q, 0);
+  p = Math.min(1, p);
+  const share = above / n;
+  const effect: EffectSize = {
+    name: "proporción arriba − ½",
+    value: share - 0.5,
+    size: sizeBy(2 * (share - 0.5), [0.1, 0.3, 0.5]),
+  };
   const d = narrativeDecimals(values);
   const f = (x: number) => formatValue(x, d);
   const md = middle(values);
+  const versus =
+    md > mu0 ? `mayor que ${f(mu0)}` : md < mu0 ? `menor que ${f(mu0)}` : `igual a ${f(mu0)}`;
+  const ties = values.length - n;
   return {
-    test: "Wilcoxon de una muestra",
-    statisticLabel: "V",
-    statistic: r.v,
+    test: "Prueba del signo",
+    statisticLabel: "S",
+    statistic: above,
     reference: null,
     tails: TAILS[alternative],
-    pValue: r.p,
+    pValue: p,
     alpha,
-    significant: r.p < alpha,
+    significant: p < alpha,
     effect,
     interpretation: {
-      headline: `La mediana de ${name} es ${f(md)}, ${md >= mu0 ? "mayor" : "menor"} que ${f(mu0)}. ${verdict(
-        r.p,
+      headline: `La mediana de ${name} es ${f(md)}, ${versus}: ${formatCount(above)} datos quedan por encima de ${f(mu0)} y ${formatCount(below)} por debajo. ${verdict(
+        p,
         alpha,
         values.length,
         sideText(
           alternative,
-          `una diferencia entre el valor típico de la población y ${f(mu0)}`,
-          `un valor típico mayor que ${f(mu0)} en la población`,
-          `un valor típico menor que ${f(mu0)} en la población`,
+          `una mediana distinta de ${f(mu0)} en la población`,
+          `una mediana mayor que ${f(mu0)} en la población`,
+          `una mediana menor que ${f(mu0)} en la población`,
         ),
         alternative === "distinto" ? `sea igual a ${f(mu0)}` : "no lo sea",
       )}`,
       details: [
-        effectSentence(effect),
-        "Se usó Wilcoxon de una muestra, que no supone que los datos se parezcan a una normal.",
-        methodNote(r.exact, r.ties),
-        ...zerosNote(r.zeros),
+        "Se usó la prueba del signo: solo cuenta cuántos datos quedan arriba y abajo del valor, así que no supone que los datos se parezcan a una normal ni que sean simétricos.",
+        ...(ties > 0
+          ? [
+              `${formatCount(ties)} ${ties === 1 ? "dato es igual" : "datos son iguales"} a ${f(mu0)} y no cuenta${ties === 1 ? "" : "n"}, como hace R.`,
+            ]
+          : []),
       ],
       caveats: [],
     },
     steps: fiveSteps({
-      h0: `la mediana de ${name} en la población es ${f(mu0)}`,
+      h0: `la mediana de ${name} en la población es ${f(mu0)}: cada dato tiene la misma probabilidad de quedar arriba que abajo`,
       h1: sideText(
         alternative,
         `es distinta de ${f(mu0)}`,
@@ -361,15 +383,22 @@ export function wilcoxonOneSample(
       ),
       symbols: `H₀: mediana = ${f(mu0)}    H₁: mediana ${H1_SIGN[alternative]} ${f(mu0)}`,
       statistic: {
-        title: "Estadístico V",
-        text: `A cada dato se le resta ${f(mu0)}, se ordenan las diferencias por tamaño sin signo y se suman los rangos de las positivas.`,
-        formula: `V = Σ rangos de (x − ${f(mu0)}) > 0 = ${formatValue(r.v, 1)}${r.z === null ? "" : `\nz = (V − n(n + 1)/4 ∓ 0,5) / σ = ${formatValue(r.z, 3)}`}`,
+        title: "Estadístico S",
+        text: `Se cuentan los datos por encima de ${f(mu0)} entre los ${formatCount(n)} que no son iguales a ${f(mu0)}. Si H₀ es cierta, S sigue una binomial con n = ${formatCount(n)} y p = 0,5.`,
+        formula: `S = ${formatCount(above)} de ${formatCount(n)}`,
       },
       pFormula:
-        r.z === null
-          ? `p exacto ${p4(r.p)}`
-          : `${pFormulaOf("Z", formatValue(r.z, 3), alternative)} ${p4(r.p)}`,
-      p: r.p,
+        alternative === "distinto"
+          ? `p = Σ P(S = k) de las cuentas tan raras o más que ${formatCount(above)} ${p4(p)}`
+          : `${pFormulaOf("S", formatCount(above), alternative)} ${p4(p)}`,
+      // Con p = 0,5 la binomial es simétrica: las dos colas de binom.test son el doble de la menor.
+      pExcel:
+        alternative === "mayor"
+          ? `=1-DISTR.BINOM.N(${above - 1}; ${n}; 0,5; VERDADERO)`
+          : alternative === "menor"
+            ? `=DISTR.BINOM.N(${above}; ${n}; 0,5; VERDADERO)`
+            : `=MIN(1; 2*MIN(DISTR.BINOM.N(${above}; ${n}; 0,5; VERDADERO); 1-DISTR.BINOM.N(${above - 1}; ${n}; 0,5; VERDADERO)))`,
+      p,
       alpha,
     }),
   };
@@ -398,7 +427,8 @@ export function kruskalWallis(
   const raw = (12 / (n * (n + 1))) * stats.reduce((s, g) => s + g.sum ** 2 / g.n, 0) - 3 * (n + 1);
   const h = raw / correction;
   const df = k - 1;
-  const p = 1 - chiSquareCdf(h, df);
+  // Con H muy grande 1 − F(H) puede quedar en un negativo diminuto por redondeo.
+  const p = Math.max(0, 1 - chiSquareCdf(h, df));
   const eta = Math.max(0, (h - k + 1) / (n - k));
   const effect: EffectSize = {
     name: "η² de rangos",
@@ -455,11 +485,30 @@ export function kruskalWallis(
   };
 }
 
-const lnChoose = (n: number, k: number) => lnGamma(n + 1) - lnGamma(k + 1) - lnGamma(n - k + 1);
+/** Tabla sin filas ni columnas vacías, con sus etiquetas (como hace el chi-cuadrado). */
+export function compactTable(
+  observed: readonly (readonly number[])[],
+  rowLabels: readonly string[],
+  columnLabels: readonly string[],
+): { observed: number[][]; rowLabels: string[]; columnLabels: string[] } {
+  const keepRows = observed.map((row) => row.some((v) => v > 0));
+  const width = observed[0]?.length ?? 0;
+  const keepColumns = Array.from({ length: width }, (_, j) =>
+    observed.some((row) => (row[j] ?? 0) > 0),
+  );
+  return {
+    observed: observed
+      .filter((_, i) => keepRows[i])
+      .map((row) => row.filter((_, j) => keepColumns[j])),
+    rowLabels: rowLabels.filter((_, i) => keepRows[i]),
+    columnLabels: columnLabels.filter((_, j) => keepColumns[j]),
+  };
+}
 
 /**
- * ¿Una tabla 2×2 tiene alguna celda que espera menos de 5 casos? Ahí el
- * chi-cuadrado no es confiable y el selector usa la exacta de Fisher.
+ * ¿Una tabla 2×2 (ya sin filas ni columnas vacías) tiene alguna celda que
+ * espera menos de 5 casos? Ahí el chi-cuadrado no es confiable y el selector
+ * usa la exacta de Fisher.
  */
 export function fisherRecommended(observed: readonly (readonly number[])[]): boolean {
   if (observed.length !== 2 || observed.some((row) => row.length !== 2)) return false;
@@ -532,7 +581,7 @@ export function fisherExact(
       headline: `En «${rows[0]}» el ${formatShare(p1)} es «${columns[0]}» y en «${rows[1]}» el ${formatShare(p2)}. ${verdict(p, alpha, n, claim, alternative === "distinto" ? "no tengan relación" : "no lo sea")}`,
       details: [
         effectSentence(effect),
-        "Se usó la prueba exacta de Fisher porque hay pocos casos: no depende de ninguna aproximación.",
+        "Se usó la prueba exacta de Fisher: no depende de ninguna aproximación, así que sirve aunque haya pocos casos.",
       ],
       caveats: ["Que dos variables estén relacionadas no quiere decir que una cause la otra."],
     },
@@ -580,12 +629,13 @@ export function independenceTest(
   columnName: string,
   alpha = SIGNIFICANCE,
 ): HypothesisTest | null {
-  if (fisherRecommended(observed)) {
+  const table = compactTable(observed, rowLabels, columnLabels);
+  if (fisherRecommended(table.observed)) {
     return fisherExact(
-      observed,
+      table.observed,
       {
-        rows: [rowLabels[0] ?? "", rowLabels[1] ?? ""],
-        columns: [columnLabels[0] ?? "", columnLabels[1] ?? ""],
+        rows: [table.rowLabels[0]!, table.rowLabels[1]!],
+        columns: [table.columnLabels[0]!, table.columnLabels[1]!],
         rowName,
         columnName,
       },

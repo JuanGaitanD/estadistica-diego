@@ -13,7 +13,7 @@ import {
   independenceTest,
   kruskalWallis,
   mannWhitney,
-  wilcoxonOneSample,
+  signTest,
   wilcoxonSignedRank,
 } from "./nonparametric";
 
@@ -62,6 +62,19 @@ describe("Mann-Whitney (wilcox.test de dos muestras)", () => {
   });
 });
 
+describe("Mann-Whitney con 50 o más datos", () => {
+  it("sin empates pasa a la normal con corrección: p = 0,7482 y 0,3741 (mayor)", () => {
+    const a = Array.from({ length: 55 }, (_, i) => 2 * i + 0.5);
+    const b = Array.from({ length: 52 }, (_, i) => 2 * i + 1.3);
+    const r = mannWhitney(group("a", a), group("b", b), "x")!;
+    expect(r.statistic).toBe(1482);
+    expect(r.pValue).toBeCloseTo(0.7482116, 6);
+    expect(
+      mannWhitney(group("a", a), group("b", b), "x", { alternative: "mayor" })!.pValue,
+    ).toBeCloseTo(0.3741058, 6);
+  });
+});
+
 describe("Wilcoxon de rangos con signo", () => {
   it("pareada exacta: V = 40, p = 0,01953 (mayor) y 0,03906 (dos colas)", () => {
     // R: wilcox.test(x, y, paired = TRUE) usa x − y; aquí la diferencia es después − antes.
@@ -79,10 +92,31 @@ describe("Wilcoxon de rangos con signo", () => {
     expect(r.pValue).toBeCloseTo(0.0090907, 6);
     expect(r.interpretation.details.join(" ")).toContain("se deja fuera");
   });
+});
 
-  it("una muestra frente a 0: descarta el 0 y da p = 0,3433", () => {
-    const r = wilcoxonOneSample(SLEEP_1, 0, "horas")!;
-    expect(r.pValue).toBeCloseTo(0.3432526, 6);
+describe("prueba del signo (binom.test)", () => {
+  it("sleep1 frente a 0: 5 de 9 arriba, p = 1; 0,5 (mayor); 0,7461 (menor)", () => {
+    const r = signTest(SLEEP_1, 0, "horas")!;
+    expect(r.statistic).toBe(5);
+    expect(r.pValue).toBeCloseTo(1, 10);
+    expect(signTest(SLEEP_1, 0, "horas", { alternative: "mayor" })!.pValue).toBeCloseTo(0.5, 10);
+    expect(signTest(SLEEP_1, 0, "horas", { alternative: "menor" })!.pValue).toBeCloseTo(
+      0.74609375,
+      10,
+    );
+    expect(r.interpretation.details.join(" ")).toContain("1 dato es igual a 0");
+  });
+
+  it("con la mediana igual al valor dice «igual a» y no ve diferencia", () => {
+    // Muy cargado a la derecha, mediana exactamente 3: 12 arriba y 12 abajo.
+    const espera = [
+      2.13, 2.2, 2.3, 2.35, 2.4, 2.5, 2.55, 2.6, 2.7, 2.75, 2.8, 2.9, 3, 4, 5, 6, 8, 10, 12, 15, 20,
+      25, 30, 40, 60,
+    ];
+    const r = signTest(espera, 3, "Espera")!;
+    expect(r.interpretation.headline).toContain("es 3,000, igual a 3,000");
+    expect(r.pValue).toBeCloseTo(1, 10);
+    expect(r.significant).toBe(false);
   });
 });
 
@@ -137,6 +171,27 @@ describe("exacta de Fisher", () => {
         { alternative: "menor" },
       )!.pValue,
     ).toBeCloseTo(0.9857143, 6);
+  });
+
+  it("sin datos en una fila o columna no hay prueba", () => {
+    expect(
+      fisherExact(
+        [
+          [0, 0],
+          [3, 4],
+        ],
+        labels,
+      ),
+    ).toBeNull();
+    expect(
+      fisherExact(
+        [
+          [0, 2],
+          [0, 4],
+        ],
+        labels,
+      ),
+    ).toBeNull();
   });
 
   it("tabla asimétrica: p = 0,02301", () => {
@@ -240,6 +295,20 @@ describe("independenceTest", () => {
       "Respuesta",
     )!;
     expect(large.test).toBe("Chi-cuadrado de independencia");
+    // Una fila vacía no cuenta: queda una 2×2 con pocos casos y va a Fisher.
+    const withEmpty = independenceTest(
+      [
+        [3, 1],
+        [0, 0],
+        [1, 3],
+      ],
+      ["L", "X", "T"],
+      ["l", "t"],
+      "A",
+      "B",
+    )!;
+    expect(withEmpty.test).toBe("Exacta de Fisher");
+    expect(withEmpty.pValue).toBeCloseTo(0.4857143, 6);
     expect(large.statistic).toBeCloseTo(15.666667, 5);
     expect(large.pValue).toBeCloseTo(0.000396302, 8);
   });

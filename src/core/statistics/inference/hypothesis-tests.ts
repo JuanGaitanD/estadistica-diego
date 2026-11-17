@@ -33,7 +33,7 @@ export interface TestOptions {
 /** Resultado de una prueba de hipótesis. */
 export interface HypothesisTest {
   readonly test: string;
-  readonly statisticLabel: "t" | "z" | "F" | "χ²" | "W" | "V" | "H" | "OR";
+  readonly statisticLabel: "t" | "z" | "F" | "χ²" | "W" | "V" | "H" | "S" | "OR";
   readonly statistic: number;
   /**
    * Distribución del estadístico si H₀ es cierta, para sombrear el valor p;
@@ -283,10 +283,7 @@ export function oneSampleT(
     interpretation: {
       headline: `El promedio de ${name} es ${f(mean)}, ${direction} que ${f(mu0)}. ${verdict(p, alpha, n, claim, alternative === "distinto" ? `sea igual a ${f(mu0)}` : "no lo sea")}`,
       details: [effectSentence(effect)],
-      caveats: normalityCaveat(
-        [{ label: name, values }],
-        "Una prueba de Wilcoxon sería más segura.",
-      ),
+      caveats: normalityCaveat([{ label: name, values }], "La prueba del signo sería más segura."),
     },
     steps: fiveSteps({
       h0: `el promedio de ${name} en la población es ${f(mu0)}`,
