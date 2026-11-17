@@ -3,6 +3,7 @@
 import { useId, useState, type ReactNode } from "react";
 
 import { DistributionChart } from "@/components/charts";
+import { Field, NumberField, readNumber } from "@/components/shared/form-fields";
 import {
   InterpretationPanel,
   interpretationToText,
@@ -15,26 +16,35 @@ import type { CellValue } from "@/core/data";
 import {
   chiSquareIndependence,
   densityPoints,
+  fewExpectedInTwoGroups,
+  fisherExact,
+  fisherRecommended,
   formatP,
   formatValue,
+  kruskalWallis,
+  mannWhitney,
+  normalityDoubtful,
   oneProportionZ,
   oneSampleT,
   oneWayAnova,
   pairedT,
   twoProportionZ,
   twoSampleT,
+  wilcoxonOneSample,
+  wilcoxonSignedRank,
+  type Alternative,
   type AnovaTest,
   type HypothesisTest,
 } from "@/core/statistics";
 import { captureChartAsDataUrl, ChartDownloadButton, CopyButton } from "@/features/export";
 import { AddToReportButton } from "@/features/report";
 
-import { Field } from "@/components/shared/form-fields";
-
 import { Empty, type AnalysisColumn } from "./estimation-panel";
-import { NumberField, readNumber } from "@/components/shared/form-fields";
 
 type Goal = "media" | "proporcion" | "grupos" | "pareada" | "relacion" | "dos-proporciones";
+
+/** Qué prueba usar: la que corresponde a los datos, o forzar una de las dos. */
+type Method = "auto" | "clasica" | "alternativa";
 
 /** Selector «¿Qué quieres saber?» (RF-42): la pregunta en llano y por qué esa prueba. */
 const GOALS: readonly { id: Goal; label: string; reason: string }[] = [
@@ -42,30 +52,31 @@ const GOALS: readonly { id: Goal; label: string; reason: string }[] = [
     id: "grupos",
     label: "¿Los grupos tienen promedios distintos?",
     reason:
-      "Con dos grupos se usa la t de Welch, que no supone que varíen lo mismo; con tres o más, el ANOVA, y Tukey dice qué parejas difieren.",
+      "Con dos grupos se usa la t de Welch, que no supone que varíen lo mismo; con tres o más, el ANOVA, y Tukey dice qué parejas difieren. Si los datos no se parecen a una normal, Mann-Whitney o Kruskal-Wallis.",
   },
   {
     id: "pareada",
     label: "¿Antes y después cambió?",
     reason:
-      "Son los mismos casos medidos dos veces: la t pareada compara a cada uno consigo mismo y no se confunde con lo que varía entre personas.",
+      "Son los mismos casos medidos dos veces: la t pareada compara a cada uno consigo mismo y no se confunde con lo que varía entre personas. Si las diferencias no se parecen a una normal, Wilcoxon de rangos con signo.",
   },
   {
     id: "relacion",
     label: "¿Dos categorías están relacionadas?",
     reason:
-      "Con dos variables de categorías, el chi-cuadrado compara la tabla cruzada con la que habría si no tuvieran nada que ver.",
+      "Con dos variables de categorías, el chi-cuadrado compara la tabla cruzada con la que habría si no tuvieran nada que ver. En una tabla 2×2 con pocos casos, la exacta de Fisher.",
   },
   {
     id: "dos-proporciones",
     label: "¿Dos grupos tienen porcentajes distintos?",
-    reason: "Para un sí/no en dos grupos, la z de dos proporciones compara los porcentajes.",
+    reason:
+      "Para un sí/no en dos grupos, la z de dos proporciones compara los porcentajes. Con pocos casos, la exacta de Fisher.",
   },
   {
     id: "media",
     label: "¿El promedio es distinto de un valor?",
     reason:
-      "Para comparar el promedio de una variable con una meta o un dato conocido se usa la t de una muestra.",
+      "Para comparar el promedio de una variable con una meta o un dato conocido se usa la t de una muestra. Si los datos no se parecen a una normal, Wilcoxon de una muestra (compara la mediana).",
   },
   {
     id: "proporcion",
@@ -73,6 +84,14 @@ const GOALS: readonly { id: Goal; label: string; reason: string }[] = [
     reason: "Para comparar un porcentaje con uno de referencia se usa la z de una proporción.",
   },
 ];
+
+/** Nombre de la prueba clásica y de la alternativa en cada pregunta. */
+const METHOD_NAMES: Partial<Record<Goal, readonly [string, string]>> = {
+  media: ["t de una muestra", "Wilcoxon de una muestra"],
+  pareada: ["t pareada", "Wilcoxon de rangos con signo"],
+  "dos-proporciones": ["z de dos proporciones", "exacta de Fisher"],
+  relacion: ["chi-cuadrado", "exacta de Fisher"],
+};
 
 const CHART_ID = "chart-prueba-valor-p";
 
@@ -111,6 +130,13 @@ function textColumns(columns: readonly string[]) {
   }));
 }
 
+function shadedRegion(result: HypothesisTest): (x: number) => boolean {
+  const stat = result.statistic;
+  if (result.tails === "dos") return (x) => Math.abs(x) >= Math.abs(stat);
+  if (result.tails === "izquierda") return (x) => x <= stat;
+  return (x) => x >= stat;
+}
+
 function TestResult({ result, title }: { result: HypothesisTest; title: string }) {
   const anova = "tukey" in result ? (result as AnovaTest) : null;
   const stat = result.statistic;
@@ -120,10 +146,12 @@ function TestResult({ result, title }: { result: HypothesisTest; title: string }
         ...(anova.tukey.length > 1 ? [tukeyTable(anova)] : []),
       ]
     : [];
-  const shaded =
+  const reach =
     result.tails === "dos"
-      ? (x: number) => Math.abs(x) >= Math.abs(stat)
-      : (x: number) => x >= stat;
+      ? `tan lejos de 0 como ${formatValue(Math.abs(stat), 2)} o más`
+      : result.tails === "izquierda"
+        ? `en ${formatValue(stat, 2)} o menos`
+        : `en ${formatValue(stat, 2)} o más`;
   return (
     <>
       <InterpretationPanel
@@ -141,10 +169,12 @@ function TestResult({ result, title }: { result: HypothesisTest; title: string }
               what="la prueba"
               build={async () => {
                 let images: { title: string; dataUrl: string }[] = [];
-                try {
-                  images = [{ title: "Valor p", dataUrl: await captureChartAsDataUrl(CHART_ID) }];
-                } catch {
-                  images = [];
+                if (result.reference !== null) {
+                  try {
+                    images = [{ title: "Valor p", dataUrl: await captureChartAsDataUrl(CHART_ID) }];
+                  } catch {
+                    images = [];
+                  }
                 }
                 return {
                   title: `${result.test} · ${title}`,
@@ -162,16 +192,18 @@ function TestResult({ result, title }: { result: HypothesisTest; title: string }
           </>
         }
       />
-      <DistributionChart
-        id={CHART_ID}
-        title={`Valor p = ${formatP(result.pValue)}: la parte sombreada`}
-        description={`Si no hubiera diferencia real, el estadístico ${result.statisticLabel} caería en la zona sombreada (tan lejos como ${formatValue(stat, 2)} o más) ${result.pValue < 0.001 ? "menos del 0,1 %" : `un ${formatValue(result.pValue * 100, 1)} %`} de las veces.`}
-        points={densityPoints(result.reference)}
-        discrete={false}
-        inRegion={shaded}
-        summary={result.interpretation.headline}
-        actions={<ChartDownloadButton elementId={CHART_ID} filename="valor_p.png" />}
-      />
+      {result.reference !== null ? (
+        <DistributionChart
+          id={CHART_ID}
+          title={`Valor p = ${formatP(result.pValue)}: la parte sombreada`}
+          description={`Si no hubiera diferencia real, el estadístico ${result.statisticLabel} caería ${reach} ${result.pValue < 0.001 ? "menos del 0,1 %" : `un ${formatValue(result.pValue * 100, 1)} %`} de las veces.`}
+          points={densityPoints(result.reference)}
+          discrete={false}
+          inRegion={shadedRegion(result)}
+          summary={result.interpretation.headline}
+          actions={<ChartDownloadButton elementId={CHART_ID} filename="valor_p.png" />}
+        />
+      ) : null}
       {anova !== null && anova.tukey.length > 1 ? (
         <SectionCard
           title="¿Qué grupos difieren? (Tukey)"
@@ -189,10 +221,39 @@ function TestResult({ result, title }: { result: HypothesisTest; title: string }
   );
 }
 
+/** Opciones de H₁ en llano para cada pregunta. */
+function alternativeOptions(
+  goal: Goal,
+  first: string,
+  second: string,
+): { id: Alternative; label: string }[] {
+  if (goal === "pareada") {
+    return [
+      { id: "distinto", label: "Que cambió (sube o baja)" },
+      { id: "mayor", label: "Que sube" },
+      { id: "menor", label: "Que baja" },
+    ];
+  }
+  if (goal === "media" || goal === "proporcion") {
+    const what = goal === "media" ? "El promedio" : "El porcentaje";
+    return [
+      { id: "distinto", label: `${what} es distinto del valor` },
+      { id: "mayor", label: `${what} es mayor que el valor` },
+      { id: "menor", label: `${what} es menor que el valor` },
+    ];
+  }
+  return [
+    { id: "distinto", label: "Que son distintos" },
+    { id: "mayor", label: `Que «${first}» es mayor que «${second}»` },
+    { id: "menor", label: `Que «${first}» es menor que «${second}»` },
+  ];
+}
+
 /**
  * «¿Es real la diferencia?» (M5, RF-42 y RF-49): la persona elige la pregunta
  * y StatLab usa la prueba que corresponde, con su razón, la conclusión en
- * llano, el valor p sombreado y el tamaño del efecto.
+ * llano, el valor p sombreado y el tamaño del efecto. Si los datos no cumplen
+ * los supuestos, usa la prueba de rangos o la exacta y dice por qué.
  */
 export function HypothesisPanel({ columns }: { columns: readonly AnalysisColumn[] }) {
   const numeric = columns.filter((column) => column.quantitative);
@@ -209,6 +270,8 @@ export function HypothesisPanel({ columns }: { columns: readonly AnalysisColumn[
   const [student, setStudent] = useState(false);
   const [mu0Text, setMu0Text] = useState("");
   const [p0Text, setP0Text] = useState("50");
+  const [alternative, setAlternative] = useState<Alternative>("distinto");
+  const [method, setMethod] = useState<Method>("auto");
 
   const numericColumn = numeric.find((c) => c.id === numericId);
   const secondColumn = numeric.find((c) => c.id === secondId);
@@ -228,9 +291,32 @@ export function HypothesisPanel({ columns }: { columns: readonly AnalysisColumn[
   let result: HypothesisTest | null = null;
   let message: ReactNode = null;
   let title = "";
+  const twoGroups = goal === "grupos" && groups.length === 2;
+  const oneTailAllowed =
+    goal === "media" ||
+    goal === "proporcion" ||
+    goal === "pareada" ||
+    goal === "dos-proporciones" ||
+    twoGroups;
+  // Sin selector de cola (ANOVA, chi-cuadrado), la prueba es de dos colas.
+  const alt: Alternative = oneTailAllowed ? alternative : "distinto";
+  // Por qué se cambió a la prueba alternativa sin que la persona lo pidiera.
+  const auto: { note: string | null } = { note: null };
+  let methodNames = METHOD_NAMES[goal] ?? null;
   const needs = (text: string) => {
     message = <Empty>{text}</Empty>;
   };
+  /** ¿Usar la alternativa? Forzada por la persona o porque falla el supuesto. */
+  const pickAlternative = (assumptionFails: boolean, why: string): boolean => {
+    if (method === "alternativa") return true;
+    if (method === "clasica") return false;
+    if (assumptionFails) auto.note = why;
+    return assumptionFails;
+  };
+  const skewNote = (test: string) =>
+    `Con pocos datos y una forma muy cargada hacia un lado no se cumple el supuesto de normalidad: se usa ${test}, que no lo necesita.`;
+  const fisherNote =
+    "Hay celdas que esperan menos de 5 casos: la aproximación no es confiable y se usa la exacta de Fisher.";
 
   if (goal === "media") {
     const mu0 = readNumber(mu0Text);
@@ -238,7 +324,14 @@ export function HypothesisPanel({ columns }: { columns: readonly AnalysisColumn[
     else if (mu0 === null) needs("Escribe el valor con el que quieres comparar el promedio.");
     else {
       title = numericColumn.name;
-      result = oneSampleT(numericColumn.values.filter(isNumber), mu0, numericColumn.name);
+      const values = numericColumn.values.filter(isNumber);
+      const rank = pickAlternative(
+        normalityDoubtful([{ label: numericColumn.name, values }]),
+        skewNote("Wilcoxon de una muestra"),
+      );
+      result = (rank ? wilcoxonOneSample : oneSampleT)(values, mu0, numericColumn.name, {
+        alternative: alt,
+      });
       if (result === null) needs("Hacen falta al menos 2 datos que no sean todos iguales.");
     }
   } else if (goal === "proporcion") {
@@ -253,6 +346,7 @@ export function HypothesisPanel({ columns }: { columns: readonly AnalysisColumn[
         present.length,
         p0 / 100,
         `«${chosenCategory}»`,
+        { alternative: alt },
       );
       if (result === null) needs("No hay datos en esta variable.");
     }
@@ -265,10 +359,24 @@ export function HypothesisPanel({ columns }: { columns: readonly AnalysisColumn[
         label,
         values: groupValues(numericColumn, groupColumn, label),
       }));
-      result =
-        named.length === 2
-          ? twoSampleT(named[0]!, named[1]!, numericColumn.name, { equalVariances: student })
+      const two = named.length === 2;
+      methodNames = two ? ["t", "Mann-Whitney"] : ["ANOVA", "Kruskal-Wallis"];
+      const rank = pickAlternative(
+        normalityDoubtful(named),
+        skewNote(two ? "Mann-Whitney" : "Kruskal-Wallis"),
+      );
+      if (two) {
+        result = rank
+          ? mannWhitney(named[0]!, named[1]!, numericColumn.name, { alternative: alt })
+          : twoSampleT(named[0]!, named[1]!, numericColumn.name, {
+              equalVariances: student,
+              alternative: alt,
+            });
+      } else {
+        result = rank
+          ? kruskalWallis(named, numericColumn.name)
           : oneWayAnova(named, numericColumn.name);
+      }
       if (result === null) needs("Cada grupo necesita al menos 2 datos y algo de variación.");
     }
   } else if (goal === "pareada") {
@@ -281,12 +389,19 @@ export function HypothesisPanel({ columns }: { columns: readonly AnalysisColumn[
         const w = secondColumn.values[i];
         return isNumber(v) && isNumber(w) ? [[v, w] as const] : [];
       });
+      const before = pairs.map((p) => p[0]);
+      const after = pairs.map((p) => p[1]);
       title = `${numericColumn.name} → ${secondColumn.name}`;
-      result = pairedT(
-        pairs.map((p) => p[0]),
-        pairs.map((p) => p[1]),
+      const rank = pickAlternative(
+        normalityDoubtful([{ label: "Las diferencias", values: pairs.map((p) => p[1] - p[0]) }]),
+        skewNote("Wilcoxon de rangos con signo"),
+      );
+      result = (rank ? wilcoxonSignedRank : pairedT)(
+        before,
+        after,
         numericColumn.name,
         secondColumn.name,
+        { alternative: alt },
       );
       if (result === null) needs("Hacen falta al menos 2 pares completos con alguna diferencia.");
     }
@@ -307,7 +422,17 @@ export function HypothesisPanel({ columns }: { columns: readonly AnalysisColumn[
         observed[rows.indexOf(String(v))]![cols.indexOf(String(w))]! += 1;
       });
       title = `${groupColumn.name} y ${otherColumn.name}`;
-      result = chiSquareIndependence(observed, groupColumn.name, otherColumn.name);
+      const twoByTwo = rows.length === 2 && cols.length === 2;
+      if (!twoByTwo) methodNames = null;
+      const exact = twoByTwo && pickAlternative(fisherRecommended(observed), fisherNote);
+      result = exact
+        ? fisherExact(observed, {
+            rows: [rows[0]!, rows[1]!],
+            columns: [cols[0]!, cols[1]!],
+            rowName: groupColumn.name,
+            columnName: otherColumn.name,
+          })
+        : chiSquareIndependence(observed, groupColumn.name, otherColumn.name);
       if (result === null) needs("Cada variable necesita al menos dos categorías con datos.");
     }
   } else {
@@ -330,14 +455,32 @@ export function HypothesisPanel({ columns }: { columns: readonly AnalysisColumn[
           successes: inGroup.filter((v) => String(v) === chosenCategory).length,
         };
       };
+      const a = count(chosenA);
+      const b = count(chosenB);
       title = `«${chosenCategory}» por ${groupColumn.name}`;
-      result = twoProportionZ(count(chosenA), count(chosenB), `«${chosenCategory}»`);
+      const exact = a.n > 0 && b.n > 0 && pickAlternative(fewExpectedInTwoGroups(a, b), fisherNote);
+      result = exact
+        ? fisherExact(
+            [
+              [a.successes, a.n - a.successes],
+              [b.successes, b.n - b.successes],
+            ],
+            {
+              rows: [chosenA, chosenB],
+              columns: [chosenCategory, `no «${chosenCategory}»`],
+              rowName: groupColumn.name,
+              columnName: otherColumn.name,
+            },
+            { alternative: alt },
+          )
+        : twoProportionZ(a, b, `«${chosenCategory}»`, { alternative: alt });
       if (result === null) needs("Los dos grupos necesitan datos y algo de variación.");
     }
   }
 
   const current = GOALS.find((entry) => entry.id === goal)!;
-  const twoGroups = goal === "grupos" && groups.length === 2;
+  const usesStudent = twoGroups && (result?.test.startsWith("t ") ?? false);
+  const sideLabels = goal === "grupos" ? [groups[0] ?? "", groups[1] ?? ""] : [chosenA, chosenB];
 
   return (
     <div className="flex flex-col gap-8">
@@ -438,7 +581,37 @@ export function HypothesisPanel({ columns }: { columns: readonly AnalysisColumn[
           </div>
         ) : null}
 
-        {twoGroups ? (
+        {oneTailAllowed || methodNames !== null ? (
+          <div className="grid gap-5 sm:grid-cols-2">
+            {oneTailAllowed ? (
+              <div className="flex min-w-0 flex-col gap-1.5">
+                <Field
+                  label="Qué quieres probar"
+                  value={alternative}
+                  onChange={(v) => setAlternative(v as Alternative)}
+                  options={alternativeOptions(goal, sideLabels[0]!, sideLabels[1]!)}
+                />
+                <p className="text-muted-foreground text-sm">
+                  Elige un solo sentido (una cola) solo si lo decidiste antes de ver los datos.
+                </p>
+              </div>
+            ) : null}
+            {methodNames !== null ? (
+              <Field
+                label="Prueba"
+                value={method}
+                onChange={(v) => setMethod(v as Method)}
+                options={[
+                  { id: "auto", label: "La que corresponde a los datos (recomendada)" },
+                  { id: "clasica", label: `Siempre ${methodNames[0]}` },
+                  { id: "alternativa", label: `Siempre ${methodNames[1]}` },
+                ]}
+              />
+            ) : null}
+          </div>
+        ) : null}
+
+        {usesStudent ? (
           <div className="flex items-start gap-3">
             <Checkbox
               id={studentId}
@@ -450,6 +623,13 @@ export function HypothesisPanel({ columns }: { columns: readonly AnalysisColumn[
               Suponer que los dos grupos varían lo mismo (t de Student, la de muchos cursos)
             </Label>
           </div>
+        ) : null}
+
+        {auto.note !== null && result !== null ? (
+          <p className="text-sm" role="note">
+            <span className="font-semibold">Se cambió de prueba: </span>
+            {auto.note}
+          </p>
         ) : null}
       </div>
 

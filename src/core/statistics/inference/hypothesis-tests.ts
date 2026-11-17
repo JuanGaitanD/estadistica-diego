@@ -1,6 +1,6 @@
 import { chiSquareCdf, fCdf, standardNormalCdf } from "../distributions/continuous";
 import type { DistributionSpec } from "../distributions/probability";
-import { tTwoTailedP } from "../distributions/student-t";
+import { tCdf, tTwoTailedP } from "../distributions/student-t";
 import { studentizedRangeCdf } from "../distributions/studentized-range";
 import { formatCount, formatShare, formatValue, narrativeDecimals } from "../interpretation/text";
 import { negligibleSpread } from "../numeric/compare";
@@ -18,15 +18,30 @@ export interface EffectSize {
   readonly size: "muy pequeño" | "pequeño" | "mediano" | "grande";
 }
 
-/** Resultado de una prueba de hipótesis (todas de dos colas salvo F y χ²). */
+/**
+ * Hipótesis alternativa: «distinto» (dos colas) o una cola. En las pruebas de
+ * dos grupos, «mayor» quiere decir que el primero es mayor que el segundo.
+ */
+export type Alternative = "distinto" | "mayor" | "menor";
+
+/** Opciones comunes de las pruebas. */
+export interface TestOptions {
+  readonly alpha?: number;
+  readonly alternative?: Alternative;
+}
+
+/** Resultado de una prueba de hipótesis. */
 export interface HypothesisTest {
   readonly test: string;
-  readonly statisticLabel: "t" | "z" | "F" | "χ²";
+  readonly statisticLabel: "t" | "z" | "F" | "χ²" | "W" | "V" | "H" | "OR";
   readonly statistic: number;
-  /** Distribución del estadístico si H₀ es cierta, para sombrear el valor p. */
-  readonly reference: DistributionSpec;
-  /** `dos`: |x| ≥ |estadístico|; `derecha`: x ≥ estadístico. */
-  readonly tails: "dos" | "derecha";
+  /**
+   * Distribución del estadístico si H₀ es cierta, para sombrear el valor p;
+   * `null` en las pruebas exactas o de rangos, que no se dibujan así.
+   */
+  readonly reference: DistributionSpec | null;
+  /** `dos`: |x| ≥ |estadístico|; `derecha`: x ≥ estadístico; `izquierda`: x ≤ estadístico. */
+  readonly tails: "dos" | "derecha" | "izquierda";
   readonly pValue: number;
   readonly alpha: number;
   readonly significant: boolean;
@@ -60,12 +75,67 @@ export function formatP(p: number): string {
   return p < 0.001 ? "menos de 0,001" : formatValue(p, 3);
 }
 
-const pText = (p: number): string => (p < 0.001 ? "p < 0,001" : `p = ${formatValue(p, 3)}`);
+export const pText = (p: number): string => (p < 0.001 ? "p < 0,001" : `p = ${formatValue(p, 3)}`);
 
 /** Valor p con 4 decimales para el paso a paso, sin «0,0000». */
-const p4 = (p: number): string => (p < 0.0001 ? "< 0,0001" : `= ${formatValue(p, 4)}`);
+export const p4 = (p: number): string => (p < 0.0001 ? "< 0,0001" : `= ${formatValue(p, 4)}`);
 
-function sizeBy(value: number, cuts: readonly [number, number, number]): EffectSize["size"] {
+export const TAILS: Readonly<Record<Alternative, HypothesisTest["tails"]>> = {
+  distinto: "dos",
+  mayor: "derecha",
+  menor: "izquierda",
+};
+
+/** Signo de H₁: ≠, > o <. */
+export const H1_SIGN: Readonly<Record<Alternative, string>> = {
+  distinto: "≠",
+  mayor: ">",
+  menor: "<",
+};
+
+/** Valor p de un estadístico t según la cola. */
+function tP(t: number, df: number, alternative: Alternative): number {
+  if (alternative === "mayor") return tCdf(-t, df);
+  if (alternative === "menor") return tCdf(t, df);
+  return tTwoTailedP(t, df);
+}
+
+/** Valor p de un estadístico z según la cola. */
+export function zP(z: number, alternative: Alternative): number {
+  if (alternative === "mayor") return standardNormalCdf(-z);
+  if (alternative === "menor") return standardNormalCdf(z);
+  return 2 * standardNormalCdf(-Math.abs(z));
+}
+
+/** «2 · P(T ≥ |t|)», «P(T ≥ t)» o «P(T ≤ t)» para el paso a paso. */
+export function pFormulaOf(letter: string, value: string, alternative: Alternative): string {
+  if (alternative === "mayor") return `p = P(${letter} ≥ ${value})`;
+  if (alternative === "menor") return `p = P(${letter} ≤ ${value})`;
+  return `p = 2 · P(${letter} ≥ |${value}|)`;
+}
+
+/** Fórmula de Excel de la cola de una t. */
+function tExcel(t: number, df: number, alternative: Alternative): string {
+  const v = formatValue(t, 4);
+  if (alternative === "mayor") return `=DISTR.T.CD(${v}; ${df})`;
+  if (alternative === "menor") return `=DISTR.T.N(${v}; ${df}; VERDADERO)`;
+  return `=DISTR.T.2C(${formatValue(Math.abs(t), 4)}; ${df})`;
+}
+
+/** Fórmula de Excel de la cola de una z. */
+function zExcel(z: number, alternative: Alternative): string {
+  const v = formatValue(z, 4);
+  if (alternative === "mayor") return `=1-DISTR.NORM.ESTAND.N(${v}; VERDADERO)`;
+  if (alternative === "menor") return `=DISTR.NORM.ESTAND.N(${v}; VERDADERO)`;
+  return `=2*(1-DISTR.NORM.ESTAND.N(${formatValue(Math.abs(z), 4)}; VERDADERO))`;
+}
+
+/** Texto de H₁ en llano según la cola. */
+export function sideText(alternative: Alternative, two: string, greater: string, less: string) {
+  return alternative === "mayor" ? greater : alternative === "menor" ? less : two;
+}
+
+export function sizeBy(value: number, cuts: readonly [number, number, number]): EffectSize["size"] {
   const v = Math.abs(value);
   if (v < cuts[0]) return "muy pequeño";
   if (v < cuts[1]) return "pequeño";
@@ -85,11 +155,24 @@ function meanSd(values: readonly number[]): { mean: number; sd: number } {
   return { mean, sd: Math.sqrt(ss / (values.length - 1)) };
 }
 
-function normalityCaveat(groups: readonly NamedGroup[], alternative: string): string[] {
-  const doubtful = groups.filter((g) => {
+/** Grupos con pocos datos (menos de 30) y una forma muy cargada (|asimetría| ≥ 1). */
+function doubtfulGroups(groups: readonly NamedGroup[]): NamedGroup[] {
+  return groups.filter((g) => {
     const s = skewness(g.values).value;
     return g.values.length < 30 && s !== null && Math.abs(s) >= 1;
   });
+}
+
+/**
+ * ¿Falla el supuesto de normalidad? El selector usa entonces la prueba de
+ * rangos, que no lo necesita.
+ */
+export function normalityDoubtful(groups: readonly NamedGroup[]): boolean {
+  return doubtfulGroups(groups).length > 0;
+}
+
+function normalityCaveat(groups: readonly NamedGroup[], alternative: string): string[] {
+  const doubtful = doubtfulGroups(groups);
   if (doubtful.length > 0) {
     return [
       `${doubtful.map((g) => g.label).join(" y ")} tiene${doubtful.length > 1 ? "n" : ""} pocos datos y una forma muy cargada hacia un lado: la prueba supone datos parecidos a una normal. ${alternative}`,
@@ -103,7 +186,7 @@ function normalityCaveat(groups: readonly NamedGroup[], alternative: string): st
   return [];
 }
 
-interface Script {
+export interface Script {
   readonly h0: string;
   readonly h1: string;
   readonly symbols: string;
@@ -115,7 +198,7 @@ interface Script {
 }
 
 /** Guion de 5 pasos de la clase: hipótesis, α, estadístico, valor p, decisión. */
-function fiveSteps(script: Script): CalculationStep[] {
+export function fiveSteps(script: Script): CalculationStep[] {
   const a = formatValue(script.alpha, 2);
   const reject = script.p < script.alpha;
   return [
@@ -147,13 +230,19 @@ function fiveSteps(script: Script): CalculationStep[] {
 }
 
 /** Frase de decisión en llano. */
-function verdict(p: number, alpha: number, n: number, claim: string, notMeaning: string): string {
+export function verdict(
+  p: number,
+  alpha: number,
+  n: number,
+  claim: string,
+  notMeaning: string,
+): string {
   return p < alpha
     ? `Con ${pText(p)}, es poco probable que sea casualidad: hay evidencia de ${claim}.`
     : `Con ${pText(p)}, eso podría deberse al azar: con estos ${formatCount(n)} datos no hay evidencia suficiente de ${claim}. No significa que ${notMeaning}.`;
 }
 
-const effectSentence = (effect: EffectSize): string =>
+export const effectSentence = (effect: EffectSize): string =>
   `Tamaño del efecto: ${effect.name} = ${formatValue(effect.value, 2)} (${effect.size}). Que sea significativo no quiere decir que sea importante; esto mide cuánto.`;
 
 /** t de una muestra: ¿el promedio es distinto de μ₀? (`PRUEBA.T` contra un valor). */
@@ -161,7 +250,7 @@ export function oneSampleT(
   values: readonly number[],
   mu0: number,
   name: string,
-  alpha = SIGNIFICANCE,
+  { alpha = SIGNIFICANCE, alternative = "distinto" }: TestOptions = {},
 ): HypothesisTest | null {
   const n = values.length;
   if (n < 2) return null;
@@ -170,23 +259,29 @@ export function oneSampleT(
   if (negligibleSpread(se, mean, mu0)) return null;
   const t = (mean - mu0) / se;
   const df = n - 1;
-  const p = tTwoTailedP(t, df);
+  const p = tP(t, df, alternative);
   const d = narrativeDecimals(values);
   const f = (v: number) => formatValue(v, d);
   const effect = cohenD((mean - mu0) / sd);
   const direction = mean > mu0 ? "mayor" : "menor";
+  const claim = sideText(
+    alternative,
+    `una diferencia entre el promedio de la población y ${f(mu0)}`,
+    `un promedio mayor que ${f(mu0)} en la población`,
+    `un promedio menor que ${f(mu0)} en la población`,
+  );
   return {
     test: "t de una muestra",
     statisticLabel: "t",
     statistic: t,
     reference: { kind: "t", df },
-    tails: "dos",
+    tails: TAILS[alternative],
     pValue: p,
     alpha,
     significant: p < alpha,
     effect,
     interpretation: {
-      headline: `El promedio de ${name} es ${f(mean)}, ${direction} que ${f(mu0)}. ${verdict(p, alpha, n, `una diferencia entre el promedio de la población y ${f(mu0)}`, `sea igual a ${f(mu0)}`)}`,
+      headline: `El promedio de ${name} es ${f(mean)}, ${direction} que ${f(mu0)}. ${verdict(p, alpha, n, claim, alternative === "distinto" ? `sea igual a ${f(mu0)}` : "no lo sea")}`,
       details: [effectSentence(effect)],
       caveats: normalityCaveat(
         [{ label: name, values }],
@@ -195,15 +290,20 @@ export function oneSampleT(
     },
     steps: fiveSteps({
       h0: `el promedio de ${name} en la población es ${f(mu0)}`,
-      h1: `es distinto de ${f(mu0)}`,
-      symbols: `H₀: μ = ${f(mu0)}    H₁: μ ≠ ${f(mu0)}`,
+      h1: sideText(
+        alternative,
+        `es distinto de ${f(mu0)}`,
+        `es mayor que ${f(mu0)}`,
+        `es menor que ${f(mu0)}`,
+      ),
+      symbols: `H₀: μ = ${f(mu0)}    H₁: μ ${H1_SIGN[alternative]} ${f(mu0)}`,
       statistic: {
         title: "Estadístico t",
         text: `Cuántos errores estándar separan el promedio de la muestra del valor de H₀, con n − 1 = ${formatCount(df)} grados de libertad.`,
         formula: `t = (x̄ − μ₀) / (s / √n) = (${f(mean)} − ${f(mu0)}) / (${formatValue(sd, d + 1)} / √${formatCount(n)}) = ${formatValue(t, 3)}`,
       },
-      pFormula: `p = 2 · P(T ≥ |${formatValue(t, 3)}|) ${p4(p)}`,
-      pExcel: `=DISTR.T.2C(${formatValue(Math.abs(t), 4)}; ${df})`,
+      pFormula: `${pFormulaOf("T", formatValue(t, 3), alternative)} ${p4(p)}`,
+      pExcel: tExcel(t, df, alternative),
       p,
       alpha,
     }),
@@ -218,7 +318,11 @@ export function twoSampleT(
   a: NamedGroup,
   b: NamedGroup,
   name: string,
-  { alpha = SIGNIFICANCE, equalVariances = false } = {},
+  {
+    alpha = SIGNIFICANCE,
+    alternative = "distinto",
+    equalVariances = false,
+  }: TestOptions & { readonly equalVariances?: boolean } = {},
 ): HypothesisTest | null {
   const n1 = a.values.length;
   const n2 = b.values.length;
@@ -246,21 +350,27 @@ export function twoSampleT(
   if (negligibleSpread(se, s1.mean, s2.mean)) return null;
   const diff = s1.mean - s2.mean;
   const t = diff / se;
-  const p = tTwoTailedP(t, df);
+  const p = tP(t, df, alternative);
   const effect = cohenD(diff / Math.sqrt((s1.sd ** 2 + s2.sd ** 2) / 2));
   const higher = diff >= 0 ? a.label : b.label;
+  const claim = sideText(
+    alternative,
+    "una diferencia entre los promedios de los dos grupos en la población",
+    `un promedio mayor en «${a.label}» que en «${b.label}» en la población`,
+    `un promedio menor en «${a.label}» que en «${b.label}» en la población`,
+  );
   return {
     test: equalVariances ? "t de Student (varianzas iguales)" : "t de Welch",
     statisticLabel: "t",
     statistic: t,
     reference: { kind: "t", df },
-    tails: "dos",
+    tails: TAILS[alternative],
     pValue: p,
     alpha,
     significant: p < alpha,
     effect,
     interpretation: {
-      headline: `«${higher}» tiene en promedio ${f(Math.abs(diff))} más de ${name} (${f(s1.mean)} en «${a.label}» y ${f(s2.mean)} en «${b.label}»). ${verdict(p, alpha, n1 + n2, "una diferencia entre los promedios de los dos grupos en la población", "sean iguales")}`,
+      headline: `«${higher}» tiene en promedio ${f(Math.abs(diff))} más de ${name} (${f(s1.mean)} en «${a.label}» y ${f(s2.mean)} en «${b.label}»). ${verdict(p, alpha, n1 + n2, claim, alternative === "distinto" ? "sean iguales" : "no lo sea")}`,
       details: [
         effectSentence(effect),
         equalVariances
@@ -271,8 +381,13 @@ export function twoSampleT(
     },
     steps: fiveSteps({
       h0: `los dos grupos tienen el mismo promedio de ${name}`,
-      h1: "los promedios son distintos",
-      symbols: "H₀: μ₁ = μ₂    H₁: μ₁ ≠ μ₂",
+      h1: sideText(
+        alternative,
+        "los promedios son distintos",
+        `el promedio de «${a.label}» es mayor`,
+        `el promedio de «${a.label}» es menor`,
+      ),
+      symbols: `H₀: μ₁ = μ₂    H₁: μ₁ ${H1_SIGN[alternative]} μ₂`,
       statistic: {
         title: "Estadístico t",
         text: "La diferencia de promedios dividida entre su error estándar.",
@@ -285,8 +400,12 @@ export function twoSampleT(
           ],
         },
       },
-      pFormula: `p = 2 · P(T ≥ |${formatValue(t, 3)}|) con ${formatValue(df, 2)} gl ${p4(p)}`,
-      pExcel: `=PRUEBA.T(grupo1; grupo2; 2; ${equalVariances ? 2 : 3})`,
+      pFormula: `${pFormulaOf("T", formatValue(t, 3), alternative)} con ${formatValue(df, 2)} gl ${p4(p)}`,
+      // Con una cola, PRUEBA.T da la cola del lado observado: si la diferencia va al revés, p = 1 − ese valor.
+      pExcel:
+        alternative === "distinto"
+          ? `=PRUEBA.T(grupo1; grupo2; 2; ${equalVariances ? 2 : 3})`
+          : `=PRUEBA.T(grupo1; grupo2; 1; ${equalVariances ? 2 : 3})${(alternative === "mayor") === t >= 0 ? "" : " (y p = 1 − ese valor, porque la diferencia va al revés)"}`,
       p,
       alpha,
     }),
@@ -299,7 +418,7 @@ export function pairedT(
   after: readonly number[],
   nameBefore: string,
   nameAfter: string,
-  alpha = SIGNIFICANCE,
+  { alpha = SIGNIFICANCE, alternative = "distinto" }: TestOptions = {},
 ): HypothesisTest | null {
   const differences = before.flatMap((x, i) => {
     const y = after[i];
@@ -314,7 +433,7 @@ export function pairedT(
   if (negligibleSpread(se, mean, scale(before), scale(after))) return null;
   const t = mean / se;
   const df = n - 1;
-  const p = tTwoTailedP(t, df);
+  const p = tP(t, df, alternative);
   const d = narrativeDecimals([...before, ...after]);
   const f = (v: number) => formatValue(v, d);
   const effect = cohenD(mean / sd);
@@ -323,13 +442,13 @@ export function pairedT(
     statisticLabel: "t",
     statistic: t,
     reference: { kind: "t", df },
-    tails: "dos",
+    tails: TAILS[alternative],
     pValue: p,
     alpha,
     significant: p < alpha,
     effect,
     interpretation: {
-      headline: `De ${nameBefore} a ${nameAfter} el valor ${mean >= 0 ? "sube" : "baja"} en promedio ${f(Math.abs(mean))}. ${verdict(p, alpha, n, "un cambio real", "no haya cambiado nada")}`,
+      headline: `De ${nameBefore} a ${nameAfter} el valor ${mean >= 0 ? "sube" : "baja"} en promedio ${f(Math.abs(mean))}. ${verdict(p, alpha, n, sideText(alternative, "un cambio real", "una subida real", "una bajada real"), alternative === "distinto" ? "no haya cambiado nada" : "no lo haya")}`,
       details: [
         effectSentence(effect),
         `Se comparan ${formatCount(n)} pares: cada caso con él mismo, así lo que varía entre personas no estorba.`,
@@ -341,19 +460,32 @@ export function pairedT(
     },
     steps: fiveSteps({
       h0: "en promedio no hay cambio (la diferencia media es 0)",
-      h1: "hay cambio",
-      symbols: "H₀: μ_d = 0    H₁: μ_d ≠ 0",
+      h1: sideText(alternative, "hay cambio", "el valor sube", "el valor baja"),
+      symbols: `H₀: μ_d = 0    H₁: μ_d ${H1_SIGN[alternative]} 0`,
       statistic: {
         title: "Estadístico t de las diferencias",
         text: `Se calcula la diferencia de cada par (${nameAfter} − ${nameBefore}) y se prueba si su promedio es 0.`,
         formula: `t = d̄ / (s_d / √n) = ${f(mean)} / (${formatValue(sd, d + 1)} / √${formatCount(n)}) = ${formatValue(t, 3)}`,
       },
-      pFormula: `p = 2 · P(T ≥ |${formatValue(t, 3)}|) con ${df} gl ${p4(p)}`,
-      pExcel: "=PRUEBA.T(antes; después; 2; 1)",
+      pFormula: `${pFormulaOf("T", formatValue(t, 3), alternative)} con ${df} gl ${p4(p)}`,
+      pExcel:
+        alternative === "distinto" ? "=PRUEBA.T(antes; después; 2; 1)" : tExcel(t, df, alternative),
       p,
       alpha,
     }),
   };
+}
+
+/**
+ * ¿Algún grupo espera menos de 5 «sí» o «no» con la proporción combinada? Ahí
+ * la aproximación normal falla y el selector usa la exacta de Fisher.
+ */
+export function fewExpectedInTwoGroups(
+  a: { readonly successes: number; readonly n: number },
+  b: { readonly successes: number; readonly n: number },
+): boolean {
+  const pooled = (a.successes + b.successes) / (a.n + b.n);
+  return [a, b].some((g) => g.n * pooled < 5 || g.n * (1 - pooled) < 5);
 }
 
 const cohenH = (p1: number, p2: number): EffectSize => {
@@ -367,13 +499,13 @@ export function oneProportionZ(
   n: number,
   p0: number,
   label: string,
-  alpha = SIGNIFICANCE,
+  { alpha = SIGNIFICANCE, alternative = "distinto" }: TestOptions = {},
 ): HypothesisTest | null {
   if (n < 1 || successes < 0 || successes > n || p0 <= 0 || p0 >= 1) return null;
   const p = successes / n;
   const se = Math.sqrt((p0 * (1 - p0)) / n);
   const z = (p - p0) / se;
-  const pValue = 2 * (1 - standardNormalCdf(Math.abs(z)));
+  const pValue = zP(z, alternative);
   const effect = cohenH(p, p0);
   const caveats =
     n * p0 < 5 || n * (1 - p0) < 5
@@ -386,26 +518,37 @@ export function oneProportionZ(
     statisticLabel: "z",
     statistic: z,
     reference: { kind: "normal", mean: 0, sd: 1 },
-    tails: "dos",
+    tails: TAILS[alternative],
     pValue,
     alpha,
     significant: pValue < alpha,
     effect,
     interpretation: {
-      headline: `El ${formatShare(p)} de la muestra es ${label} (${formatCount(successes)} de ${formatCount(n)}), frente al ${formatShare(p0)} de referencia. ${verdict(pValue, alpha, n, `una diferencia entre el porcentaje de la población y el ${formatShare(p0)}`, `sea igual`)}`,
+      headline: `El ${formatShare(p)} de la muestra es ${label} (${formatCount(successes)} de ${formatCount(n)}), frente al ${formatShare(p0)} de referencia. ${verdict(
+        pValue,
+        alpha,
+        n,
+        sideText(
+          alternative,
+          `una diferencia entre el porcentaje de la población y el ${formatShare(p0)}`,
+          `un porcentaje mayor que el ${formatShare(p0)} en la población`,
+          `un porcentaje menor que el ${formatShare(p0)} en la población`,
+        ),
+        alternative === "distinto" ? "sea igual" : "no lo sea",
+      )}`,
       details: [effectSentence(effect)],
       caveats,
     },
     steps: fiveSteps({
       h0: `el porcentaje en la población es ${formatShare(p0)}`,
-      h1: "es distinto",
-      symbols: `H₀: p = ${formatValue(p0, 3)}    H₁: p ≠ ${formatValue(p0, 3)}`,
+      h1: sideText(alternative, "es distinto", "es mayor", "es menor"),
+      symbols: `H₀: p = ${formatValue(p0, 3)}    H₁: p ${H1_SIGN[alternative]} ${formatValue(p0, 3)}`,
       statistic: {
         title: "Estadístico z",
         formula: `z = (p̂ − p₀) / √(p₀(1 − p₀)/n) = (${formatValue(p, 4)} − ${formatValue(p0, 3)}) / √(${formatValue(p0, 3)} · ${formatValue(1 - p0, 3)} / ${formatCount(n)}) = ${formatValue(z, 3)}`,
       },
-      pFormula: `p = 2 · P(Z ≥ |${formatValue(z, 3)}|) ${p4(pValue)}`,
-      pExcel: `=2*(1-DISTR.NORM.ESTAND.N(${formatValue(Math.abs(z), 4)}; VERDADERO))`,
+      pFormula: `${pFormulaOf("Z", formatValue(z, 3), alternative)} ${p4(pValue)}`,
+      pExcel: zExcel(z, alternative),
       p: pValue,
       alpha,
     }),
@@ -417,7 +560,7 @@ export function twoProportionZ(
   a: { readonly label: string; readonly successes: number; readonly n: number },
   b: { readonly label: string; readonly successes: number; readonly n: number },
   outcome: string,
-  alpha = SIGNIFICANCE,
+  { alpha = SIGNIFICANCE, alternative = "distinto" }: TestOptions = {},
 ): HypothesisTest | null {
   if (a.n < 1 || b.n < 1) return null;
   const p1 = a.successes / a.n;
@@ -426,21 +569,32 @@ export function twoProportionZ(
   const se = Math.sqrt(pooled * (1 - pooled) * (1 / a.n + 1 / b.n));
   if (se === 0) return null;
   const z = (p1 - p2) / se;
-  const pValue = 2 * (1 - standardNormalCdf(Math.abs(z)));
+  const pValue = zP(z, alternative);
   const effect = cohenH(p1, p2);
-  const small = [a, b].some((g) => g.n * pooled < 5 || g.n * (1 - pooled) < 5);
+  const small = fewExpectedInTwoGroups(a, b);
   return {
     test: "z de dos proporciones",
     statisticLabel: "z",
     statistic: z,
     reference: { kind: "normal", mean: 0, sd: 1 },
-    tails: "dos",
+    tails: TAILS[alternative],
     pValue,
     alpha,
     significant: pValue < alpha,
     effect,
     interpretation: {
-      headline: `En «${a.label}» el ${formatShare(p1)} es ${outcome} y en «${b.label}» el ${formatShare(p2)}. ${verdict(pValue, alpha, a.n + b.n, "una diferencia entre los dos porcentajes en la población", "sean iguales")}`,
+      headline: `En «${a.label}» el ${formatShare(p1)} es ${outcome} y en «${b.label}» el ${formatShare(p2)}. ${verdict(
+        pValue,
+        alpha,
+        a.n + b.n,
+        sideText(
+          alternative,
+          "una diferencia entre los dos porcentajes en la población",
+          `un porcentaje mayor en «${a.label}» que en «${b.label}» en la población`,
+          `un porcentaje menor en «${a.label}» que en «${b.label}» en la población`,
+        ),
+        alternative === "distinto" ? "sean iguales" : "no lo sea",
+      )}`,
       details: [effectSentence(effect)],
       caveats: small
         ? [
@@ -450,14 +604,20 @@ export function twoProportionZ(
     },
     steps: fiveSteps({
       h0: "los dos grupos tienen el mismo porcentaje",
-      h1: "los porcentajes son distintos",
-      symbols: "H₀: p₁ = p₂    H₁: p₁ ≠ p₂",
+      h1: sideText(
+        alternative,
+        "los porcentajes son distintos",
+        `el de «${a.label}» es mayor`,
+        `el de «${a.label}» es menor`,
+      ),
+      symbols: `H₀: p₁ = p₂    H₁: p₁ ${H1_SIGN[alternative]} p₂`,
       statistic: {
         title: "Estadístico z",
         text: "Con la proporción combinada de los dos grupos, la que valdría para ambos si H₀ fuera cierta.",
         formula: `p̄ = (${a.successes} + ${b.successes}) / (${a.n} + ${b.n}) = ${formatValue(pooled, 4)}\nz = (p̂₁ − p̂₂) / √(p̄(1 − p̄)(1/n₁ + 1/n₂)) = (${formatValue(p1, 4)} − ${formatValue(p2, 4)}) / ${formatValue(se, 4)} = ${formatValue(z, 3)}`,
       },
-      pFormula: `p = 2 · P(Z ≥ |${formatValue(z, 3)}|) ${p4(pValue)}`,
+      pFormula: `${pFormulaOf("Z", formatValue(z, 3), alternative)} ${p4(pValue)}`,
+      pExcel: zExcel(z, alternative),
       p: pValue,
       alpha,
     }),

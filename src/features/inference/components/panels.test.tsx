@@ -77,3 +77,68 @@ describe("HypothesisPanel · dos proporciones", () => {
     expect(screen.getByText(/Elige dos variables distintas/)).toBeTruthy();
   });
 });
+
+describe("HypothesisPanel · supuestos y una cola", () => {
+  // Muy cargados hacia la derecha y con pocos datos: no se parecen a una normal.
+  const skewed = [1, 1, 1, 2, 2, 9, 2, 3, 3, 3, 4, 20];
+  const grupo = ["A", "A", "A", "A", "A", "A", "B", "B", "B", "B", "B", "B"];
+  const selectWith = (container: HTMLElement, value: string) =>
+    [...container.querySelectorAll("select")].find((select) =>
+      [...select.options].some((option) => option.value === value),
+    )!;
+
+  it("si falla la normalidad usa Mann-Whitney y dice por qué", () => {
+    render(
+      <HypothesisPanel
+        columns={[
+          { id: "x", name: "Espera", quantitative: true, values: skewed },
+          { id: "g", name: "Grupo", quantitative: false, values: grupo },
+        ]}
+      />,
+    );
+    expect(screen.getByText(/Qué dice la prueba: Mann-Whitney/)).toBeTruthy();
+    expect(screen.getByText(/Se cambió de prueba/)).toBeTruthy();
+    // Las pruebas de rangos no tienen curva que sombrear.
+    expect(screen.queryByText(/la parte sombreada/)).toBeNull();
+  });
+
+  it("la persona puede forzar la t y elegir una cola", () => {
+    const { container } = render(
+      <HypothesisPanel
+        columns={[
+          { id: "x", name: "Espera", quantitative: true, values: skewed },
+          { id: "g", name: "Grupo", quantitative: false, values: grupo },
+        ]}
+      />,
+    );
+    fireEvent.change(selectWith(container, "clasica"), { target: { value: "clasica" } });
+    fireEvent.change(selectWith(container, "menor"), { target: { value: "menor" } });
+    expect(screen.getByText(/Qué dice la prueba: t de Welch/)).toBeTruthy();
+    expect(screen.queryByText(/Se cambió de prueba/)).toBeNull();
+    expect(screen.getByText(/un promedio menor en «A» que en «B»/)).toBeTruthy();
+  });
+
+  it("una tabla 2×2 con pocos casos pasa a la exacta de Fisher", () => {
+    const { container } = render(
+      <HypothesisPanel
+        columns={[
+          {
+            id: "a",
+            name: "Sirvió",
+            quantitative: false,
+            values: ["L", "L", "L", "L", "T", "T", "T", "T"],
+          },
+          {
+            id: "b",
+            name: "Dijo",
+            quantitative: false,
+            values: ["l", "l", "l", "t", "l", "t", "t", "t"],
+          },
+        ]}
+      />,
+    );
+    fireEvent.change(selectWith(container, "relacion"), { target: { value: "relacion" } });
+    expect(screen.getByText(/Qué dice la prueba: Exacta de Fisher/)).toBeTruthy();
+    expect(screen.getAllByText(/p = 0,486/).length).toBeGreaterThan(0);
+  });
+});
