@@ -25,6 +25,7 @@ export {
 export {
   fisherExact,
   fisherRecommended,
+  independenceTest,
   kruskalWallis,
   mannWhitney,
   wilcoxonOneSample,

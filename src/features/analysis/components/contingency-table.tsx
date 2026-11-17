@@ -9,6 +9,7 @@ import { DataTable, type DataTableColumn } from "@/components/tables/data-table"
 import { Button } from "@/components/ui/button";
 
 import type { AnalyzedContingency } from "../model/types";
+import { contingencyTestOf } from "../use-cases/contingency-test";
 import { contingencySectionId } from "../use-cases/sections";
 import { explanationText } from "./metric-explanation";
 
@@ -140,6 +141,8 @@ export function ContingencyTable({
     },
   ];
 
+  const test = contingencyTestOf(contingency);
+
   const columnIndexOf = (key: string): number =>
     key.startsWith("col-") ? Number.parseInt(key.slice(4), 10) : -1;
 
@@ -181,6 +184,14 @@ export function ContingencyTable({
           {...(contingency.steps !== undefined ? { steps: contingency.steps } : {})}
           name={title}
           actions={interpretationActions}
+        />
+      ) : null}
+      {test !== null ? (
+        <InterpretationPanel
+          title={`¿La relación es real o casualidad? (${test.test.toLowerCase()})`}
+          name={title}
+          interpretation={test.interpretation}
+          steps={test.steps}
         />
       ) : null}
       <SectionCard

@@ -3,6 +3,7 @@ import { lnGamma } from "../distributions/special";
 import { formatCount, formatShare, formatValue, narrativeDecimals } from "../interpretation/text";
 import { averageRanks } from "../regression/correlation";
 import {
+  chiSquareIndependence,
   effectSentence,
   fiveSteps,
   H1_SIGN,
@@ -564,4 +565,32 @@ export function fisherExact(
       alpha,
     }),
   };
+}
+
+/**
+ * Prueba de relación entre dos variables de categorías con la regla del
+ * selector: exacta de Fisher en una 2×2 con celdas que esperan menos de 5
+ * casos y chi-cuadrado en lo demás.
+ */
+export function independenceTest(
+  observed: readonly (readonly number[])[],
+  rowLabels: readonly string[],
+  columnLabels: readonly string[],
+  rowName: string,
+  columnName: string,
+  alpha = SIGNIFICANCE,
+): HypothesisTest | null {
+  if (fisherRecommended(observed)) {
+    return fisherExact(
+      observed,
+      {
+        rows: [rowLabels[0] ?? "", rowLabels[1] ?? ""],
+        columns: [columnLabels[0] ?? "", columnLabels[1] ?? ""],
+        rowName,
+        columnName,
+      },
+      { alpha },
+    );
+  }
+  return chiSquareIndependence(observed, rowName, columnName, alpha);
 }

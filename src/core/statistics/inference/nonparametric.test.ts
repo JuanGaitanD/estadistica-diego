@@ -10,6 +10,7 @@ import {
 import {
   fisherExact,
   fisherRecommended,
+  independenceTest,
   kruskalWallis,
   mannWhitney,
   wilcoxonOneSample,
@@ -210,5 +211,36 @@ describe("pruebas de una cola", () => {
       { alternative: "mayor" },
     )!;
     expect(two.pValue).toBeCloseTo(0.014229, 5);
+  });
+});
+
+describe("independenceTest", () => {
+  it("elige Fisher en 2×2 con pocos casos y chi-cuadrado en lo demás", () => {
+    const small = independenceTest(
+      [
+        [3, 1],
+        [1, 3],
+      ],
+      ["L", "T"],
+      ["l", "t"],
+      "A",
+      "B",
+    )!;
+    expect(small.test).toBe("Exacta de Fisher");
+    expect(small.pValue).toBeCloseTo(0.4857143, 6);
+    // chisq.test(matrix(c(20, 5, 5, 15, 5, 10), 2)): χ² = 15,667, gl = 2, p = 0,000396.
+    const large = independenceTest(
+      [
+        [20, 5, 5],
+        [5, 15, 10],
+      ],
+      ["M", "F"],
+      ["sí", "no", "ns"],
+      "Sexo",
+      "Respuesta",
+    )!;
+    expect(large.test).toBe("Chi-cuadrado de independencia");
+    expect(large.statistic).toBeCloseTo(15.666667, 5);
+    expect(large.pValue).toBeCloseTo(0.000396302, 8);
   });
 });
