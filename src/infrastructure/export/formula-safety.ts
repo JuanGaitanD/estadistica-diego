@@ -1,7 +1,8 @@
 /**
  * Caracteres con los que una hoja de cálculo interpreta la celda como fórmula
  * (inyección de fórmulas). Se neutralizan anteponiendo un apóstrofo, que Excel
- * y Hojas de cálculo tratan como marca de texto literal.
+ * y Hojas de cálculo tratan como marca de texto literal. Costo aceptado: pegado en
+ * Word, el apóstrofo queda a la vista (por ejemplo, «'-3,2 a 4,1» en un intervalo).
  */
 const FORMULA_TRIGGERS = new Set(["=", "+", "-", "@", "\t", "\r"]);
 
