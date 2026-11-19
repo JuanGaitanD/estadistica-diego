@@ -1,7 +1,7 @@
 "use client";
 
 /** Paso 1: "¿Qué datos vamos a analizar?" (RF-01 a RF-09). */
-import { useRef, useState, type ChangeEvent, type DragEvent } from "react";
+import { useRef, useState, type ChangeEvent, type DragEvent, type ReactNode } from "react";
 import { AlertCircle, Info, Table2, UploadCloud } from "lucide-react";
 
 import { StepHeader } from "@/components/layout/step-header";
@@ -32,7 +32,8 @@ type PreviewRow = Readonly<Record<string, string>>;
 
 const PREVIEW_ROWS = 10;
 
-export function StepData() {
+/** `notice`: aviso que va justo debajo del título (recuperar el último análisis). */
+export function StepData({ notice = null }: { notice?: ReactNode }) {
   const dataset = useWizardStore((state) => state.dataset);
   const pastedText = useWizardStore((state) => state.pastedText);
   const importOptions = useWizardStore((state) => state.importOptions);
@@ -92,6 +93,8 @@ export function StepData() {
         title="¿Qué datos vamos a analizar?"
         subtitle="Ingresa los datos o adjunta un csv/excel: nosotros nos encargamos del resto."
       />
+
+      {notice}
 
       {importError !== null ? (
         <Alert variant="destructive" role="alert">
@@ -156,19 +159,17 @@ export function StepData() {
             className="sl-milimetrado-tenue max-h-72 min-h-36 flex-1 resize-y font-mono text-[0.9375rem] leading-relaxed"
             {...(importError !== null ? { "aria-invalid": true } : {})}
           />
-          <div className="flex flex-wrap gap-2">
-            <Button type="button" onClick={() => importText()}>
-              Usar estos datos
-            </Button>
-            <Button type="button" variant="outline" onClick={() => importSample()}>
-              Usar datos de ejemplo
-            </Button>
-          </div>
+          <Button type="button" className="self-start" onClick={() => importText()}>
+            Usar estos datos
+          </Button>
         </div>
       </div>
 
       <div className="flex flex-col gap-4">
-        <div>
+        <div className="border-rule flex flex-wrap items-center gap-x-3 gap-y-2 border-t pt-5">
+          <span className="text-muted-foreground text-sm">
+            {dataset === null ? "¿Sin archivo a la mano?" : "¿Algo quedó mal?"}
+          </span>
           <Button
             type="button"
             variant="outline"
@@ -182,6 +183,9 @@ export function StepData() {
               : dataset === null
                 ? "Escribir los datos en una tabla"
                 : "Corregir los datos en una tabla"}
+          </Button>
+          <Button type="button" variant="ghost" onClick={() => importSample()}>
+            Usar datos de ejemplo
           </Button>
         </div>
         {editingGrid ? (
