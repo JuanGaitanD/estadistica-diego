@@ -49,8 +49,8 @@ export type LoanKind = "cuota-fija" | "intereses-anuales" | "capitalizable";
 
 export const LOAN_KINDS: readonly { id: LoanKind; label: string }[] = [
   { id: "cuota-fija", label: "Cuota fija" },
-  { id: "intereses-anuales", label: "Intereses cada año, capital al final" },
-  { id: "capitalizable", label: "Todo al final (interés capitalizado)" },
+  { id: "intereses-anuales", label: "Intereses cada año" },
+  { id: "capitalizable", label: "Todo al final" },
 ];
 
 /**
@@ -553,7 +553,8 @@ export function formatMoney(value: number): string {
   return `${rounded < 0 ? "−" : ""}$${formatValue(Math.abs(rounded), 0)}`;
 }
 
-function percent(proportion: number): string {
+/** Proporción como porcentaje con dos decimales: `0.2` → «20,00 %». */
+export function percent(proportion: number): string {
   return `${formatValue(proportion * 100, 2)} %`;
 }
 
@@ -640,7 +641,7 @@ export function describeCashFlow(input: CashFlowInput, result: CashFlowResult): 
 }
 
 /** Letra de columna de Excel para un índice desde 0 (`0` → A, `26` → AA). */
-function excelColumn(index: number): string {
+export function excelColumn(index: number): string {
   let name = "";
   for (let i = index + 1; i > 0; i = Math.floor((i - 1) / 26))
     name = String.fromCharCode(65 + ((i - 1) % 26)) + name;
