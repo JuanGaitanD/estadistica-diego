@@ -1,10 +1,16 @@
 "use client";
 
-import { FolderOpen, Save } from "lucide-react";
+import { ChevronDown, FolderOpen, Save } from "lucide-react";
 import { useRef, type ChangeEvent } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useReportStore } from "@/features/report";
 import { downloadBlob } from "@/infrastructure/export";
 import { projectToBlob, readProjectFile } from "@/infrastructure/storage";
@@ -67,16 +73,32 @@ export function ProjectActions() {
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-1 sm:gap-2">
-      <span className="sl-label mr-1">Proyecto</span>
-      <Button type="button" variant="ghost" disabled={dataset === null} onClick={save}>
-        <Save aria-hidden="true" />
-        Guardar<span className="sr-only sm:not-sr-only"> en un archivo</span>
-      </Button>
-      <Button type="button" variant="ghost" onClick={() => inputRef.current?.click()}>
-        <FolderOpen aria-hidden="true" />
-        Abrir<span className="sr-only sm:not-sr-only"> un proyecto</span>
-      </Button>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button type="button" variant="ghost" className="text-foreground">
+            <FolderOpen aria-hidden="true" />
+            <span className="hidden sm:inline">Proyecto</span>
+            <span className="sr-only sm:hidden">Proyecto</span>
+            <ChevronDown aria-hidden="true" className="size-3.5 opacity-70" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-64">
+          <DropdownMenuItem onSelect={() => inputRef.current?.click()}>
+            <FolderOpen aria-hidden="true" />
+            Abrir un proyecto…
+          </DropdownMenuItem>
+          <DropdownMenuItem disabled={dataset === null} onSelect={save}>
+            <Save aria-hidden="true" />
+            <span className="flex flex-col">
+              Guardar en un archivo
+              {dataset === null ? (
+                <span className="text-muted-foreground text-xs">Primero carga tus datos.</span>
+              ) : null}
+            </span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
       <input
         ref={inputRef}
         type="file"
@@ -86,6 +108,6 @@ export function ProjectActions() {
         aria-hidden="true"
         onChange={(event) => void open(event)}
       />
-    </div>
+    </>
   );
 }

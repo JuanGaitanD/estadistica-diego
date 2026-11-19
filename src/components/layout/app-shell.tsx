@@ -34,6 +34,13 @@ export interface AppShellProps {
    * exterior sin importar el paso. Por defecto "narrow".
    */
   width?: ShellWidth;
+  /** Acciones globales de la página, en la barra superior junto a Ayuda y el tema. */
+  actions?: ReactNode;
+  /**
+   * Navegación de la página (las zonas). Va en su propia franja, siempre al
+   * ancho mayor, para que no cambie de tamaño al pasar de una zona a otra.
+   */
+  nav?: ReactNode;
 }
 
 /**
@@ -42,19 +49,23 @@ export interface AppShellProps {
  * pie discreto. La rejilla horizontal (`px-5 sm:px-8`) es la misma en las
  * tres zonas para que todo caiga sobre el mismo eje.
  */
-export function AppShell({ children, width = "narrow" }: AppShellProps) {
+export function AppShell({ children, width = "narrow", actions, nav }: AppShellProps) {
   return (
     <div className="flex min-h-full flex-col">
       <a href="#contenido" className={cn(buttonVariants({ variant: "outline" }), "sl-salto")}>
         Saltar al contenido
       </a>
-      <AppHeader />
+      <AppHeader actions={actions} />
+      {nav !== undefined ? (
+        <div className="mx-auto w-full max-w-[84rem] px-5 pt-6 sm:px-8">{nav}</div>
+      ) : null}
       <main
         id="contenido"
         tabIndex={-1}
         className={cn(
           "outline-none",
-          "mx-auto flex w-full flex-1 flex-col px-5 pt-10 pb-6 sm:px-8",
+          "mx-auto flex w-full flex-1 flex-col px-5 pb-6 sm:px-8",
+          nav !== undefined ? "pt-8" : "pt-10",
           WIDTH_CLASS[width],
         )}
       >
@@ -65,7 +76,7 @@ export function AppShell({ children, width = "narrow" }: AppShellProps) {
   );
 }
 
-function AppHeader() {
+function AppHeader({ actions }: { actions?: ReactNode }) {
   return (
     <header className="border-rule bg-background sticky top-0 z-30 border-b">
       <div className="mx-auto flex w-full max-w-[84rem] items-center justify-between gap-4 px-5 py-3 sm:px-8">
@@ -82,7 +93,13 @@ function AppHeader() {
             </span>
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
+          {actions !== undefined ? (
+            <>
+              <div className="flex items-center gap-1 sm:gap-2">{actions}</div>
+              <span aria-hidden="true" className="bg-rule mx-1 h-6 w-px" />
+            </>
+          ) : null}
           <HelpSheet />
           <ThemeToggle />
         </div>

@@ -78,7 +78,7 @@ export function ZoneNav({ items, current, onSelect, className }: ZoneNavProps) {
                     </span>
                   ) : null}
                 </span>
-                <span className="hidden truncate text-sm sm:block">{item.hint}</span>
+                <span className="hidden max-w-full truncate text-sm lg:block">{item.hint}</span>
               </button>
             </li>
           );

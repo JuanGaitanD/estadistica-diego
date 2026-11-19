@@ -6,7 +6,7 @@
  * dentro de las zonas (docs/09 §5.2).
  */
 import { ArrowRight, Compass } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/layout/app-shell";
@@ -31,14 +31,14 @@ function isZone(value: string): value is Zone {
 }
 
 /** Zona «Datos»: cargar o escribir, confirmar tipos y seguir a Explorar. */
-function DataZone() {
+function DataZone({ notice }: { notice: ReactNode }) {
   const dataset = useWizardStore((state) => state.dataset);
   const goToZone = useWizardStore((state) => state.goToZone);
   const blocked = useWizardStore((state) => state.zoneBlockedReason("explorar"));
 
   return (
     <div className="flex flex-col gap-12">
-      <StepData />
+      <StepData notice={notice} />
       {dataset !== null ? (
         <>
           <StepVariables embedded />
@@ -150,48 +150,51 @@ export function Workspace() {
     ...(entry.id === "informe" ? { badge: reportCount } : {}),
   }));
 
-  return (
-    <AppShell width={zone === "explorar" || zone === "rentabilidad" ? "wide" : "narrow"}>
-      <div className="flex flex-col gap-10 pb-16">
-        <div className="flex flex-col gap-3">
-          <ZoneNav
-            items={items}
-            current={zone}
-            onSelect={(id) => {
-              if (isZone(id)) goToZone(id);
-            }}
-          />
-          {/* El modo guiado y el proyecto son del análisis de datos; «Rentable» no los usa. */}
-          {zone === "rentabilidad" ? null : (
-            <div className="flex flex-wrap items-center justify-end gap-3">
-              {guidedActive ? null : (
-                <Button type="button" variant="ghost" onClick={startGuided}>
-                  <Compass aria-hidden="true" />
-                  Guíame paso a paso
-                </Button>
-              )}
-              <ProjectActions />
-            </div>
-          )}
-        </div>
+  // El modo guiado y el proyecto son del análisis de datos; «Rentable» no los usa.
+  const actions =
+    zone === "rentabilidad" ? undefined : (
+      <>
+        {guidedActive ? null : (
+          <Button type="button" variant="ghost" className="text-primary" onClick={startGuided}>
+            <Compass aria-hidden="true" />
+            <span className="sr-only md:not-sr-only">Guíame paso a paso</span>
+          </Button>
+        )}
+        <ProjectActions />
+      </>
+    );
 
+  const recoverNotice =
+    (dataset === null || sourceName === SAMPLE_DATA_NAME) && hasStoredDataset ? (
+      <div className="border-rule bg-muted/40 flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius)] border p-4">
+        <p className="text-muted-foreground text-sm">
+          Guardamos en este navegador los últimos datos que analizaste.
+        </p>
+        <Button type="button" variant="outline" onClick={() => recoverLastDataset()}>
+          Recuperar último análisis
+        </Button>
+      </div>
+    ) : null;
+
+  return (
+    <AppShell
+      width={zone === "explorar" || zone === "rentabilidad" ? "wide" : "narrow"}
+      {...(actions !== undefined ? { actions } : {})}
+      nav={
+        <ZoneNav
+          items={items}
+          current={zone}
+          onSelect={(id) => {
+            if (isZone(id)) goToZone(id);
+          }}
+        />
+      }
+    >
+      <div className="flex flex-col gap-10 pb-16">
         <GuidedBar />
 
-        {zone === "datos" &&
-        (dataset === null || sourceName === SAMPLE_DATA_NAME) &&
-        hasStoredDataset ? (
-          <div className="border-rule bg-muted/40 flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius)] border p-4">
-            <p className="text-muted-foreground text-sm">
-              Guardamos en este navegador los últimos datos que analizaste.
-            </p>
-            <Button type="button" variant="outline" onClick={() => recoverLastDataset()}>
-              Recuperar último análisis
-            </Button>
-          </div>
-        ) : null}
-
         <div key={zone} ref={contentRef} className="sl-step-enter">
-          {zone === "datos" ? <DataZone /> : null}
+          {zone === "datos" ? <DataZone notice={recoverNotice} /> : null}
           {zone === "explorar" ? <StepResults /> : null}
           {zone === "analizar" ? <AnalyzeHub /> : null}
           {zone === "informe" ? (
