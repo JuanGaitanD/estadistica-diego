@@ -31,7 +31,7 @@ export function ZoneNav({ items, current, onSelect, className }: ZoneNavProps) {
 
   return (
     <nav aria-label="Zonas de trabajo" className={cn("w-full", className)}>
-      <ol className="border-rule grid grid-cols-4 border-b">
+      <ol className="border-rule grid grid-cols-5 border-b">
         {items.map((item, index) => {
           const active = item.id === current;
           const blocked = item.blockedReason !== null;

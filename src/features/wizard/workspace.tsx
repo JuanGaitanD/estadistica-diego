@@ -1,8 +1,8 @@
 "use client";
 
 /**
- * Espacio de trabajo de StatLab (RF-41): zonas Datos, Explorar, Analizar e
- * Informe. Reemplaza al asistente lineal de cuatro pasos; los pasos viven
+ * Espacio de trabajo de StatLab (RF-41): zonas Datos, Explorar, Analizar,
+ * Informe y Rentable. Reemplaza al asistente lineal de cuatro pasos; los pasos viven
  * dentro de las zonas (docs/09 §5.2).
  */
 import { ArrowRight, Compass } from "lucide-react";
@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { AppShell } from "@/components/layout/app-shell";
 import { ZoneNav } from "@/components/layout/zone-nav";
 import { Button } from "@/components/ui/button";
+import { ProfitabilityPanel } from "@/features/profitability";
 import { ReportView, useReportStore } from "@/features/report";
 
 import { GuidedBar } from "./guided/guided-bar";
@@ -150,7 +151,7 @@ export function Workspace() {
   }));
 
   return (
-    <AppShell width={zone === "explorar" ? "wide" : "narrow"}>
+    <AppShell width={zone === "explorar" || zone === "rentabilidad" ? "wide" : "narrow"}>
       <div className="flex flex-col gap-10 pb-16">
         <div className="flex flex-col gap-3">
           <ZoneNav
@@ -196,6 +197,7 @@ export function Workspace() {
               onExplore={() => goToZone(dataset === null ? "datos" : "explorar")}
             />
           ) : null}
+          {zone === "rentabilidad" ? <ProfitabilityPanel /> : null}
         </div>
       </div>
     </AppShell>
