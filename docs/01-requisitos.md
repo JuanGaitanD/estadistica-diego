@@ -281,7 +281,8 @@ Detalle de cada módulo, pantallas y fases en `docs/09-plan-plataforma.md`.
   - rubros de costo fijos, por unidad o como % de los ingresos (comisiones), con crecimiento anual de precios y costos;
   - inversiones en cualquier año, con depreciación en línea recta por activo, venta al final con impuesto de ganancia ocasional y capital de trabajo que se recupera en el año N;
   - préstamos de cuota fija, de intereses anuales con capital al final, o capitalizables; solo sus intereses entran al flujo. Sin préstamos queda el flujo libre no apalancado;
-  - hasta 6 escenarios comparables, con la decisión «Aceptar», «Revisar supuestos» (VPN positivo con payback de más de dos tercios del horizonte) o «Rechazar o rediseñar».
+  - hasta 6 escenarios comparables, con la decisión «Aceptar», «Revisar supuestos» (VPN positivo con payback de más de dos tercios del horizonte) o «Rechazar o rediseñar»;
+  - descargar el escenario como libro de Excel con la estructura del prompt del profesor: Resumen, Supuestos (editables y resaltados), Flujo (todo con fórmulas conectadas a Supuestos), Data histórica (plantilla 2022–2025 por completar), Fuentes y Control de calidad (OK o Revisar).
 
   Casos de referencia: el Excel del profesor (Café Cordillera: VPN al 20 % = −$28.358.291,51 y TIR = 15,0604 %) y el prompt de evaluación de proyectos (10 vehículos de transporte turístico en Pereira, sin deuda, 10 años al 10 %).
 

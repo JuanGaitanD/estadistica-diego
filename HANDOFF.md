@@ -22,7 +22,7 @@ Plan aprobado por Juan el 2026-11-16: `docs/09-plan-plataforma.md` (alcance M0�
 
 ### ¿Es mi proyecto rentable? (2026-11-18)
 
-Pedido por Juan; no es de la electiva de datos. Rama `feat/rentabilidad-flujo-caja`, sin commits ni push todavía. Requisito RF-57 y módulo M10 en `docs/09-plan-plataforma.md`.
+Pedido por Juan; no es de la electiva de datos. Rama `feat/rentabilidad-flujo-caja`, con commits y sin push. Requisito RF-57 y módulo M10 en `docs/09-plan-plataforma.md`.
 
 - Quinta zona «Rentable» (`/app#rentabilidad`), sin necesidad de datos cargados. Núcleo en `src/core/finance`, pantalla en `src/features/profitability`, gráfica en `components/charts/cash-flow-chart.tsx`.
 - Flujo de caja a N años con:
@@ -36,7 +36,17 @@ Pedido por Juan; no es de la electiva de datos. Rama `feat/rentabilidad-flujo-ca
 - Dos ejemplos para cargar:
   - Café Cordillera, del Excel del profesor; el test lo reproduce exacto: VPN −$28.358.291,51 y TIR 15,0604 %.
   - Transporte turístico en Pereira, del prompt del profesor: 10 vehículos, sin deuda, 10 años al 10 %. Sus cifras son **referenciales** (precio del vehículo, tarifa, nómina, seguros); no salen de fuentes consultadas.
-- Queda: revisión visual a 1440 y 390 px (la barra de zonas pasó a 5 pestañas), commits y PR. Escenarios en memoria (se pierden al recargar). Sin exportar el libro de Excel formulado ni Monte Carlo.
+- **Libro de Excel** con la estructura del prompt: Resumen, Supuestos, Flujo, Data histórica, Fuentes y Control de calidad. Las fórmulas están conectadas a Supuestos; recalculado con LibreOffice, da lo mismo que la app y los 10 controles salen en OK. Se escribe con ExcelJS (nueva dependencia, cargada al exportar), porque la versión libre de SheetJS no escribe estilos.
+- **UX** (revisada en el navegador a 1440 y 390 px):
+  - columna lateral fija con la decisión, los indicadores y «Descargar Excel» (en móvil va arriba del formulario);
+  - montos con separador de miles al salir del campo;
+  - rubros compactos;
+  - tabla con la primera columna fija y los subtotales marcados.
+- **Revisiones:** GPT (Codex) y ponytail. Ver la entrada de revisión más abajo.
+- Queda:
+  - los escenarios viven en memoria y se pierden al recargar;
+  - no hay simulación de Monte Carlo;
+  - **paso futuro:** un botón con el prompt estándar para buscar la data histórica (DANE, SICOM, Aerocivil). El borrador del prompt está en `docs/09-plan-plataforma.md`, M10.
 
 ### Pendientes menores tras el lanzamiento (2026-11-16)
 
