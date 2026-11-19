@@ -221,6 +221,16 @@ Pregunta: «¿Puedo predecir un sí/no?»
 | 5. Evaluación               | Supuestos, R², residuos, tamaño del efecto, matriz de confusión                                    | Lista de verificación con semáforo |
 | 6. Despliegue               | Informe final y exportación                                                                        | El PDF o XLSX final                |
 
+### M10 (añadido el 2026-11-18) · ¿Es mi proyecto rentable?
+
+Pregunta: «¿Vale la pena invertir?» Fuera de la electiva de datos, pedido por Juan a partir de la clase de evaluación de proyectos (RF-57).
+
+- Cálculo en `src/core/finance/cash-flow.ts`; formulario, escenarios y pantalla en `src/features/profitability`. Es una quinta zona, «Rentable», que no depende del dataset.
+- Estructura del flujo: ingresos (Q × P) − rubros de costo = EBITDA − depreciación = EBIT − intereses = utilidad antes de impuestos − renta (cero con pérdida) = utilidad neta + depreciación + venta de activos + capital de trabajo − inversión = flujo de caja.
+- Interpretación primero (ADR-004) con los criterios de clase («VPN negativo no quiere decir pérdida»). El paso a paso trae las fórmulas de Excel (SLN, PAGO, VNA, TIR) sobre la tabla copiada.
+- Tests: reproduce el Excel del profesor año por año y carga el ejemplo del prompt de transporte turístico.
+- Fuera de alcance: libro de Excel formulado con hojas de supuestos, data histórica y fuentes; simulación de Monte Carlo (como @Risk); guardar los escenarios al recargar.
+
 ### Añadidos menores, justificados
 
 - **Tamaño de muestra** (M4): pregunta frecuente antes de recoger datos.

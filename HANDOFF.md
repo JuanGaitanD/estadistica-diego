@@ -20,6 +20,24 @@ Plan aprobado por Juan el 2026-11-16: `docs/09-plan-plataforma.md` (alcance M0�
 | F6 · Múltiple, polinómica y logística                                  | **Cerrada** (2026-11-16) |
 | F7 · Modo guiado CRISP-DM y cierre                                     | **Cerrada** (2026-11-16) |
 
+### ¿Es mi proyecto rentable? (2026-11-18)
+
+Pedido por Juan; no es de la electiva de datos. Rama `feat/rentabilidad-flujo-caja`, sin commits ni push todavía. Requisito RF-57 y módulo M10 en `docs/09-plan-plataforma.md`.
+
+- Quinta zona «Rentable» (`/app#rentabilidad`), sin necesidad de datos cargados. Núcleo en `src/core/finance`, pantalla en `src/features/profitability`, gráfica en `components/charts/cash-flow-chart.tsx`.
+- Flujo de caja a N años con:
+  - rubros de costo fijos, por unidad o como % de los ingresos;
+  - activos comprados en cualquier año;
+  - tres tipos de préstamo;
+  - venta de activos con ganancia ocasional;
+  - capital de trabajo;
+  - hasta 6 escenarios con tabla comparativa.
+- Indicadores: VPN, TIR, payback simple y descontado, B/C, EBITDA y margen EBITDA, y promedios. Decisión «Aceptar / Revisar supuestos / Rechazar o rediseñar», como pide el prompt del profesor; «revisar» = VPN positivo con payback de más de dos tercios del horizonte.
+- Dos ejemplos para cargar:
+  - Café Cordillera, del Excel del profesor; el test lo reproduce exacto: VPN −$28.358.291,51 y TIR 15,0604 %.
+  - Transporte turístico en Pereira, del prompt del profesor: 10 vehículos, sin deuda, 10 años al 10 %. Sus cifras son **referenciales** (precio del vehículo, tarifa, nómina, seguros); no salen de fuentes consultadas.
+- Queda: revisión visual a 1440 y 390 px (la barra de zonas pasó a 5 pestañas), commits y PR. Escenarios en memoria (se pierden al recargar). Sin exportar el libro de Excel formulado ni Monte Carlo.
+
 ### Pendientes menores tras el lanzamiento (2026-11-16)
 
 Pedidos por Juan después de publicar. Rama `feat/menores-post-lanzamiento`, un solo PR contra `main`. Cada punto lleva sus tests y sus valores de referencia de R, Excel o la literatura.

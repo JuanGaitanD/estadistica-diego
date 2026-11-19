@@ -274,6 +274,17 @@ Detalle de cada módulo, pantallas y fases en `docs/09-plan-plataforma.md`.
 - **RF-55** La regresión se exporta también a XLSX con fórmulas de Excel vivas para verificar el cálculo.
 - **RF-56** El PDF debe pesar menos de 5 MB en un análisis típico.
 
+### Evaluación de proyectos (añadido el 2026-11-18, fuera de la electiva de datos)
+
+- **RF-57** Zona «¿Es mi proyecto rentable?» (`/app#rentabilidad`, no necesita datos cargados): flujo de caja proyectado a N años (1 a 50), con VPN, TIR, payback simple y descontado, relación beneficio/costo, EBITDA promedio, margen EBITDA, utilidad neta y flujo promedio. Debe permitir:
+  - demanda escrita, con crecimiento fijo desde el año 1 o proyectada con la recta de mínimos cuadrados sobre ventas históricas;
+  - rubros de costo fijos, por unidad o como % de los ingresos (comisiones), con crecimiento anual de precios y costos;
+  - inversiones en cualquier año, con depreciación en línea recta por activo, venta al final con impuesto de ganancia ocasional y capital de trabajo que se recupera en el año N;
+  - préstamos de cuota fija, de intereses anuales con capital al final, o capitalizables; solo sus intereses entran al flujo. Sin préstamos queda el flujo libre no apalancado;
+  - hasta 6 escenarios comparables, con la decisión «Aceptar», «Revisar supuestos» (VPN positivo con payback de más de dos tercios del horizonte) o «Rechazar o rediseñar».
+
+  Casos de referencia: el Excel del profesor (Café Cordillera: VPN al 20 % = −$28.358.291,51 y TIR = 15,0604 %) y el prompt de evaluación de proyectos (10 vehículos de transporte turístico en Pereira, sin deuda, 10 años al 10 %).
+
 ### Caso de prueba de referencia (clase de regresión)
 
 X = 1, 2, 3, 4, 5 e Y = 3, 3, 4, 5, 5 (n = 5, ΣX = 15, ΣX² = 55, ΣY = 20, ΣXY = 66; contiene el punto X = 1, Y = 3 de la nota). Debe dar b1 = 0,6, b0 = 2,2, SCE = 0,4, SCT = 4, R² = 0,9 y R ≈ 0,948683.
