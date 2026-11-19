@@ -1,6 +1,6 @@
 # HANDOFF · StatLab
 
-Estado del trabajo. Última actualización: 2026-11-16 (plataforma en producción desde `main` = `5609ef7`; los pendientes menores, en `feat/menores-post-lanzamiento` con un PR a `main` sin fusionar).
+Estado del trabajo. Última actualización: 2026-11-18 (producción se despliega sola desde `main`; la zona «Rentable» va en `feat/rentabilidad-flujo-caja`, con su PR a `main`).
 
 ## Plataforma (desde 2026-11-16): de calculadora descriptiva a «estadística que se entiende»
 
@@ -284,15 +284,15 @@ Palotes de conteo sobre placa ciruela: `src/app/icon1.svg` (SVG), `icon2.png` (3
 
 ## Dónde estamos
 
-La plataforma del plan `docs/09-plan-plataforma.md` está en producción en https://estadistica.juandgaitan.com. La pila de 26 PR se fusionó en `main` (`5609ef7`) y se desplegó como `dpl_ER4YTWQqMbaxGiB4Ja2popHSftJQ` el 2026-11-16. Los pendientes menores están en `feat/menores-post-lanzamiento`, con un PR a `main` que espera la aprobación de Juan para fusionarse.
+La plataforma del plan `docs/09-plan-plataforma.md` está en producción en https://estadistica.juandgaitan.com. La pila de 26 PR se fusionó en `main` (`5609ef7`) y se desplegó como `dpl_ER4YTWQqMbaxGiB4Ja2popHSftJQ` el 2026-11-16. Los pendientes menores se fusionaron con el PR #27. La zona «Rentable» (evaluación de proyectos, RF-57 y M10) va en `feat/rentabilidad-flujo-caja`; Juan pidió fusionarla y desplegarla el 2026-11-18.
 
-- Portada en `/` y aplicación en `/app` con las zonas Datos, Explorar, Analizar e Informe y el modo guiado CRISP-DM.
+- Portada en `/` y aplicación en `/app` con las zonas Datos, Explorar, Analizar, Informe y Rentable, y el modo guiado CRISP-DM.
 - La interpretación va primero en todos los módulos; el paso a paso, con fórmulas y su equivalente en Excel, queda tras «Ver cómo se calculó» (ADR-004).
 - El motor está validado contra R y Excel en las pruebas de cálculo.
 - Next.js actualizado a 16.4.6 por un aviso de seguridad.
 - La dirección visual sigue siendo el «cuaderno de laboratorio de estadística» de `docs/05-diseno.md` (decisión del 2026-11-12).
 
-**Lo que sigue, si Juan lo aprueba:** fusionar el PR de los pendientes menores; producción se despliega sola desde `main`.
+**Lo que sigue:** el botón con el prompt estándar para buscar la data histórica (M10, paso futuro), guardar los escenarios al recargar y, si Juan lo pide, Monte Carlo.
 
 Pendientes menores anotados en cada fase:
 
