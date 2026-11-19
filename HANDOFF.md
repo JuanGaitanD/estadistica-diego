@@ -42,7 +42,16 @@ Pedido por Juan; no es de la electiva de datos. Rama `feat/rentabilidad-flujo-ca
   - montos con separador de miles al salir del campo;
   - rubros compactos;
   - tabla con la primera columna fija y los subtotales marcados.
-- **Revisiones:** GPT (Codex) y ponytail. Ver la entrada de revisión más abajo.
+- **Revisiones (2026-11-18):**
+  - **GPT (Codex, `gpt-6-luna`):** no encontró errores de cálculo en el caso de referencia ni en los bordes (tasa 0, horizonte 1, demanda 0, compras en el año N, préstamos más largos que el horizonte). Arreglado, con test:
+    - los avisos del formulario ya no pasan de un escenario a otro;
+    - aviso cuando faltan años entre el último dato histórico y el proyecto;
+    - vida útil entera;
+    - la gráfica aclara que la línea es la recuperación descontada.
+
+    Queda anotado: la TIR se busca en una rejilla de 0,5 puntos. Con flujos de varios cambios de signo, la app ya advierte que puede haber más de una TIR y que se decida con el VPN.
+
+  - **Ponytail:** `percent` duplicado en el panel, ya reusado del core. Queda anotado que hay dos librerías de XLSX: SheetJS lee archivos y ExcelJS escribe el libro con estilos. Se podría quitar SheetJS si la lectura pasa a ExcelJS.
 - Queda:
   - los escenarios viven en memoria y se pierden al recargar;
   - no hay simulación de Monte Carlo;
