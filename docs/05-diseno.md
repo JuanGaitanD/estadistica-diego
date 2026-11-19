@@ -200,6 +200,12 @@ Usar texto oscuro (`--foreground`) sobre heat-1..heat-3 y texto blanco sobre hea
 └──────────────────────────────────────────────────────────┘
 ```
 
+**Vigente desde el 2026-11-18** (el esquema de arriba es el original del asistente de 5 pasos). Cada cosa en su sitio:
+
+- **Barra superior (sticky):** marca a la izquierda; a la derecha, las acciones globales: «Guíame paso a paso» (en móvil solo el icono), el menú «Proyecto» (Abrir un proyecto… / Guardar en un archivo, deshabilitado con su motivo si no hay datos) y, tras un separador, Ayuda y tema. En «Rentable» no aparecen el modo guiado ni Proyecto, porque no los usa.
+- **Franja de zonas:** las 5 pestañas siempre al ancho mayor (`max-w-[84rem]`), para que no cambien de tamaño al pasar de una zona angosta a una ancha. Las pistas («Carga o escribe») solo se muestran desde `lg`, que es cuando caben.
+- **Contenido:** el título de la zona primero. Los avisos de esa zona van debajo del título; por ejemplo, «Recuperar último análisis» en Datos. En Datos, las dos vías principales (archivo o pegar) van lado a lado, y las alternativas (escribir en una tabla, datos de ejemplo) en una fila «¿Sin archivo a la mano?».
+
 Componentes shadcn: `NavigationMenu`/header simple con `Button` (ghost) para el toggle de tema; Stepper **custom** (no existe en shadcn) construido con `div` + `Progress` + badges numerados usando `Badge`; footer con dos `Button` (variant `outline` y `default`).
 
 ### (b) Paso 1 — Ingreso de datos

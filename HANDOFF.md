@@ -20,6 +20,16 @@ Plan aprobado por Juan el 2026-11-16: `docs/09-plan-plataforma.md` (alcance M0�
 | F6 · Múltiple, polinómica y logística                                  | **Cerrada** (2026-11-16) |
 | F7 · Modo guiado CRISP-DM y cierre                                     | **Cerrada** (2026-11-16) |
 
+### Rediseño de la cabecera del espacio de trabajo (2026-11-18)
+
+Pedido por Juan con una captura: a unos 880 px las pistas de las pestañas se montaban, y «Guíame paso a paso» y «Proyecto» ocupaban dos filas sueltas. Rama `feat/rediseno-cabecera`.
+
+- Las acciones globales pasan a la barra superior: «Guíame paso a paso» y el menú «Proyecto» (Abrir / Guardar), junto a Ayuda y el tema.
+- Las zonas van en su propia franja, siempre al ancho mayor; las pistas solo se ven desde `lg` y ya no se desbordan.
+- «Recuperar último análisis» baja al contenido de Datos, debajo del título.
+- En Datos, las alternativas (tabla y datos de ejemplo) se agrupan en una fila «¿Sin archivo a la mano?».
+- La regla queda en `docs/05-diseno.md` §5a. Se comprobó con capturas a 390, 880 y 1440 px, con el menú abierto y en Rentable. Los 651 tests y ESLint pasan.
+
 ### ¿Es mi proyecto rentable? (2026-11-18)
 
 Pedido por Juan; no es de la electiva de datos. Rama `feat/rentabilidad-flujo-caja`, con commits y sin push. Requisito RF-57 y módulo M10 en `docs/09-plan-plataforma.md`.
