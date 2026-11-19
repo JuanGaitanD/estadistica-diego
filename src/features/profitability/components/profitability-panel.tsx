@@ -120,7 +120,8 @@ export function ProfitabilityPanel() {
             <ScenarioSummary form={active.form} name={active.name} evaluation={activeEvaluation} />
           ) : null}
         </aside>
-        <ProjectForm form={active.form} />
+        {/* `key`: los avisos y el crecimiento escrito son de cada escenario. */}
+        <ProjectForm key={active.id} form={active.form} />
       </div>
 
       {activeEvaluation !== undefined && "result" in activeEvaluation ? (
@@ -376,8 +377,13 @@ function ProjectForm({ form }: { form: ScenarioForm }) {
     const demand = projectDemand(history, years, gap);
     if (demand === null) return;
     patch({ demand: demand.map(String) });
+    const missing = gap - 2; // Lo esperado: el último dato es el año 0 o el anterior.
     setProjection(
-      `Listo: se proyectaron ${years} años con la recta de mínimos cuadrados sobre ${history.length} datos históricos.`,
+      `Listo: se proyectaron ${years} años con la recta de mínimos cuadrados sobre ${history.length} datos históricos.${
+        missing > 0
+          ? ` Ojo: entre el último dato (${lastYear}) y el año 1 (${start + 1}) hay ${missing + 1} años sin datos; la recta se extiende más lejos y la proyección es menos confiable.`
+          : ""
+      }`,
     );
   };
 

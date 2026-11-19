@@ -47,7 +47,7 @@ export function CashFlowChart({ id, rows, labels, actions }: CashFlowChartProps)
     <ChartContainer
       id={id}
       title="Flujo de caja por año y valor presente acumulado"
-      description="Las barras son lo que entra o sale cada año. La línea suma esos flujos en pesos de hoy: cuando cruza el cero, la inversión ya se recuperó."
+      description="Las barras son lo que entra o sale cada año. La línea suma esos flujos en pesos de hoy: cuando cruza el cero, la inversión se recuperó también descontando tu tasa (payback descontado)."
       {...(actions !== undefined ? { actions } : {})}
     >
       <div role="img" aria-label="Gráfica del flujo de caja proyectado" className="h-full w-full">

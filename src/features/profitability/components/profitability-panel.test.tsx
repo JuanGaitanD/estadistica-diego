@@ -69,6 +69,21 @@ describe("ProfitabilityPanel", () => {
     expect((screen.getByLabelText(/Unidades, año 3/) as HTMLInputElement).value).toBe("1210");
   });
 
+  it("los avisos del formulario no pasan de un escenario a otro", () => {
+    render(<ProfitabilityPanel />);
+    fireEvent.click(screen.getByRole("button", { name: /Proyectar/ }));
+    expect(screen.getByText(/^Listo: se proyectaron/)).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /Duplicar como nuevo escenario/ }));
+    expect(screen.queryByText(/^Listo: se proyectaron/)).toBeNull();
+  });
+
+  it("avisa cuando faltan años entre el último dato y el proyecto", () => {
+    render(<ProfitabilityPanel />);
+    fireEvent.change(screen.getByLabelText("Último año con datos"), { target: { value: "2020" } });
+    fireEvent.click(screen.getByRole("button", { name: /Proyectar/ }));
+    expect(screen.getByText(/hay 6 años sin datos/)).toBeTruthy();
+  });
+
   it("proyecta la demanda desde las ventas históricas", () => {
     render(<ProfitabilityPanel />);
     fireEvent.change(screen.getByLabelText(/Unidades, año 1/), { target: { value: "1" } });
