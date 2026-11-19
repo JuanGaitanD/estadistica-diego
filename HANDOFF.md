@@ -1,6 +1,6 @@
 # HANDOFF · StatLab
 
-Estado del trabajo. Última actualización: 2026-11-16 (plataforma en producción desde `main` = `5609ef7`; los pendientes menores, en `feat/menores-post-lanzamiento` con un PR a `main` sin fusionar).
+Estado del trabajo. Última actualización: 2026-11-18 (producción se despliega sola desde `main`; la zona «Rentable» va en `feat/rentabilidad-flujo-caja`, con su PR a `main`).
 
 ## Plataforma (desde 2026-11-16): de calculadora descriptiva a «estadística que se entiende»
 
@@ -19,6 +19,43 @@ Plan aprobado por Juan el 2026-11-16: `docs/09-plan-plataforma.md` (alcance M0�
 | F5 · Pruebas de hipótesis y selector                                   | **Cerrada** (2026-11-16) |
 | F6 · Múltiple, polinómica y logística                                  | **Cerrada** (2026-11-16) |
 | F7 · Modo guiado CRISP-DM y cierre                                     | **Cerrada** (2026-11-16) |
+
+### ¿Es mi proyecto rentable? (2026-11-18)
+
+Pedido por Juan; no es de la electiva de datos. Rama `feat/rentabilidad-flujo-caja`, con commits y sin push. Requisito RF-57 y módulo M10 en `docs/09-plan-plataforma.md`.
+
+- Quinta zona «Rentable» (`/app#rentabilidad`), sin necesidad de datos cargados. Núcleo en `src/core/finance`, pantalla en `src/features/profitability`, gráfica en `components/charts/cash-flow-chart.tsx`.
+- Flujo de caja a N años con:
+  - rubros de costo fijos, por unidad o como % de los ingresos;
+  - activos comprados en cualquier año;
+  - tres tipos de préstamo;
+  - venta de activos con ganancia ocasional;
+  - capital de trabajo;
+  - hasta 6 escenarios con tabla comparativa.
+- Indicadores: VPN, TIR, payback simple y descontado, B/C, EBITDA y margen EBITDA, y promedios. Decisión «Aceptar / Revisar supuestos / Rechazar o rediseñar», como pide el prompt del profesor; «revisar» = VPN positivo con payback de más de dos tercios del horizonte.
+- Dos ejemplos para cargar:
+  - Café Cordillera, del Excel del profesor; el test lo reproduce exacto: VPN −$28.358.291,51 y TIR 15,0604 %.
+  - Transporte turístico en Pereira, del prompt del profesor: 10 vehículos, sin deuda, 10 años al 10 %. Sus cifras son **referenciales** (precio del vehículo, tarifa, nómina, seguros); no salen de fuentes consultadas.
+- **Libro de Excel** con la estructura del prompt: Resumen, Supuestos, Flujo, Data histórica, Fuentes y Control de calidad. Las fórmulas están conectadas a Supuestos; recalculado con LibreOffice, da lo mismo que la app y los 10 controles salen en OK. Se escribe con ExcelJS (nueva dependencia, cargada al exportar), porque la versión libre de SheetJS no escribe estilos.
+- **UX** (revisada en el navegador a 1440 y 390 px):
+  - columna lateral fija con la decisión, los indicadores y «Descargar Excel» (en móvil va arriba del formulario);
+  - montos con separador de miles al salir del campo;
+  - rubros compactos;
+  - tabla con la primera columna fija y los subtotales marcados.
+- **Revisiones (2026-11-18):**
+  - **GPT (Codex, `gpt-6-luna`):** no encontró errores de cálculo en el caso de referencia ni en los bordes (tasa 0, horizonte 1, demanda 0, compras en el año N, préstamos más largos que el horizonte). Arreglado, con test:
+    - los avisos del formulario ya no pasan de un escenario a otro;
+    - aviso cuando faltan años entre el último dato histórico y el proyecto;
+    - vida útil entera;
+    - la gráfica aclara que la línea es la recuperación descontada.
+
+    Queda anotado: la TIR se busca en una rejilla de 0,5 puntos. Con flujos de varios cambios de signo, la app ya advierte que puede haber más de una TIR y que se decida con el VPN.
+
+  - **Ponytail:** `percent` duplicado en el panel, ya reusado del core. Queda anotado que hay dos librerías de XLSX: SheetJS lee archivos y ExcelJS escribe el libro con estilos. Se podría quitar SheetJS si la lectura pasa a ExcelJS.
+- Queda:
+  - los escenarios viven en memoria y se pierden al recargar;
+  - no hay simulación de Monte Carlo;
+  - **paso futuro:** un botón con el prompt estándar para buscar la data histórica (DANE, SICOM, Aerocivil). El borrador del prompt está en `docs/09-plan-plataforma.md`, M10.
 
 ### Pendientes menores tras el lanzamiento (2026-11-16)
 
@@ -247,15 +284,15 @@ Palotes de conteo sobre placa ciruela: `src/app/icon1.svg` (SVG), `icon2.png` (3
 
 ## Dónde estamos
 
-La plataforma del plan `docs/09-plan-plataforma.md` está en producción en https://estadistica.juandgaitan.com. La pila de 26 PR se fusionó en `main` (`5609ef7`) y se desplegó como `dpl_ER4YTWQqMbaxGiB4Ja2popHSftJQ` el 2026-11-16. Los pendientes menores están en `feat/menores-post-lanzamiento`, con un PR a `main` que espera la aprobación de Juan para fusionarse.
+La plataforma del plan `docs/09-plan-plataforma.md` está en producción en https://estadistica.juandgaitan.com. La pila de 26 PR se fusionó en `main` (`5609ef7`) y se desplegó como `dpl_ER4YTWQqMbaxGiB4Ja2popHSftJQ` el 2026-11-16. Los pendientes menores se fusionaron con el PR #27. La zona «Rentable» (evaluación de proyectos, RF-57 y M10) va en `feat/rentabilidad-flujo-caja`; Juan pidió fusionarla y desplegarla el 2026-11-18.
 
-- Portada en `/` y aplicación en `/app` con las zonas Datos, Explorar, Analizar e Informe y el modo guiado CRISP-DM.
+- Portada en `/` y aplicación en `/app` con las zonas Datos, Explorar, Analizar, Informe y Rentable, y el modo guiado CRISP-DM.
 - La interpretación va primero en todos los módulos; el paso a paso, con fórmulas y su equivalente en Excel, queda tras «Ver cómo se calculó» (ADR-004).
 - El motor está validado contra R y Excel en las pruebas de cálculo.
 - Next.js actualizado a 16.4.6 por un aviso de seguridad.
 - La dirección visual sigue siendo el «cuaderno de laboratorio de estadística» de `docs/05-diseno.md` (decisión del 2026-11-12).
 
-**Lo que sigue, si Juan lo aprueba:** fusionar el PR de los pendientes menores; producción se despliega sola desde `main`.
+**Lo que sigue:** el botón con el prompt estándar para buscar la data histórica (M10, paso futuro), guardar los escenarios al recargar y, si Juan lo pide, Monte Carlo.
 
 Pendientes menores anotados en cada fase:
 

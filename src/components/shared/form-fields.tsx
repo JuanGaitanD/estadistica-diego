@@ -60,6 +60,8 @@ export interface NumberFieldProps {
   /** Error a mostrar asociado al campo. */
   error?: string | null;
   className?: string;
+  /** Al salir del campo (por ejemplo, para darle formato al número). */
+  onBlur?: () => void;
 }
 
 /** Campo numérico con etiqueta, teclado decimal en móvil y error asociado. */
@@ -70,6 +72,7 @@ export function NumberField({
   placeholder,
   error = null,
   className,
+  onBlur,
 }: NumberFieldProps) {
   const id = useId();
   const errorId = `${id}-error`;
@@ -82,6 +85,7 @@ export function NumberField({
         autoComplete="off"
         value={value}
         onChange={(event) => onChange(event.target.value)}
+        {...(onBlur !== undefined ? { onBlur } : {})}
         {...(placeholder !== undefined ? { placeholder } : {})}
         aria-invalid={error !== null}
         {...(error !== null ? { "aria-describedby": errorId } : {})}

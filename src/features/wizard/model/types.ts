@@ -11,12 +11,16 @@ import type { AnalysisResult } from "@/features/analysis";
 /** Índice de validación: 0 datos, 1 variables, 2 cálculos, 3 resultados (RF-12). */
 export type StepIndex = 0 | 1 | 2 | 3;
 
-/** Zonas del espacio de trabajo (RF-41), en el orden en que se recorren. */
+/**
+ * Zonas del espacio de trabajo (RF-41), en el orden en que se recorren.
+ * «Rentable» (RF-57) no usa el conjunto de datos: se abre siempre.
+ */
 export const ZONES = [
   { id: "datos", title: "Datos", hint: "Carga o escribe" },
   { id: "explorar", title: "Explorar", hint: "Qué dicen tus datos" },
   { id: "analizar", title: "Analizar", hint: "Responde una pregunta" },
   { id: "informe", title: "Informe", hint: "Junta y exporta" },
+  { id: "rentabilidad", title: "Rentable", hint: "¿Vale la pena?" },
 ] as const;
 
 export type Zone = (typeof ZONES)[number]["id"];

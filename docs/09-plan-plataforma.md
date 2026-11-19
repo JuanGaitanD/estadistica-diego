@@ -221,6 +221,25 @@ Pregunta: «¿Puedo predecir un sí/no?»
 | 5. Evaluación               | Supuestos, R², residuos, tamaño del efecto, matriz de confusión                                    | Lista de verificación con semáforo |
 | 6. Despliegue               | Informe final y exportación                                                                        | El PDF o XLSX final                |
 
+### M10 (añadido el 2026-11-18) · ¿Es mi proyecto rentable?
+
+Pregunta: «¿Vale la pena invertir?» Fuera de la electiva de datos, pedido por Juan a partir de la clase de evaluación de proyectos (RF-57).
+
+- Cálculo en `src/core/finance/cash-flow.ts`; formulario, escenarios y pantalla en `src/features/profitability`. Es una quinta zona, «Rentable», que no depende del dataset.
+- Estructura del flujo: ingresos (Q × P) − rubros de costo = EBITDA − depreciación = EBIT − intereses = utilidad antes de impuestos − renta (cero con pérdida) = utilidad neta + depreciación + venta de activos + capital de trabajo − inversión = flujo de caja.
+- Interpretación primero (ADR-004) con los criterios de clase («VPN negativo no quiere decir pérdida»). El paso a paso trae las fórmulas de Excel (SLN, PAGO, VNA, TIR) sobre la tabla copiada.
+- Tests: reproduce el Excel del profesor año por año y carga el ejemplo del prompt de transporte turístico.
+- Libro de Excel (`use-cases/project-workbook.ts` arma las hojas; `infrastructure/export/workbook-xlsx.ts` las escribe con ExcelJS, cargado al exportar). Las fórmulas se comprobaron recalculando con LibreOffice: dan el mismo flujo, VPN, TIR y paybacks que la app en los dos ejemplos.
+- Fuera de alcance: simulación de Monte Carlo (como @Risk); guardar los escenarios al recargar; cambiar en el Excel el horizonte o la cantidad de rubros, activos y préstamos (se vuelve a exportar).
+
+#### Siguiente paso (futuro): prompt estándar para la data histórica
+
+La hoja «Data histórica» sale vacía a propósito: los datos del DANE, SICOM o el Ministerio de Minas y Energía, la Aerocivil y CITUR son consultas propias de cada caso, y StatLab no envía datos fuera del navegador (RNF-01). La idea es ofrecer en la zona un botón «Copiar prompt para buscar los datos» que arme este texto con los datos del escenario, para que la persona lo pegue en el asistente que use:
+
+> Actúa como analista de datos económicos de Colombia. Necesito series históricas de enero de 2022 a diciembre de 2025 para validar los supuestos de un proyecto de [descripción del proyecto] en [ciudad]. Busca solo en fuentes oficiales o confiables y entrega, en una tabla por serie, con columnas año, mes, valor, unidad, fuente y enlace: (1) la inflación mensual y anual del IPC total nacional (DANE); (2) el precio promedio mensual de [insumo clave, p. ej., gasolina corriente] en [ciudad] (Ministerio de Minas y Energía, SICOM o CREG); si no hay serie de la ciudad, usa la nacional o una ciudad comparable y dilo; (3) [indicador de demanda, p. ej., pasajeros nacionales e internacionales del Aeropuerto Internacional Matecaña] (Aerocivil, CITUR); si solo hay dato anual, entrégalo anual y dilo. No inventes cifras: si un dato no está disponible, déjalo vacío y explica por qué. Al final, agrega una nota metodológica con qué datos son reales y cuáles son proxy.
+
+Los corchetes se llenan con el nombre del escenario y los rubros. Las tablas que devuelva el asistente se pegan en las celdas amarillas de la hoja.
+
 ### Añadidos menores, justificados
 
 - **Tamaño de muestra** (M4): pregunta frecuente antes de recoger datos.

@@ -186,7 +186,7 @@ export const useWizardStore = create<WizardStore>()((set, get) => {
     },
 
     zoneBlockedReason: (zone) => {
-      if (zone === "datos" || zone === "informe") return null;
+      if (zone === "datos" || zone === "informe" || zone === "rentabilidad") return null;
       const state = get();
       for (const step of [0, 1] as const) {
         const verdict = canProceedPure(state, step);
