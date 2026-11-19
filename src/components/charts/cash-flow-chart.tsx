@@ -70,7 +70,12 @@ export function CashFlowChart({ id, rows, labels, actions }: CashFlowChartProps)
               ]}
             />
             <Legend {...LEGEND_PROPS} />
-            <Bar dataKey="netFlow" name="Flujo neto" isAnimationActive={false}>
+            <Bar
+              dataKey="netFlow"
+              name="Flujo neto"
+              fill={getCategoricalColor(0)}
+              isAnimationActive={false}
+            >
               {data.map((datum) => (
                 <Cell
                   key={datum.label}

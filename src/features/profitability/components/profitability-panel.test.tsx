@@ -16,7 +16,12 @@ describe("ProfitabilityPanel", () => {
       screen.getByText(/^No se recomienda: a una tasa de oportunidad del 20,00 %/),
     ).toBeTruthy();
     expect(screen.getAllByText("−$28.358.292").length).toBeGreaterThan(0);
-    expect(screen.getByText("15,06 %")).toBeTruthy();
+    expect(screen.getAllByText("15,06 %").length).toBeGreaterThan(0);
+    expect(
+      within(screen.getByRole("complementary", { name: "Resumen del escenario" })).getByText(
+        "Rechazar o rediseñar",
+      ),
+    ).toBeTruthy();
     expect(screen.getByRole("table", { name: "Flujo de caja proyectado por año" })).toBeTruthy();
   });
 
@@ -46,7 +51,7 @@ describe("ProfitabilityPanel", () => {
 
   it("carga el ejemplo de transporte turístico: sin deuda, 10 años al 10 %", () => {
     render(<ProfitabilityPanel />);
-    fireEvent.click(screen.getByRole("button", { name: /Cargar ejemplo: Transporte/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Transporte turístico/ }));
     expect(screen.queryByRole("alert")).toBeNull();
     expect(screen.getByText(/a una tasa (de oportunidad )?del 10,00 %/)).toBeTruthy();
     const table = screen.getByRole("table", { name: "Flujo de caja proyectado por año" });

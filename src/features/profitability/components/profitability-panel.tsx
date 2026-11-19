@@ -1,7 +1,8 @@
 "use client";
 
-import { Copy, Plus, RotateCcw, Trash2, TrendingUp } from "lucide-react";
+import { Copy, FileSpreadsheet, Plus, RotateCcw, Trash2, TrendingUp } from "lucide-react";
 import { useId, useMemo, useState, type ReactNode } from "react";
+import { toast } from "sonner";
 
 import { CashFlowChart } from "@/components/charts/cash-flow-chart";
 import { StepHeader } from "@/components/layout/step-header";
@@ -23,6 +24,7 @@ import {
   describeCashFlow,
   formatMoney,
   LOAN_KINDS,
+  percent,
   projectCashFlow,
   projectDemand,
   validateCashFlowInput,
@@ -35,7 +37,7 @@ import {
 } from "@/core/finance";
 import { formatValue } from "@/core/statistics/interpretation/text";
 import { ChartDownloadButton, CopyButton } from "@/features/export";
-import { tableToTsv } from "@/infrastructure/export";
+import { buildWorkbookXlsx, downloadBlob, tableToTsv } from "@/infrastructure/export";
 import { cn } from "@/lib/utils";
 
 import {
@@ -53,6 +55,7 @@ import {
   type ScenarioForm,
 } from "../model/scenario";
 import { MAX_SCENARIOS, useScenariosStore } from "../store/scenarios-store";
+import { buildProjectWorkbook, type ProjectWorkbookArgs } from "../use-cases/project-workbook";
 
 const CHART_ID = "chart-flujo-de-caja";
 
@@ -66,7 +69,13 @@ function evaluate(form: ScenarioForm): Evaluation {
   return error !== null ? { error } : { input, result: projectCashFlow(input) };
 }
 
-const percent = (value: number): string => `${formatValue(value * 100, 2)} %`;
+/** «150000000» → «150.000.000»; deja el texto como está si no es un número. */
+function withThousands(text: string): string {
+  const value = readNumber(text);
+  return value === null
+    ? text
+    : new Intl.NumberFormat("es-CO", { maximumFractionDigits: 2 }).format(value);
+}
 
 const yearsOrNot = (value: number | null): string =>
   value !== null ? `${formatValue(value, 1)} años` : "No se recupera";
@@ -104,17 +113,77 @@ export function ProfitabilityPanel() {
         <ComparisonTable scenarios={scenarios} evaluations={evaluations} />
       ) : null}
 
-      <ProjectForm form={active.form} />
-
-      {activeEvaluation !== undefined && "error" in activeEvaluation ? (
-        <p role="alert" className="text-destructive text-sm font-semibold">
-          {activeEvaluation.error}
-        </p>
-      ) : null}
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+        {/* Antes del formulario en el DOM: en móvil el veredicto se ve primero. */}
+        <aside aria-label="Resumen del escenario" className="lg:sticky lg:top-24 lg:order-last">
+          {activeEvaluation !== undefined ? (
+            <ScenarioSummary form={active.form} name={active.name} evaluation={activeEvaluation} />
+          ) : null}
+        </aside>
+        <ProjectForm form={active.form} />
+      </div>
 
       {activeEvaluation !== undefined && "result" in activeEvaluation ? (
         <Results form={active.form} name={active.name} {...activeEvaluation} />
       ) : null}
+    </div>
+  );
+}
+
+/** Resumen siempre a la vista mientras se editan los supuestos. */
+function ScenarioSummary({
+  form,
+  name,
+  evaluation,
+}: {
+  form: ScenarioForm;
+  name: string;
+  evaluation: Evaluation;
+}) {
+  if ("error" in evaluation)
+    return (
+      <div className="border-rule bg-card flex flex-col gap-2 rounded-[var(--radius)] border p-5">
+        <h2 className="font-semibold">Faltan datos</h2>
+        <p role="alert" className="text-destructive text-sm font-semibold">
+          {evaluation.error}
+        </p>
+      </div>
+    );
+  const { input, result } = evaluation;
+  const items: readonly [string, string][] = [
+    [`VPN al ${percent(input.discountRate)}`, formatMoney(result.npv)],
+    ["TIR", result.irr !== null ? percent(result.irr) : "No se puede calcular"],
+    ["Payback simple", yearsOrNot(result.payback)],
+    ["Payback descontado", yearsOrNot(result.discountedPayback)],
+  ];
+  return (
+    <div className="border-rule bg-card flex flex-col gap-4 rounded-[var(--radius)] border p-5">
+      <div className="flex flex-col gap-1">
+        <h2 className="sl-label">Decisión sugerida</h2>
+        <p
+          className={cn(
+            "text-2xl font-bold",
+            result.verdict === "no-rentable" ? "text-destructive" : "text-primary",
+          )}
+        >
+          {VERDICT_LABELS[result.verdict]}
+        </p>
+      </div>
+      <dl className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-2 text-sm">
+        {items.map(([label, value]) => (
+          <div key={label} className="contents">
+            <dt className="text-muted-foreground">{label}</dt>
+            <dd className="sl-number text-right font-semibold">{value}</dd>
+          </div>
+        ))}
+      </dl>
+      <ExcelDownload name={name} form={form} input={input} result={result} />
+      <a
+        href="#resultados"
+        className="text-primary text-sm font-semibold underline-offset-4 hover:underline"
+      >
+        Ver el análisis completo
+      </a>
     </div>
   );
 }
@@ -126,6 +195,7 @@ function ScenarioBar({ scenarios, active }: { scenarios: readonly Scenario[]; ac
   const rename = useScenariosStore((state) => state.rename);
   const loadExample = useScenariosStore((state) => state.loadExample);
   const nameId = useId();
+  const examplesId = useId();
 
   return (
     <section aria-label="Escenarios" className="flex flex-col gap-4">
@@ -161,17 +231,26 @@ function ScenarioBar({ scenarios, active }: { scenarios: readonly Scenario[]; ac
             onChange={(event) => rename(active.id, event.target.value)}
           />
         </div>
-        {EXAMPLES.map((example) => (
-          <Button
-            key={example.id}
-            type="button"
-            variant="ghost"
-            onClick={() => loadExample(example.id)}
-          >
-            <RotateCcw aria-hidden="true" />
-            Cargar ejemplo: {example.label}
-          </Button>
-        ))}
+        <div
+          role="group"
+          aria-labelledby={examplesId}
+          className="flex flex-wrap items-center gap-1"
+        >
+          <span id={examplesId} className="text-muted-foreground text-sm">
+            Cargar un ejemplo:
+          </span>
+          {EXAMPLES.map((example) => (
+            <Button
+              key={example.id}
+              type="button"
+              variant="ghost"
+              onClick={() => loadExample(example.id)}
+            >
+              <RotateCcw aria-hidden="true" />
+              {example.label}
+            </Button>
+          ))}
+        </div>
         {scenarios.length > 1 ? (
           <Button type="button" variant="ghost" onClick={() => remove(active.id)}>
             <Trash2 aria-hidden="true" />
@@ -275,6 +354,10 @@ function ProjectForm({ form }: { form: ScenarioForm }) {
     value: form[key] as string,
     onChange: (text: string) => patch({ [key]: text }),
   });
+  const moneyField = (key: keyof ScenarioForm) => ({
+    ...field(key),
+    onBlur: () => patch({ [key]: withThousands(form[key] as string) }),
+  });
 
   const project = (): void => {
     const history = parseHistory(form.history);
@@ -319,7 +402,7 @@ function ProjectForm({ form }: { form: ScenarioForm }) {
       >
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <NumberField label="Horizonte (años)" {...field("years")} />
-          <NumberField label="Año 0 (año calendario de la inversión)" {...field("startYear")} />
+          <NumberField label="Año 0 (año calendario)" {...field("startYear")} />
           <NumberField label="Tasa de oportunidad, TMAR (%)" {...field("discountRate")} />
           <NumberField label="Impuesto de renta (%)" {...field("taxRate")} />
           <NumberField label="Impuesto de ganancia ocasional (%)" {...field("gainTaxRate")} />
@@ -343,7 +426,7 @@ function ProjectForm({ form }: { form: ScenarioForm }) {
               Proyectar
             </Button>
           </div>
-          <div className="grid gap-4 sm:grid-cols-[14rem_auto] sm:items-end sm:justify-start">
+          <div className="grid gap-4 sm:grid-cols-[18rem_auto] sm:items-end sm:justify-start">
             <NumberField
               label="Crecimiento anual de la demanda (%)"
               value={growth}
@@ -378,7 +461,7 @@ function ProjectForm({ form }: { form: ScenarioForm }) {
       >
         <div className="flex flex-col gap-5">
           <div className="grid gap-4 sm:grid-cols-3">
-            <NumberField label="Precio de venta por unidad ($)" {...field("price")} />
+            <NumberField label="Precio de venta por unidad ($)" {...moneyField("price")} />
             <NumberField label="Crecimiento anual del precio (%)" {...field("priceGrowth")} />
             <NumberField label="Crecimiento anual de los costos (%)" {...field("costGrowth")} />
           </div>
@@ -387,6 +470,7 @@ function ProjectForm({ form }: { form: ScenarioForm }) {
             noun="rubro"
             empty={EMPTY_COST}
             layout="lg:grid-cols-[2fr_1fr_1fr_auto]"
+            compact
             onChange={(costs) => patch({ costs })}
             render={(cost, update, index) => (
               <>
@@ -405,6 +489,9 @@ function ProjectForm({ form }: { form: ScenarioForm }) {
                   label={cost.kind === "porcentaje" ? "% de los ingresos" : "Monto del año 1 ($)"}
                   value={cost.amount}
                   onChange={(amount) => update({ amount })}
+                  onBlur={() =>
+                    cost.kind !== "porcentaje" && update({ amount: withThousands(cost.amount) })
+                  }
                 />
               </>
             )}
@@ -418,7 +505,7 @@ function ProjectForm({ form }: { form: ScenarioForm }) {
       >
         <div className="flex flex-col gap-5">
           <div className="max-w-xs">
-            <NumberField label="Capital de trabajo ($)" {...field("workingCapital")} />
+            <NumberField label="Capital de trabajo ($)" {...moneyField("workingCapital")} />
           </div>
           <RowList
             items={form.assets}
@@ -436,6 +523,7 @@ function ProjectForm({ form }: { form: ScenarioForm }) {
                   label="Valor ($)"
                   value={asset.value}
                   onChange={(value) => update({ value })}
+                  onBlur={() => update({ value: withThousands(asset.value) })}
                 />
                 <NumberField
                   label="Año de compra"
@@ -451,6 +539,7 @@ function ProjectForm({ form }: { form: ScenarioForm }) {
                   label="Valor comercial al final ($)"
                   value={asset.salvage}
                   onChange={(salvage) => update({ salvage })}
+                  onBlur={() => update({ salvage: withThousands(asset.salvage) })}
                 />
               </>
             )}
@@ -460,12 +549,13 @@ function ProjectForm({ form }: { form: ScenarioForm }) {
 
       <SectionCard
         title="Financiación"
-        description="Préstamos y aportes con su tasa efectiva anual. Al flujo de caja pasan sus intereses, antes de impuestos."
+        description="Préstamos y aportes con su tasa efectiva anual (E.A.). Al flujo de caja pasan solo sus intereses, antes de impuestos. Cuota fija: cuotas iguales. Intereses cada año: el capital se paga al final. Todo al final: el interés se suma al saldo y se paga todo en la última cuota. Sin préstamos, el flujo es libre (sin deuda)."
       >
         <RowList
           items={form.loans}
           noun="préstamo"
           empty={EMPTY_LOAN}
+          layout="lg:grid-cols-[2fr_2fr_repeat(3,1fr)_auto]"
           onChange={(loans) => patch({ loans })}
           render={(loan, update, index) => (
             <>
@@ -484,9 +574,10 @@ function ProjectForm({ form }: { form: ScenarioForm }) {
                 label="Monto ($)"
                 value={loan.amount}
                 onChange={(amount) => update({ amount })}
+                onBlur={() => update({ amount: withThousands(loan.amount) })}
               />
               <NumberField
-                label="Tasa efectiva anual (%)"
+                label="Tasa E.A. (%)"
                 value={loan.rate}
                 onChange={(rate) => update({ rate })}
               />
@@ -527,6 +618,7 @@ function RowList<T extends AssetForm | CostForm | LoanForm>({
   noun,
   empty,
   layout = "lg:grid-cols-[2fr_repeat(4,1fr)_auto]",
+  compact = false,
   onChange,
   render,
 }: {
@@ -535,6 +627,8 @@ function RowList<T extends AssetForm | CostForm | LoanForm>({
   empty: T;
   /** Columnas en pantallas grandes (clase de Tailwind). */
   layout?: string;
+  /** En pantallas grandes, filas sin tarjeta y con las etiquetas visibles solo en la primera. */
+  compact?: boolean;
   onChange: (items: T[]) => void;
   render: (item: T, update: (patch: Partial<T>) => void, index: number) => ReactNode;
 }) {
@@ -545,6 +639,8 @@ function RowList<T extends AssetForm | CostForm | LoanForm>({
           key={index}
           className={cn(
             "border-rule grid gap-4 rounded-[var(--radius)] border p-4 sm:grid-cols-2 lg:items-end",
+            compact && "lg:rounded-none lg:border-x-0 lg:border-t-0 lg:px-0 lg:py-2",
+            compact && index > 0 && "lg:[&_label]:sr-only",
             layout,
           )}
         >
@@ -594,7 +690,7 @@ function Results({
   const table = cashFlowTable(input, result);
 
   return (
-    <div className="flex flex-col gap-8">
+    <div id="resultados" className="flex scroll-mt-6 flex-col gap-8">
       <InterpretationPanel
         title="¿Se recomienda el proyecto?"
         name={name}
@@ -743,6 +839,44 @@ function Results({
   );
 }
 
+/** «Café Cordillera (clase)» → `cafe_cordillera_clase`. */
+const slug = (text: string): string =>
+  text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_|_$/g, "") || "proyecto";
+
+/** Libro de Excel con Resumen, Supuestos, Flujo, Data histórica, Fuentes y Control de calidad. */
+function ExcelDownload(args: ProjectWorkbookArgs) {
+  const [busy, setBusy] = useState(false);
+  const download = async (): Promise<void> => {
+    setBusy(true);
+    try {
+      const blob = await buildWorkbookXlsx(buildProjectWorkbook(args));
+      downloadBlob(blob, `flujo_caja_${slug(args.name)}.xlsx`);
+      toast.success("Descargaste el libro de Excel del proyecto.");
+    } catch {
+      toast.error("No se pudo crear el libro de Excel.");
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="flex flex-col gap-2">
+      <Button type="button" onClick={() => void download()} disabled={busy}>
+        <FileSpreadsheet aria-hidden="true" />
+        {busy ? "Creando el libro…" : "Descargar Excel"}
+      </Button>
+      <p className="text-muted-foreground text-xs">
+        Resumen, supuestos editables, flujo con fórmulas, data histórica, fuentes y control de
+        calidad.
+      </p>
+    </div>
+  );
+}
+
 function MoneyTable({
   caption,
   columns,
@@ -774,8 +908,19 @@ function MoneyTable({
         </thead>
         <tbody>
           {rows.map((row, rowIndex) => (
-            <tr key={rowIndex} className={row.strong ? "font-bold" : undefined}>
-              <th scope="row" className="px-3 py-1.5 text-left font-[inherit] whitespace-nowrap">
+            <tr
+              key={rowIndex}
+              className={
+                row.strong ? "bg-muted border-rule border-t font-bold" : "bg-card font-normal"
+              }
+            >
+              <th
+                scope="row"
+                className={cn(
+                  "sticky left-0 min-w-[11rem] bg-inherit px-3 py-1.5 text-left sm:whitespace-nowrap",
+                  row.strong ? "font-bold" : "font-normal",
+                )}
+              >
                 {row.label}
               </th>
               {row.values.map((value, index) => (
@@ -786,7 +931,15 @@ function MoneyTable({
                     value < -0.5 && "text-destructive",
                   )}
                 >
-                  {row.units ? formatValue(value, 0) : formatMoney(value)}
+                  {Math.abs(value) < 0.5 ? (
+                    <span className="text-muted-foreground" aria-label="cero">
+                      —
+                    </span>
+                  ) : row.units ? (
+                    formatValue(value, 0)
+                  ) : (
+                    formatMoney(value)
+                  )}
                 </td>
               ))}
             </tr>

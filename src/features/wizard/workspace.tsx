@@ -161,15 +161,18 @@ export function Workspace() {
               if (isZone(id)) goToZone(id);
             }}
           />
-          <div className="flex flex-wrap items-center justify-end gap-3">
-            {guidedActive ? null : (
-              <Button type="button" variant="ghost" onClick={startGuided}>
-                <Compass aria-hidden="true" />
-                Guíame paso a paso
-              </Button>
-            )}
-            <ProjectActions />
-          </div>
+          {/* El modo guiado y el proyecto son del análisis de datos; «Rentable» no los usa. */}
+          {zone === "rentabilidad" ? null : (
+            <div className="flex flex-wrap items-center justify-end gap-3">
+              {guidedActive ? null : (
+                <Button type="button" variant="ghost" onClick={startGuided}>
+                  <Compass aria-hidden="true" />
+                  Guíame paso a paso
+                </Button>
+              )}
+              <ProjectActions />
+            </div>
+          )}
         </div>
 
         <GuidedBar />
