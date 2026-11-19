@@ -232,7 +232,8 @@ export function validateCashFlowInput(input: CashFlowInput): string | null {
     if (asset.salvage < 0) return `El valor comercial de ${name} no puede ser negativo.`;
     if (!Number.isInteger(asset.year) || asset.year < 0 || asset.year > years)
       return `El año de compra de ${name} debe ser un entero entre 0 y ${years}.`;
-    if (asset.life <= 0) return `La vida útil de ${name} debe ser mayor que cero.`;
+    if (!Number.isInteger(asset.life) || asset.life < 1)
+      return `La vida útil de ${name} debe ser un número entero de años, 1 o más.`;
   }
   for (const loan of input.loans) {
     const name = loan.name.trim() || "un préstamo";

@@ -148,6 +148,12 @@ describe("validateCashFlowInput", () => {
     expect(
       validateCashFlowInput({
         ...CORDILLERA,
+        assets: [{ name: "Horno", value: 10, year: 0, life: 2.5, salvage: 0 }],
+      }),
+    ).toMatch(/vida útil de Horno.*entero/);
+    expect(
+      validateCashFlowInput({
+        ...CORDILLERA,
         loans: [{ name: "Banco", kind: "cuota-fija", amount: 10, rate: 0.1, term: 0 }],
       }),
     ).toMatch(/plazo de Banco/);
