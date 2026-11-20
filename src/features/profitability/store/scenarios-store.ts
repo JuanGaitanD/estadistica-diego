@@ -6,7 +6,7 @@
 import { create } from "zustand";
 
 import {
-  CAFE_FORM,
+  emptyForm,
   EXAMPLES,
   resizeDemand,
   type ExampleId,
@@ -32,7 +32,8 @@ interface ScenariosState {
 let counter = 1;
 const nextId = (): string => `escenario-${(counter += 1)}`;
 
-const initial: Scenario = { id: "escenario-1", name: "Escenario base", form: CAFE_FORM };
+// Arranca en blanco: los ejemplos se cargan a pedido.
+const initial: Scenario = { id: "escenario-1", name: "Escenario base", form: emptyForm() };
 
 export const useScenariosStore = create<ScenariosState>((set, get) => ({
   scenarios: [initial],

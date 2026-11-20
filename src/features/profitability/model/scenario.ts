@@ -10,6 +10,8 @@ export interface AssetForm {
   readonly value: string;
   readonly year: string;
   readonly life: string;
+  /** Valor residual contable: lo que no se deprecia. */
+  readonly residual: string;
   readonly salvage: string;
 }
 
@@ -45,7 +47,8 @@ export interface ScenarioForm {
   readonly workingCapital: string;
   readonly taxRate: string;
   readonly gainTaxRate: string;
-  readonly discountRate: string;
+  /** Rentabilidad exigida por los socios (TIO), en %. */
+  readonly equityRate: string;
   readonly assets: readonly AssetForm[];
   readonly loans: readonly LoanForm[];
 }
@@ -73,16 +76,24 @@ export const CAFE_FORM: ScenarioForm = {
   workingCapital: "20.000.000",
   taxRate: "35",
   gainTaxRate: "15",
-  discountRate: "20",
+  equityRate: "20",
   assets: [
     {
       name: "Maquinaria (tostadora y empacadora)",
       value: "150.000.000",
       year: "0",
       life: "10",
+      residual: "0",
       salvage: "90.000.000",
     },
-    { name: "Adecuación de la planta", value: "30.000.000", year: "0", life: "5", salvage: "0" },
+    {
+      name: "Adecuación de la planta",
+      value: "30.000.000",
+      year: "0",
+      life: "5",
+      residual: "0",
+      salvage: "0",
+    },
   ],
   loans: [
     { name: "Préstamo del banco", kind: "cuota-fija", amount: "80.000.000", rate: "14", term: "4" },
@@ -93,11 +104,61 @@ export const CAFE_FORM: ScenarioForm = {
       rate: "10",
       term: "5",
     },
+  ],
+};
+
+/**
+ * Ejercicio de clase: ampliación del taller de Confecciones Otún S.A.S.
+ * (Pereira), con préstamo del banco, préstamo de los socios y su aporte.
+ */
+export const OTUN_FORM: ScenarioForm = {
+  years: "5",
+  startYear: "2025",
+  demand: ["27240", "29100", "30960", "32820", "34680"],
+  history: "18.000; 19.800; 21.500; 23.600; 25.400",
+  historyLastYear: "2025",
+  price: "65.000",
+  priceGrowth: "0",
+  costs: [
+    { name: "Costos fijos en efectivo", kind: "fijo", amount: "680.000.000" },
+    { name: "Costo variable por unidad", kind: "por-unidad", amount: "38.000" },
+  ],
+  costGrowth: "0",
+  workingCapital: "30.000.000",
+  taxRate: "35",
+  gainTaxRate: "35",
+  equityRate: "22",
+  assets: [
     {
-      name: "Aporte de capital",
-      kind: "capitalizable",
-      amount: "70.000.000",
-      rate: "20",
+      name: "Maquinaria de confección y bordado",
+      value: "180.000.000",
+      year: "0",
+      life: "8",
+      residual: "20.000.000",
+      salvage: "105.000.000",
+    },
+    {
+      name: "Adecuación y montaje del taller",
+      value: "40.000.000",
+      year: "0",
+      life: "5",
+      residual: "0",
+      salvage: "0",
+    },
+  ],
+  loans: [
+    {
+      name: "Préstamo del banco",
+      kind: "cuota-fija",
+      amount: "100.000.000",
+      rate: "15",
+      term: "4",
+    },
+    {
+      name: "Préstamo de los socios",
+      kind: "intereses-anuales",
+      amount: "60.000.000",
+      rate: "11",
       term: "5",
     },
   ],
@@ -141,13 +202,14 @@ export const TRANSPORT_FORM: ScenarioForm = {
   workingCapital: "60.000.000",
   taxRate: "35",
   gainTaxRate: "15",
-  discountRate: "10",
+  equityRate: "10",
   assets: [
     {
       name: "10 vehículos SUV nuevos",
       value: "980.000.000",
       year: "0",
       life: "10",
+      residual: "0",
       salvage: "294.000.000",
     },
     {
@@ -155,6 +217,7 @@ export const TRANSPORT_FORM: ScenarioForm = {
       value: "80.000.000",
       year: "0",
       life: "5",
+      residual: "0",
       salvage: "0",
     },
     {
@@ -162,6 +225,7 @@ export const TRANSPORT_FORM: ScenarioForm = {
       value: "40.000.000",
       year: "0",
       life: "5",
+      residual: "0",
       salvage: "0",
     },
   ],
@@ -169,6 +233,7 @@ export const TRANSPORT_FORM: ScenarioForm = {
 };
 
 export const EXAMPLES = [
+  { id: "otun", label: "Confecciones Otún (ejercicio)", form: OTUN_FORM },
   { id: "cafe", label: "Café Cordillera (clase)", form: CAFE_FORM },
   { id: "transporte", label: "Transporte turístico (10 vehículos)", form: TRANSPORT_FORM },
 ] as const;
@@ -176,7 +241,14 @@ export const EXAMPLES = [
 export type ExampleId = (typeof EXAMPLES)[number]["id"];
 
 export const EMPTY_COST: CostForm = { name: "", kind: "fijo", amount: "" };
-export const EMPTY_ASSET: AssetForm = { name: "", value: "", year: "0", life: "", salvage: "0" };
+export const EMPTY_ASSET: AssetForm = {
+  name: "",
+  value: "",
+  year: "0",
+  life: "",
+  residual: "0",
+  salvage: "0",
+};
 export const EMPTY_LOAN: LoanForm = {
   name: "",
   kind: "cuota-fija",
@@ -184,6 +256,34 @@ export const EMPTY_LOAN: LoanForm = {
   rate: "",
   term: "",
 };
+
+/**
+ * Escenario en blanco con el que arranca la herramienta: la estructura (cinco
+ * años, un rubro fijo y uno por unidad, un activo) y las tasas de impuesto de
+ * Colombia, sin cifras de ningún proyecto.
+ */
+export function emptyForm(startYear = new Date().getFullYear()): ScenarioForm {
+  return {
+    years: "5",
+    startYear: String(startYear),
+    demand: ["", "", "", "", ""],
+    history: "",
+    historyLastYear: String(startYear),
+    price: "",
+    priceGrowth: "0",
+    costs: [
+      { name: "Costos fijos", kind: "fijo", amount: "" },
+      { name: "Costo variable por unidad", kind: "por-unidad", amount: "" },
+    ],
+    costGrowth: "0",
+    workingCapital: "0",
+    taxRate: "35",
+    gainTaxRate: "15",
+    equityRate: "",
+    assets: [EMPTY_ASSET],
+    loans: [],
+  };
+}
 
 /** Ajusta la demanda a `years` años: recorta o repite la última cifra. */
 export function resizeDemand(demand: readonly string[], years: number): string[] {
@@ -234,7 +334,7 @@ export function toCashFlowInput(form: ScenarioForm): CashFlowInput | string {
     workingCapital: read(form.workingCapital, "Capital de trabajo"),
     taxRate: pct(form.taxRate, "Impuesto de renta"),
     gainTaxRate: pct(form.gainTaxRate, "Impuesto de ganancia ocasional"),
-    discountRate: pct(form.discountRate, "Tasa de oportunidad"),
+    equityRate: pct(form.equityRate, "Rentabilidad exigida por los socios (TIO)"),
     assets: form.assets.map((asset, index) => {
       const name = asset.name.trim() || `Activo ${index + 1}`;
       return {
@@ -242,6 +342,7 @@ export function toCashFlowInput(form: ScenarioForm): CashFlowInput | string {
         value: read(asset.value, `Valor de ${name}`),
         year: read(asset.year, `Año de compra de ${name}`),
         life: read(asset.life, `Vida útil de ${name}`),
+        residual: read(asset.residual, `Valor residual contable de ${name}`),
         salvage: read(asset.salvage, `Valor comercial de ${name}`),
       };
     }),

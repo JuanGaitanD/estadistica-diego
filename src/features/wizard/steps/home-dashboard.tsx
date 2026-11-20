@@ -191,7 +191,7 @@ export function HomeDashboard({ onNavigate }: HomeDashboardProps) {
                 Evaluar mi proyecto
                 <ArrowRight aria-hidden="true" />
               </Button>
-              <Button type="button" variant="ghost" onClick={() => onNavigate("rentabilidad/cafe")}>
+              <Button type="button" variant="ghost" onClick={() => onNavigate("rentabilidad/otun")}>
                 Ver un ejemplo
               </Button>
             </>
