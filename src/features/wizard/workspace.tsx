@@ -20,7 +20,7 @@ import {
 } from "@/features/profitability";
 import { ReportView, useReportStore } from "@/features/report";
 
-import { GuidedBar } from "./guided/guided-bar";
+import { GuidedChat } from "./guided/guided-chat";
 import { useGuidedStore } from "./guided/guided-store";
 import { SAMPLE_DATA_NAME } from "./model/sample-dataset";
 import { ANALYSIS_PANELS, ZONES, type AnalysisPanel, type Zone } from "./model/types";
@@ -276,26 +276,23 @@ export function Workspace() {
       {...(actions !== undefined ? { actions } : {})}
       // La marca lleva al tablero; ya en el tablero, a la portada.
       {...(zone !== "inicio" ? { onBrand: () => navigate("inicio") } : {})}
+      aside={<GuidedChat />}
       nav={
         <AppNav entries={navEntries(reportCount)} current={NAV_OF_ZONE[zone]} onSelect={navigate} />
       }
     >
-      <div className="flex flex-col gap-10 pb-16">
-        <GuidedBar />
-
-        <div key={zone} ref={contentRef} className="sl-step-enter">
-          {zone === "inicio" ? <HomeDashboard onNavigate={navigate} /> : null}
-          {zone === "datos" ? <DataZone notice={recoverNotice} /> : null}
-          {zone === "explorar" ? <StepResults /> : null}
-          {zone === "analizar" ? <AnalyzeHub /> : null}
-          {zone === "informe" ? (
-            <ReportView
-              sampleSize={dataset?.rowCount ?? 0}
-              onExplore={() => goToZone(dataset === null ? "datos" : "explorar")}
-            />
-          ) : null}
-          {zone === "rentabilidad" ? <ProfitabilityPanel /> : null}
-        </div>
+      <div key={zone} ref={contentRef} className="sl-step-enter pb-16">
+        {zone === "inicio" ? <HomeDashboard onNavigate={navigate} /> : null}
+        {zone === "datos" ? <DataZone notice={recoverNotice} /> : null}
+        {zone === "explorar" ? <StepResults /> : null}
+        {zone === "analizar" ? <AnalyzeHub /> : null}
+        {zone === "informe" ? (
+          <ReportView
+            sampleSize={dataset?.rowCount ?? 0}
+            onExplore={() => goToZone(dataset === null ? "datos" : "explorar")}
+          />
+        ) : null}
+        {zone === "rentabilidad" ? <ProfitabilityPanel /> : null}
       </div>
     </AppShell>
   );

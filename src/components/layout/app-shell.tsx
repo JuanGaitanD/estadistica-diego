@@ -39,6 +39,8 @@ export interface AppShellProps {
   actions?: ReactNode;
   /** Navegación principal, en la barra superior junto a la marca. */
   nav?: ReactNode;
+  /** Panel a la derecha del contenido, debajo del header (por ejemplo, el modo guiado). */
+  aside?: ReactNode;
   /**
    * Qué hace la marca (logo y nombre): si se pasa, la marca es un botón con
    * esta acción (por ejemplo, volver al tablero); si no, enlaza a la portada.
@@ -52,24 +54,34 @@ export interface AppShellProps {
  * pie discreto. La rejilla horizontal (`px-5 sm:px-8`) es la misma en las
  * tres zonas para que todo caiga sobre el mismo eje.
  */
-export function AppShell({ children, width = "narrow", actions, nav, onBrand }: AppShellProps) {
+export function AppShell({
+  children,
+  width = "narrow",
+  actions,
+  nav,
+  aside,
+  onBrand,
+}: AppShellProps) {
   return (
     <div className="flex min-h-full flex-col">
       <a href="#contenido" className={cn(buttonVariants({ variant: "outline" }), "sl-salto")}>
         Saltar al contenido
       </a>
       <AppHeader actions={actions} nav={nav} {...(onBrand !== undefined ? { onBrand } : {})} />
-      <main
-        id="contenido"
-        tabIndex={-1}
-        className={cn(
-          "outline-none",
-          "mx-auto flex w-full flex-1 flex-col px-5 pt-10 pb-6 sm:px-8",
-          WIDTH_CLASS[width],
-        )}
-      >
-        {children}
-      </main>
+      <div className="flex flex-1">
+        <main
+          id="contenido"
+          tabIndex={-1}
+          className={cn(
+            "outline-none",
+            "mx-auto flex w-full min-w-0 flex-1 flex-col px-5 pt-10 pb-6 sm:px-8",
+            WIDTH_CLASS[width],
+          )}
+        >
+          {children}
+        </main>
+        {aside}
+      </div>
       <AppFooter />
     </div>
   );
@@ -103,8 +115,9 @@ function AppHeader({
     </>
   );
   return (
-    <header className="border-rule bg-background sticky top-0 z-30 border-b">
-      <div className="mx-auto flex w-full max-w-[84rem] items-center justify-between gap-2 px-5 py-3 sm:gap-4 sm:px-8">
+    // Alto fijo (h-16): el panel lateral se pega justo debajo con `top-16`.
+    <header className="border-rule bg-background sticky top-0 z-30 h-16 border-b">
+      <div className="mx-auto flex h-full w-full max-w-[84rem] items-center justify-between gap-2 px-5 sm:gap-4 sm:px-8">
         <div className="flex items-center gap-1 sm:gap-3 xl:gap-6">
           {onBrand !== undefined ? (
             <button
