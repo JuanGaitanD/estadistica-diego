@@ -79,6 +79,20 @@ describe("recorrido guiado de punta a punta", () => {
     // Recorre la app entera con userEvent: con toda la suite en paralelo pasa de 5 s.
   }, 20_000);
 
+  it("la guía se minimiza a un botón y vuelve en la misma fase", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<Workspace />);
+
+    await user.click(screen.getByRole("button", { name: "Guíame paso a paso" }));
+    await user.click(screen.getByRole("button", { name: "Fase 3: Preparación" }));
+    await user.click(screen.getByRole("button", { name: "Minimizar la guía" }));
+    expect(screen.queryByRole("complementary", { name: "Modo guiado" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /Tu guía · fase 3 de 6/ }));
+    expect(screen.getByRole("complementary", { name: "Modo guiado" })).toBeInTheDocument();
+    expect(screen.getByText(/Fase 3 de 6: Preparación/)).toBeInTheDocument();
+  });
+
   it("en Modelado abre la herramienta de la pregunta y la Evaluación no la cierra", async () => {
     const user = userEvent.setup();
     renderWithProviders(<Workspace />);
