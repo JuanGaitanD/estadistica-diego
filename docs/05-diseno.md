@@ -200,10 +200,12 @@ Usar texto oscuro (`--foreground`) sobre heat-1..heat-3 y texto blanco sobre hea
 └──────────────────────────────────────────────────────────┘
 ```
 
-**Vigente desde el 2026-11-18** (el esquema de arriba es el original del asistente de 5 pasos). Cada cosa en su sitio:
+**Vigente desde el 2026-11-20** (el esquema de arriba es el original del asistente de 5 pasos). La app ya no es un recorrido de pestañas: abre en un tablero y se navega desde la barra superior.
 
-- **Barra superior (sticky):** marca a la izquierda; a la derecha, las acciones globales: «Guíame paso a paso» (en móvil solo el icono), el menú «Proyecto» (Abrir un proyecto… / Guardar en un archivo, deshabilitado con su motivo si no hay datos) y, tras un separador, Ayuda y tema. En «Rentable» no aparecen el modo guiado ni Proyecto, porque no los usa.
-- **Franja de zonas:** las 5 pestañas siempre al ancho mayor (`max-w-[84rem]`), para que no cambien de tamaño al pasar de una zona angosta a una ancha. Las pistas («Carga o escribe») solo se muestran desde `lg`, que es cuando caben.
+- **Barra superior (sticky):** la marca (logo y nombre) lleva al tablero; si ya estás en el tablero, a la portada (`/`). Junto a ella, el menú principal: «Inicio», «Estadística ▾» (Básica: Mis datos, Qué dicen tus datos · Avanzada: Todas las preguntas y cada herramienta · Guíame paso a paso), «Evaluación de proyectos ▾» (¿Es rentable mi proyecto? y los dos ejemplos) y «Mis informes» con su cifra. A la derecha, el menú «Proyecto» (Abrir / Guardar; no aparece en «Rentable»), Ayuda y tema.
+- **Menú por ancho:** desde `xl` (1280 px) va en línea con menús desplegables; debajo, un botón «Menú» (solo icono bajo `sm`) abre las mismas entradas en un panel lateral. A 1024 px el menú en línea no cabía. Comprobado sin desborde a 360, 1024 y 1280 px.
+- **Tablero (`/app#inicio`):** «¿Qué quieres hacer hoy?», una franja para seguir con los datos cargados o recuperar los últimos, y cuatro puertas: Estadística básica, Estadística avanzada (con un botón por herramienta), ¿Es rentable tu proyecto? y Mis informes (con los tres últimos resultados). Al pie, el modo guiado.
+- **Ubicación en el hash:** `#inicio`, `#datos`, `#explorar`, `#analizar`, `#analizar/<herramienta>` (`probabilidad`, `estimar`, `probar`, `regresion`, `multiple`, `logistica`), `#informe`, `#rentabilidad`. Atajos que no quedan en el historial: `#ejemplo`, `#guiado`, `#rentabilidad/<ejemplo>`. Un destino que necesita datos avisa por qué y lleva a «Mis datos».
 - **Contenido:** el título de la zona primero. Los avisos de esa zona van debajo del título; por ejemplo, «Recuperar último análisis» en Datos. En Datos, las dos vías principales (archivo o pegar) van lado a lado, y las alternativas (escribir en una tabla, datos de ejemplo) en una fila «¿Sin archivo a la mano?».
 
 Componentes shadcn: `NavigationMenu`/header simple con `Button` (ghost) para el toggle de tema; Stepper **custom** (no existe en shadcn) construido con `div` + `Progress` + badges numerados usando `Badge`; footer con dos `Button` (variant `outline` y `default`).

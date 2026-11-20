@@ -1,6 +1,6 @@
 # HANDOFF · StatLab
 
-Estado del trabajo. Última actualización: 2026-11-18 (producción se despliega sola desde `main`; la zona «Rentable» va en `feat/rentabilidad-flujo-caja`, con su PR a `main`).
+Estado del trabajo. Última actualización: 2026-11-20 (producción se despliega sola desde `main`; el tablero y el menú van en `feat/dashboard-navbar`, sin push).
 
 ## Plataforma (desde 2026-11-16): de calculadora descriptiva a «estadística que se entiende»
 
@@ -19,6 +19,18 @@ Plan aprobado por Juan el 2026-11-16: `docs/09-plan-plataforma.md` (alcance M0�
 | F5 · Pruebas de hipótesis y selector                                   | **Cerrada** (2026-11-16) |
 | F6 · Múltiple, polinómica y logística                                  | **Cerrada** (2026-11-16) |
 | F7 · Modo guiado CRISP-DM y cierre                                     | **Cerrada** (2026-11-16) |
+
+### Tablero de inicio y menú desplegable (2026-11-20)
+
+Pedido por Juan: que la app no sea un asistente sino un tablero desde el que se elige qué hacer, con un menú de secciones desplegables para Estadística y Evaluación de proyectos. Rama `feat/dashboard-navbar`, sin push.
+
+- `/app` abre en el tablero (`HomeDashboard`): Estadística básica, Estadística avanzada (lo básico más inferencia y regresión), ¿Es rentable tu proyecto? y Mis informes; si hay datos, «Seguir donde quedé».
+- La franja de 5 pestañas (`ZoneNav`) se reemplaza por `AppNav` en la barra superior; «Guíame paso a paso» pasa al menú Estadística y al tablero. La marca lleva al tablero y, desde el tablero, a la portada.
+- La herramienta abierta en Analizar pasa del estado local al store (`panel`), para enlazarla desde el menú y el hash (`#analizar/regresion`).
+- «Empezar de cero» ahora vuelve al tablero.
+- Regla en `docs/05-diseno.md` §5a. Revisado en el navegador a 360, 1024, 1280 y 1440 px. 654 tests, ESLint, tipos y build en verde.
+- Nota: en esta copia de Windows `pnpm format:check` falla en unos 220 archivos por finales CRLF (`core.autocrlf=true`); pasa igual en `main`. Los archivos tocados pasan con `--end-of-line auto`.
+- «Mis informes» sigue siendo un solo informe acumulativo; no hay historial de informes separados.
 
 ### Rediseño de la cabecera del espacio de trabajo (2026-11-18)
 
