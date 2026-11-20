@@ -76,7 +76,11 @@ export function ProjectActions() {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button type="button" variant="ghost" className="text-foreground">
+          <Button
+            type="button"
+            variant="ghost"
+            className="text-foreground has-[>svg]:px-2.5 sm:has-[>svg]:px-4"
+          >
             <FolderOpen aria-hidden="true" />
             <span className="hidden sm:inline">Proyecto</span>
             <span className="sr-only sm:hidden">Proyecto</span>

@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import { StepHeader } from "@/components/layout/step-header";
 import { Button } from "@/components/ui/button";
@@ -18,14 +18,12 @@ import {
   type NumericColumn,
 } from "@/features/regression";
 
+import type { AnalysisPanel as Panel } from "../model/types";
 import { isQuantitative } from "../model/validation";
 import { useWizardStore } from "../store/wizard-store";
 
 /** Dónde lleva cada pregunta disponible. */
 type Destination = "explorar" | Panel;
-
-/** Paneles que se abren dentro de Analizar. */
-type Panel = "regresion" | "multiple" | "logistica" | "estimar" | "probabilidad" | "probar";
 
 interface Question {
   readonly id: string;
@@ -173,7 +171,9 @@ export function AnalyzeHub() {
   const goToZone = useWizardStore((state) => state.goToZone);
   const columns = useAnalysisColumns();
   const numeric: NumericColumn[] = columns.filter((column) => column.quantitative);
-  const [open, setOpen] = useState<Panel | null>(null);
+  // La herramienta abierta vive en el store para que el menú y el tablero lleven directo a ella.
+  const open = useWizardStore((state) => state.panel);
+  const setOpen = (panel: Panel | null): void => goToZone("analizar", panel);
 
   if (open !== null) {
     return (
@@ -203,8 +203,8 @@ export function AnalyzeHub() {
   return (
     <div className="flex flex-col gap-8">
       <StepHeader
-        title="¿Qué quieres saber?"
-        subtitle="Elige la pregunta que se parece a la tuya; StatLab usa el método adecuado y te explica el resultado."
+        title="Estadística avanzada: ¿qué quieres saber?"
+        subtitle="Elige la pregunta que se parece a la tuya; StatLab usa el método adecuado y te explica el resultado. Lo básico sigue a un clic, en la primera pregunta."
       />
       <ul className="grid gap-4 sm:grid-cols-2">
         {QUESTIONS.map((item) => (

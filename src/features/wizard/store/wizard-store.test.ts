@@ -19,7 +19,7 @@ describe("wizard-store", () => {
       "Todavía no hay datos",
     );
     useWizardStore.getState().goToZone("explorar");
-    expect(useWizardStore.getState().zone).toBe("datos");
+    expect(useWizardStore.getState().zone).toBe("inicio");
   });
 
   it("importa los datos de ejemplo y deja avanzar", () => {

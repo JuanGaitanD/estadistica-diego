@@ -37,11 +37,16 @@ describe("Workspace (flujo completo)", () => {
 
   it("de los datos de ejemplo a la interpretación sin elegir cálculos", async () => {
     const user = userEvent.setup();
+    const info = vi.spyOn(toast, "info");
     renderWithProviders(<Workspace />);
 
-    // Sin datos, Explorar explica qué falta en vez de abrirse.
-    await user.click(screen.getByRole("button", { name: /Explorar/ }));
-    expect(screen.getByText(/Todavía no hay datos cargados/)).toBeInTheDocument();
+    // La app abre en el tablero; sin datos, la avanzada explica qué falta y lleva a Datos.
+    expect(
+      screen.getByRole("heading", { level: 1, name: "¿Qué quieres hacer hoy?" }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Elegir una pregunta" }));
+    expect(info).toHaveBeenCalledWith(expect.stringMatching(/Todavía no hay datos cargados/));
+    info.mockRestore();
     expect(
       screen.getByRole("heading", { level: 1, name: "¿Qué datos vamos a analizar?" }),
     ).toBeInTheDocument();
@@ -68,8 +73,7 @@ describe("Workspace (flujo completo)", () => {
   it("añade una variable al informe y la muestra con su interpretación", async () => {
     const user = userEvent.setup();
     renderWithProviders(<Workspace />);
-    await user.click(screen.getByRole("button", { name: "Usar datos de ejemplo" }));
-    await user.click(screen.getByRole("button", { name: "Ver qué dicen tus datos" }));
+    await user.click(screen.getByRole("button", { name: "Probar con datos de ejemplo" }));
     await waitFor(() =>
       expect(
         screen.getByRole("button", { name: "Añadir la variable Genero al informe" }),
@@ -78,9 +82,48 @@ describe("Workspace (flujo completo)", () => {
     await user.click(screen.getByRole("button", { name: "Añadir la variable Genero al informe" }));
     await waitFor(() => expect(useReportStore.getState().items).toHaveLength(1));
 
-    await user.click(screen.getByRole("button", { name: /Informe/ }));
+    await user.click(screen.getByRole("button", { name: /^Mis informes/ }));
     expect(screen.getByRole("heading", { level: 1, name: "Tu informe" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 2, name: "1. Genero" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Descargar PDF" })).toBeInTheDocument();
   }, 30_000);
+
+  it("el tablero lleva directo a una herramienta avanzada y el hash la recuerda", async () => {
+    const user = userEvent.setup();
+    useWizardStore.getState().importSample();
+    useWizardStore.getState().goToZone("inicio");
+    renderWithProviders(<Workspace />);
+    await user.click(screen.getByRole("button", { name: "Pruebas de hipótesis" }));
+    expect(
+      screen.getByRole("heading", {
+        level: 1,
+        name: "¿Es real la diferencia o pudo ser casualidad?",
+      }),
+    ).toBeInTheDocument();
+    expect(window.location.hash).toBe("#analizar/probar");
+
+    await user.click(screen.getByRole("button", { name: "Todas las preguntas" }));
+    expect(window.location.hash).toBe("#analizar");
+  });
+
+  it("Rentable se abre sin datos desde el tablero", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<Workspace />);
+    await user.click(screen.getByRole("button", { name: "Evaluar mi proyecto" }));
+    expect(window.location.hash).toBe("#rentabilidad");
+  });
+
+  it("la marca vuelve al tablero y, desde el tablero, enlaza a la portada", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<Workspace />);
+    await user.click(screen.getByRole("button", { name: "Evaluar mi proyecto" }));
+    await user.click(screen.getByRole("button", { name: "StatLab: ir al inicio" }));
+    expect(
+      screen.getByRole("heading", { level: 1, name: "¿Qué quieres hacer hoy?" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "StatLab: ir a la portada" })).toHaveAttribute(
+      "href",
+      "/",
+    );
+  });
 });
