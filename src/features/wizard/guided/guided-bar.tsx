@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { AddToReportButton, type ReportItemInput } from "@/features/report";
 
 import { useWizardStore } from "../store/wizard-store";
-import { PHASES, preparationLog, QUESTION_TYPES, semaphore } from "./guided-model";
+import { PHASES, preparationLog, QUESTION_TYPES, semaphore, type GuidedTool } from "./guided-model";
 import { useGuidedStore } from "./guided-store";
 
 const LIGHT_TEXT = {
@@ -37,6 +37,8 @@ export function GuidedBar() {
   const columns = useWizardStore((state) => state.columns);
   const goToZone = useWizardStore((state) => state.goToZone);
   const zoneBlockedReason = useWizardStore((state) => state.zoneBlockedReason);
+  const zone = useWizardStore((state) => state.zone);
+  const panel = useWizardStore((state) => state.panel);
 
   if (!guided.active) return null;
   const phase = PHASES[guided.phase]!;
@@ -45,10 +47,19 @@ export function GuidedBar() {
   const done = type ? type.checks.filter((check) => guided.checks.includes(check)).length : 0;
   const light = semaphore(done, type?.checks.length ?? 0);
 
+  /** Abre una herramienta; si aún no hay datos, se queda en Datos. */
+  const open = (tool: Pick<GuidedTool, "zone" | "panel">): void => {
+    if (zoneBlockedReason(tool.zone) !== null) goToZone("datos");
+    else goToZone(tool.zone, tool.panel ?? null);
+  };
+
   const go = (index: number) => {
     guided.setPhase(index);
-    const zone = PHASES[index]!.zone;
-    goToZone(zoneBlockedReason(zone) === null ? zone : "datos");
+    const next = PHASES[index]!;
+    // El Modelado lleva directo a la herramienta del tipo de pregunta.
+    const tool = next.id === "modelado" ? type?.tools[0] : undefined;
+    if (tool !== undefined) open(tool);
+    else if (next.zone !== null) open({ zone: next.zone });
   };
 
   const summary = (): ReportItemInput => ({
@@ -57,7 +68,7 @@ export function GuidedBar() {
       headline: guided.question.trim() === "" ? "Pregunta sin escribir." : guided.question.trim(),
       details: [
         `Tipo de pregunta: ${type?.label ?? "sin elegir"}.`,
-        ...(type ? [`Método: ${type.method}`] : []),
+        ...(type ? [`Método: ${type.method.charAt(0).toUpperCase()}${type.method.slice(1)}`] : []),
         `Evaluación: ${LIGHT_TEXT[light].toLowerCase()} (${done} de ${type?.checks.length ?? 0}).`,
       ],
       caveats: [],
@@ -193,11 +204,33 @@ export function GuidedBar() {
       ) : null}
 
       {phase.id === "modelado" ? (
-        <p className="font-semibold">
-          {type
-            ? `Para «${type.label.toLowerCase()}»: ${type.method}`
-            : "Vuelve a la fase 1 y elige el tipo de pregunta para ver qué método usar."}
-        </p>
+        type ? (
+          <div className="flex flex-col gap-3">
+            <p className="font-semibold">
+              Para «{type.label.toLowerCase()}» usa {type.method}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {type.tools.map((tool) => {
+                const here = zone === tool.zone && (tool.panel ?? null) === panel;
+                return (
+                  <Button
+                    key={tool.label}
+                    type="button"
+                    variant={here ? "default" : "outline"}
+                    aria-current={here ? "page" : undefined}
+                    onClick={() => open(tool)}
+                  >
+                    {here ? `Estás en: ${tool.label}` : `Abrir ${tool.label}`}
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          <p className="font-semibold">
+            Vuelve a la fase 1 y elige el tipo de pregunta para ver qué método usar.
+          </p>
+        )
       ) : null}
 
       {phase.id === "evaluacion" ? (

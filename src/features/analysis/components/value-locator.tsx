@@ -9,6 +9,7 @@ import { SectionCard } from "@/components/shared/section-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cleanNumberText } from "@/components/shared/form-fields";
 
 export interface ValueLocatorProps {
   variableName: string;
@@ -61,7 +62,7 @@ export function ValueLocator({ variableName, sortedValues }: ValueLocatorProps) 
             placeholder="Por ejemplo, 4,5"
             className="w-44"
             value={text}
-            onChange={(event) => setText(event.target.value)}
+            onChange={(event) => setText(cleanNumberText(event.target.value))}
             aria-invalid={error !== null}
             {...(error !== null ? { "aria-describedby": errorId } : {})}
           />

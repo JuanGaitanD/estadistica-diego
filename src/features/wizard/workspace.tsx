@@ -1,25 +1,31 @@
 "use client";
 
 /**
- * Espacio de trabajo de StatLab (RF-41): zonas Datos, Explorar, Analizar,
- * Informe y Rentable. Reemplaza al asistente lineal de cuatro pasos; los pasos viven
- * dentro de las zonas (docs/09 §5.2).
+ * Espacio de trabajo de StatLab (RF-41): un tablero de inicio y las zonas
+ * Datos, Explorar, Analizar, Informe y Rentable, a las que se llega desde el
+ * tablero o desde el menú de la barra superior (docs/05-diseno.md §5a).
  */
-import { ArrowRight, Compass } from "lucide-react";
-import { useEffect, useRef, type ReactNode } from "react";
+import { ArrowRight } from "lucide-react";
+import { useCallback, useEffect, useRef, type ReactNode } from "react";
 import { toast } from "sonner";
 
+import { AppNav, type NavEntry } from "@/components/layout/app-nav";
 import { AppShell } from "@/components/layout/app-shell";
-import { ZoneNav } from "@/components/layout/zone-nav";
 import { Button } from "@/components/ui/button";
-import { ProfitabilityPanel } from "@/features/profitability";
+import {
+  PROFITABILITY_EXAMPLES,
+  ProfitabilityPanel,
+  useScenariosStore,
+  type ExampleId,
+} from "@/features/profitability";
 import { ReportView, useReportStore } from "@/features/report";
 
 import { GuidedBar } from "./guided/guided-bar";
 import { useGuidedStore } from "./guided/guided-store";
 import { SAMPLE_DATA_NAME } from "./model/sample-dataset";
-import { ZONES, type Zone } from "./model/types";
+import { ANALYSIS_PANELS, ZONES, type AnalysisPanel, type Zone } from "./model/types";
 import { AnalyzeHub } from "./steps/analyze-hub";
+import { HomeDashboard } from "./steps/home-dashboard";
 import { ProjectActions } from "./steps/project-actions";
 import { StepData } from "./steps/step-data";
 import { StepResults } from "./steps/step-results";
@@ -28,6 +34,91 @@ import { useWizardStore } from "./store/wizard-store";
 
 function isZone(value: string): value is Zone {
   return ZONES.some((zone) => zone.id === value);
+}
+
+function isPanel(value: string | undefined): value is AnalysisPanel {
+  return ANALYSIS_PANELS.some((panel) => panel.id === value);
+}
+
+function isExample(value: string | undefined): value is ExampleId {
+  return PROFITABILITY_EXAMPLES.some((example) => example.id === value);
+}
+
+/** Entrada del menú en la que cae cada zona. */
+const NAV_OF_ZONE: Readonly<Record<Zone, string>> = {
+  inicio: "inicio",
+  datos: "estadistica",
+  explorar: "estadistica",
+  analizar: "estadistica",
+  informe: "informe",
+  rentabilidad: "proyectos",
+};
+
+function navEntries(reportCount: number): NavEntry[] {
+  return [
+    { kind: "link", id: "inicio", title: "Inicio" },
+    {
+      kind: "menu",
+      id: "estadistica",
+      title: "Estadística",
+      sections: [
+        {
+          heading: "Básica",
+          links: [
+            { id: "datos", title: "Mis datos", hint: "Sube, pega o escribe tus datos" },
+            { id: "explorar", title: "Qué dicen tus datos", hint: "Medidas, tablas y gráficas" },
+          ],
+        },
+        {
+          heading: "Avanzada",
+          links: [
+            {
+              id: "analizar",
+              title: "Todas las preguntas",
+              hint: "Elige por lo que quieres saber",
+            },
+            ...ANALYSIS_PANELS.map((panel) => ({
+              id: `analizar/${panel.id}`,
+              title: panel.title,
+              hint: panel.hint,
+            })),
+          ],
+        },
+        {
+          links: [{ id: "guiado", title: "Guíame paso a paso", hint: "De la pregunta al informe" }],
+        },
+      ],
+    },
+    {
+      kind: "menu",
+      id: "proyectos",
+      title: "Evaluación de proyectos",
+      sections: [
+        {
+          links: [
+            {
+              id: "rentabilidad",
+              title: "¿Es rentable mi proyecto?",
+              hint: "Flujo de caja, VPN, TIR y escenarios",
+            },
+          ],
+        },
+        {
+          heading: "Ejemplos (reemplazan el escenario abierto)",
+          links: PROFITABILITY_EXAMPLES.map((example) => ({
+            id: `rentabilidad/${example.id}`,
+            title: example.label,
+          })),
+        },
+      ],
+    },
+    { kind: "link", id: "informe", title: "Mis informes", badge: reportCount },
+  ];
+}
+
+/** Hash de la ubicación actual: `#explorar` o `#analizar/regresion`. */
+function hashOf(zone: Zone, panel: AnalysisPanel | null): string {
+  return zone === "analizar" && panel !== null ? `${zone}/${panel}` : zone;
 }
 
 /** Zona «Datos»: cargar o escribir, confirmar tipos y seguir a Explorar. */
@@ -67,102 +158,103 @@ function DataZone({ notice }: { notice: ReactNode }) {
 
 export function Workspace() {
   const zone = useWizardStore((state) => state.zone);
+  const panel = useWizardStore((state) => state.panel);
   const goToZone = useWizardStore((state) => state.goToZone);
   const importSample = useWizardStore((state) => state.importSample);
-  const zoneBlockedReason = useWizardStore((state) => state.zoneBlockedReason);
-  // Se suscribe a lo que cambia el bloqueo de las zonas, para volver a pintar.
-  useWizardStore((state) => state.dataset);
-  useWizardStore((state) => state.columns);
   const hasStoredDataset = useWizardStore((state) => state.hasStoredDataset);
   const detectStoredDataset = useWizardStore((state) => state.detectStoredDataset);
   const recoverLastDataset = useWizardStore((state) => state.recoverLastDataset);
   const dataset = useWizardStore((state) => state.dataset);
   const sourceName = useWizardStore((state) => state.sourceName);
   const reportCount = useReportStore((state) => state.items.length);
-  const guidedActive = useGuidedStore((state) => state.active);
   const startGuided = useGuidedStore((state) => state.start);
   const hydrateReport = useReportStore((state) => state.hydrate);
+  const loadExample = useScenariosStore((state) => state.loadExample);
 
   const contentRef = useRef<HTMLDivElement>(null);
-  const lastZone = useRef(zone);
+  const lastPlace = useRef(hashOf(zone, panel));
 
   useEffect(() => {
     detectStoredDataset();
     hydrateReport();
   }, [detectStoredDataset, hydrateReport]);
 
-  // La zona vive en el hash (#explorar): se puede enlazar y el botón Atrás
-  // del navegador vuelve a la zona anterior. `#ejemplo` (enlace de la
-  // portada) carga los datos de ejemplo y abre Explorar.
-  useEffect(() => {
-    const fromHash = (): void => {
-      const id = window.location.hash.slice(1);
-      if (id === "guiado") {
+  /**
+   * Un solo camino para el menú, el tablero y el hash: una zona,
+   * `analizar/<herramienta>`, `rentabilidad/<ejemplo>`, `ejemplo` (carga los
+   * datos de ejemplo) o `guiado`. Una zona que aún no se puede abrir (sin
+   * datos) explica por qué y lleva a Datos.
+   */
+  const navigate = useCallback(
+    (target: string): void => {
+      const [head = "", sub] = target.split("/");
+      if (head === "guiado") {
         startGuided();
         goToZone("datos");
         return;
       }
-      if (id === "ejemplo") {
+      if (head === "ejemplo") {
         importSample();
         goToZone("explorar");
         return;
       }
-      if (!isZone(id)) return;
-      // Un enlace a una zona que aún no se puede abrir (sin datos) explica por qué.
-      const reason = useWizardStore.getState().zoneBlockedReason(id);
-      if (reason !== null) toast.info(reason);
-      goToZone(id);
+      if (!isZone(head)) return;
+      const reason = useWizardStore.getState().zoneBlockedReason(head);
+      if (reason !== null) {
+        toast.info(reason);
+        goToZone("datos");
+        return;
+      }
+      if (head === "rentabilidad" && isExample(sub)) loadExample(sub);
+      goToZone(head, isPanel(sub) ? sub : null);
+    },
+    [goToZone, importSample, startGuided, loadExample],
+  );
+
+  // La ubicación vive en el hash (#explorar, #analizar/regresion): se puede
+  // enlazar y el botón Atrás del navegador vuelve a la anterior.
+  useEffect(() => {
+    const fromHash = (): void => {
+      const target = window.location.hash.slice(1);
+      if (target !== "") navigate(target);
     };
     fromHash();
     window.addEventListener("hashchange", fromHash);
     return () => window.removeEventListener("hashchange", fromHash);
-  }, [goToZone, importSample, startGuided]);
+  }, [navigate]);
 
   useEffect(() => {
-    // Se lee la zona del store, no la del render: `#ejemplo` la cambia en el
-    // mismo commit y la del render aún sería la anterior.
-    const target = useWizardStore.getState().zone;
+    // Se lee del store, no del render: `#ejemplo` cambia la zona en el mismo
+    // commit y la del render aún sería la anterior.
+    const state = useWizardStore.getState();
+    const target = hashOf(state.zone, state.panel);
     const current = window.location.hash.slice(1);
     if (current === target) return;
-    // `#ejemplo` no queda en el historial: Atrás no vuelve a cargar los datos.
-    // Sin hash (primera visita), tampoco: Atrás vuelve directo a la portada.
-    if (current === "" || current === "ejemplo" || current === "guiado")
-      window.history.replaceState(null, "", `#${target}`);
+    // Los atajos (`#ejemplo`, `#guiado`, un ejemplo de proyecto) no quedan en
+    // el historial: Atrás no los repite. Sin hash (primera visita), tampoco.
+    const shortcut =
+      current === "" ||
+      current === "ejemplo" ||
+      current === "guiado" ||
+      current.startsWith("rentabilidad/");
+    if (shortcut) window.history.replaceState(null, "", `#${target}`);
     else window.history.pushState(null, "", `#${target}`);
-  }, [zone]);
+  }, [zone, panel]);
 
-  // Accesibilidad: al cambiar de zona, el foco va al título y la vista vuelve arriba.
+  // Accesibilidad: al cambiar de lugar, el foco va al título y la vista vuelve arriba.
   useEffect(() => {
-    if (lastZone.current === zone) return;
-    lastZone.current = zone;
+    const place = hashOf(zone, panel);
+    if (lastPlace.current === place) return;
+    lastPlace.current = place;
     window.scrollTo({ top: 0, behavior: "auto" });
     const heading = contentRef.current?.querySelector("h1");
     if (heading === null || heading === undefined) return;
     heading.setAttribute("tabindex", "-1");
     heading.focus();
-  }, [zone]);
+  }, [zone, panel]);
 
-  const items = ZONES.map((entry) => ({
-    id: entry.id,
-    title: entry.title,
-    hint: entry.hint,
-    blockedReason: zoneBlockedReason(entry.id),
-    ...(entry.id === "informe" ? { badge: reportCount } : {}),
-  }));
-
-  // El modo guiado y el proyecto son del análisis de datos; «Rentable» no los usa.
-  const actions =
-    zone === "rentabilidad" ? undefined : (
-      <>
-        {guidedActive ? null : (
-          <Button type="button" variant="ghost" className="text-primary" onClick={startGuided}>
-            <Compass aria-hidden="true" />
-            <span className="sr-only md:not-sr-only">Guíame paso a paso</span>
-          </Button>
-        )}
-        <ProjectActions />
-      </>
-    );
+  // El proyecto (.statlab.json) es del análisis de datos; «Rentable» no lo usa.
+  const actions = zone === "rentabilidad" ? undefined : <ProjectActions />;
 
   const recoverNotice =
     (dataset === null || sourceName === SAMPLE_DATA_NAME) && hasStoredDataset ? (
@@ -178,22 +270,21 @@ export function Workspace() {
 
   return (
     <AppShell
-      width={zone === "explorar" || zone === "rentabilidad" ? "wide" : "narrow"}
+      width={
+        zone === "inicio" || zone === "explorar" || zone === "rentabilidad" ? "wide" : "narrow"
+      }
       {...(actions !== undefined ? { actions } : {})}
+      // La marca lleva al tablero; ya en el tablero, a la portada.
+      {...(zone !== "inicio" ? { onBrand: () => navigate("inicio") } : {})}
       nav={
-        <ZoneNav
-          items={items}
-          current={zone}
-          onSelect={(id) => {
-            if (isZone(id)) goToZone(id);
-          }}
-        />
+        <AppNav entries={navEntries(reportCount)} current={NAV_OF_ZONE[zone]} onSelect={navigate} />
       }
     >
       <div className="flex flex-col gap-10 pb-16">
         <GuidedBar />
 
         <div key={zone} ref={contentRef} className="sl-step-enter">
+          {zone === "inicio" ? <HomeDashboard onNavigate={navigate} /> : null}
           {zone === "datos" ? <DataZone notice={recoverNotice} /> : null}
           {zone === "explorar" ? <StepResults /> : null}
           {zone === "analizar" ? <AnalyzeHub /> : null}

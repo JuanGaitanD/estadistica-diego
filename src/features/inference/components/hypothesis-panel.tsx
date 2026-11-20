@@ -569,6 +569,7 @@ export function HypothesisPanel({ columns }: { columns: readonly AnalysisColumn[
             {goal === "proporcion" ? (
               <NumberField
                 label="Porcentaje de referencia (%)"
+                kind="decimal"
                 value={p0Text}
                 onChange={setP0Text}
                 placeholder="Por ejemplo, 50"

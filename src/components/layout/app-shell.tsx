@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { useSyncExternalStore } from "react";
 import { HelpCircle, Moon, Sun } from "lucide-react";
+import Link from "next/link";
 import { useTheme } from "next-themes";
 
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -36,11 +37,13 @@ export interface AppShellProps {
   width?: ShellWidth;
   /** Acciones globales de la página, en la barra superior junto a Ayuda y el tema. */
   actions?: ReactNode;
-  /**
-   * Navegación de la página (las zonas). Va en su propia franja, siempre al
-   * ancho mayor, para que no cambie de tamaño al pasar de una zona a otra.
-   */
+  /** Navegación principal, en la barra superior junto a la marca. */
   nav?: ReactNode;
+  /**
+   * Qué hace la marca (logo y nombre): si se pasa, la marca es un botón con
+   * esta acción (por ejemplo, volver al tablero); si no, enlaza a la portada.
+   */
+  onBrand?: () => void;
 }
 
 /**
@@ -49,23 +52,19 @@ export interface AppShellProps {
  * pie discreto. La rejilla horizontal (`px-5 sm:px-8`) es la misma en las
  * tres zonas para que todo caiga sobre el mismo eje.
  */
-export function AppShell({ children, width = "narrow", actions, nav }: AppShellProps) {
+export function AppShell({ children, width = "narrow", actions, nav, onBrand }: AppShellProps) {
   return (
     <div className="flex min-h-full flex-col">
       <a href="#contenido" className={cn(buttonVariants({ variant: "outline" }), "sl-salto")}>
         Saltar al contenido
       </a>
-      <AppHeader actions={actions} />
-      {nav !== undefined ? (
-        <div className="mx-auto w-full max-w-[84rem] px-5 pt-6 sm:px-8">{nav}</div>
-      ) : null}
+      <AppHeader actions={actions} nav={nav} {...(onBrand !== undefined ? { onBrand } : {})} />
       <main
         id="contenido"
         tabIndex={-1}
         className={cn(
           "outline-none",
-          "mx-auto flex w-full flex-1 flex-col px-5 pb-6 sm:px-8",
-          nav !== undefined ? "pt-8" : "pt-10",
+          "mx-auto flex w-full flex-1 flex-col px-5 pt-10 pb-6 sm:px-8",
           WIDTH_CLASS[width],
         )}
       >
@@ -76,28 +75,58 @@ export function AppShell({ children, width = "narrow", actions, nav }: AppShellP
   );
 }
 
-function AppHeader({ actions }: { actions?: ReactNode }) {
+const BRAND_CLASS =
+  "focus-visible:ring-ring flex items-center gap-3 rounded-md text-left focus-visible:ring-2 focus-visible:outline-none";
+
+function AppHeader({
+  actions,
+  nav,
+  onBrand,
+}: {
+  actions?: ReactNode;
+  nav?: ReactNode;
+  onBrand?: () => void;
+}) {
+  const brand = (
+    <>
+      <span className="text-primary flex items-center">
+        <BrandLogo />
+      </span>
+      <span className="flex flex-col leading-none">
+        <span className="text-foreground font-serif text-lg leading-tight font-semibold">
+          StatLab
+        </span>
+        <span className="text-muted-foreground mt-0.5 hidden text-xs leading-tight sm:inline">
+          Estadística que se entiende
+        </span>
+      </span>
+    </>
+  );
   return (
     <header className="border-rule bg-background sticky top-0 z-30 border-b">
-      <div className="mx-auto flex w-full max-w-[84rem] items-center justify-between gap-4 px-5 py-3 sm:px-8">
-        <div className="flex items-center gap-3">
-          <span className="text-primary flex items-center">
-            <BrandLogo />
-          </span>
-          <span className="flex flex-col leading-none">
-            <span className="text-foreground font-serif text-lg leading-tight font-semibold">
-              StatLab
-            </span>
-            <span className="text-muted-foreground mt-0.5 hidden text-xs leading-tight sm:inline">
-              Estadística que se entiende
-            </span>
-          </span>
+      <div className="mx-auto flex w-full max-w-[84rem] items-center justify-between gap-2 px-5 py-3 sm:gap-4 sm:px-8">
+        <div className="flex items-center gap-1 sm:gap-3 xl:gap-6">
+          {onBrand !== undefined ? (
+            <button
+              type="button"
+              className={BRAND_CLASS}
+              onClick={onBrand}
+              aria-label="StatLab: ir al inicio"
+            >
+              {brand}
+            </button>
+          ) : (
+            <Link href="/" className={BRAND_CLASS} aria-label="StatLab: ir a la portada">
+              {brand}
+            </Link>
+          )}
+          {nav}
         </div>
         <div className="flex items-center gap-1 sm:gap-2">
           {actions !== undefined ? (
             <>
               <div className="flex items-center gap-1 sm:gap-2">{actions}</div>
-              <span aria-hidden="true" className="bg-rule mx-1 h-6 w-px" />
+              <span aria-hidden="true" className="bg-rule mx-1 hidden h-6 w-px sm:block" />
             </>
           ) : null}
           <HelpSheet />
@@ -155,7 +184,12 @@ function HelpSheet() {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button type="button" variant="ghost" className="text-foreground" aria-label="Ayuda">
+        <Button
+          type="button"
+          variant="ghost"
+          className="text-foreground has-[>svg]:px-2.5 sm:has-[>svg]:px-4"
+          aria-label="Ayuda"
+        >
           <HelpCircle className="size-4" aria-hidden="true" />
           <span className="hidden sm:inline">Ayuda</span>
         </Button>
@@ -168,23 +202,23 @@ function HelpSheet() {
         <div className="text-foreground flex flex-col gap-5 overflow-y-auto px-4 pb-6 text-sm">
           <HelpStep
             index={1}
-            title="Sube o pega tus datos"
-            body="Puedes subir un archivo .csv, .xlsx o .txt, o pegar los valores directamente. Nosotros revisamos que estén completos."
+            title="Elige qué quieres hacer"
+            body="En Inicio están las cuatro puertas: estadística básica, estadística avanzada, evaluar un proyecto y tu informe. El menú de arriba lleva a lo mismo desde cualquier pantalla."
           />
           <HelpStep
             index={2}
-            title="Confirma el tipo de cada columna"
-            body="Adivinamos si cada columna es una categoría (como el sexo) o un número (como la edad). Solo confirma o corrige."
+            title="Sube o pega tus datos"
+            body="Puedes subir un archivo .csv, .xlsx o .txt, pegar los valores o escribirlos en una tabla. Adivinamos si cada columna es una categoría o un número; solo confirma o corrige."
           />
           <HelpStep
             index={3}
-            title="Elige qué quieres ver"
-            body="Marca las gráficas y los cálculos que te interesan. Puedes cambiar tu selección después."
+            title="Lee primero qué significa"
+            body="Cada resultado empieza por su interpretación en llano. El cálculo paso a paso queda plegado en «Ver cómo se calculó»."
           />
           <HelpStep
             index={4}
-            title="Revisa y exporta tus resultados"
-            body="Verás tarjetas con cada medida explicada, tablas y gráficas. Puedes descargarlas cuando quieras."
+            title="Junta lo que te sirve en tu informe"
+            body="Añade resultados a «Mis informes» y descárgalos en PDF o Excel. Con «Proyecto → Guardar» sigues otro día donde quedaste."
           />
         </div>
       </SheetContent>

@@ -12,10 +12,11 @@ import type { AnalysisResult } from "@/features/analysis";
 export type StepIndex = 0 | 1 | 2 | 3;
 
 /**
- * Zonas del espacio de trabajo (RF-41), en el orden en que se recorren.
- * «Rentable» (RF-57) no usa el conjunto de datos: se abre siempre.
+ * Zonas del espacio de trabajo (RF-41). «Inicio» es el tablero desde el que se
+ * elige qué hacer; «Rentable» (RF-57) no usa el conjunto de datos: se abre siempre.
  */
 export const ZONES = [
+  { id: "inicio", title: "Inicio", hint: "Elige qué hacer" },
   { id: "datos", title: "Datos", hint: "Carga o escribe" },
   { id: "explorar", title: "Explorar", hint: "Qué dicen tus datos" },
   { id: "analizar", title: "Analizar", hint: "Responde una pregunta" },
@@ -24,6 +25,18 @@ export const ZONES = [
 ] as const;
 
 export type Zone = (typeof ZONES)[number]["id"];
+
+/** Herramientas de «Estadística avanzada» que se abren dentro de Analizar. */
+export const ANALYSIS_PANELS = [
+  { id: "probabilidad", title: "Probabilidad", hint: "Qué tan probable es un valor" },
+  { id: "estimar", title: "Intervalos de confianza", hint: "Qué decir de toda la población" },
+  { id: "probar", title: "Pruebas de hipótesis", hint: "Si una diferencia es real" },
+  { id: "regresion", title: "Correlación y regresión", hint: "Predecir un número con otro" },
+  { id: "multiple", title: "Regresión múltiple", hint: "Con varias variables o una curva" },
+  { id: "logistica", title: "Regresión logística", hint: "Predecir un sí o un no" },
+] as const;
+
+export type AnalysisPanel = (typeof ANALYSIS_PANELS)[number]["id"];
 
 /** Formato decimal elegido por la persona usuaria en el paso 1 (RF-09). */
 export type DecimalChoice = "auto" | "coma" | "punto";
@@ -97,6 +110,8 @@ export interface CalculationSelection {
 /** Estado completo del asistente. */
 export interface WizardState {
   readonly zone: Zone;
+  /** Herramienta abierta en Analizar; `null` muestra todas las preguntas. */
+  readonly panel: AnalysisPanel | null;
   readonly dataset: Dataset | null;
   readonly origin: DatasetSource | null;
   readonly sourceName: string | null;

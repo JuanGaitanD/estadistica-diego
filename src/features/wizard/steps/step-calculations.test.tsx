@@ -57,7 +57,9 @@ describe("StepCalculations", () => {
 
     const campo = screen.getByLabelText("Percentiles (separados por comas)");
     await user.clear(campo);
-    await user.type(campo, "abc");
+    // Las letras no entran; un número fuera de 1 a 99 se explica.
+    await user.type(campo, "abc150");
+    expect(campo).toHaveValue("150");
 
     expect(await screen.findByRole("alert")).toHaveTextContent("no es un percentil válido");
   });

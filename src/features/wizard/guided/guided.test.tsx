@@ -78,4 +78,25 @@ describe("recorrido guiado de punta a punta", () => {
     ]);
     // Recorre la app entera con userEvent: con toda la suite en paralelo pasa de 5 s.
   }, 20_000);
+
+  it("en Modelado abre la herramienta de la pregunta y la Evaluación no la cierra", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<Workspace />);
+
+    await user.click(screen.getByRole("button", { name: "Guíame paso a paso" }));
+    await user.click(screen.getByRole("radio", { name: /Comparar grupos/ }));
+    await user.click(screen.getByRole("button", { name: "Usar datos de ejemplo" }));
+    await user.click(screen.getByRole("button", { name: "Fase 4: Modelado" }));
+
+    const heading = { level: 1, name: "¿Es real la diferencia o pudo ser casualidad?" } as const;
+    expect(screen.getByRole("heading", heading)).toBeInTheDocument();
+    expect(window.location.hash).toBe("#analizar/probar");
+    expect(
+      screen.getByRole("button", { name: "Estás en: Pruebas de hipótesis" }),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /Siguiente: Evaluación/ }));
+    expect(screen.getByRole("heading", heading)).toBeInTheDocument();
+    expect(screen.getByText(/Leí el valor p junto con el tamaño del efecto/)).toBeInTheDocument();
+  }, 20_000);
 });

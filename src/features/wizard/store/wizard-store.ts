@@ -34,6 +34,7 @@ import {
   type ImportOptions,
   type StepIndex,
   type StepValidation,
+  type AnalysisPanel,
   type WizardState,
   type Zone,
 } from "../model/types";
@@ -43,8 +44,11 @@ import { canProceed as canProceedPure } from "../model/validation";
 
 /** Acciones del asistente. Todas son puras salvo las de importación. */
 export interface WizardActions {
-  /** Cambia de zona; sin datos válidos solo se puede estar en «Datos» o «Informe». */
-  goToZone: (zone: Zone) => void;
+  /**
+   * Cambia de zona (y, en Analizar, de herramienta); sin datos válidos solo se
+   * puede estar en «Inicio», «Datos», «Informe» o «Rentable».
+   */
+  goToZone: (zone: Zone, panel?: AnalysisPanel | null) => void;
   /** Por qué no se puede entrar en una zona, o `null` si se puede. */
   zoneBlockedReason: (zone: Zone) => string | null;
 
@@ -78,7 +82,8 @@ export interface WizardActions {
 export type WizardStore = WizardState & WizardActions;
 
 const INITIAL_STATE: WizardState = {
-  zone: "datos",
+  zone: "inicio",
+  panel: null,
   dataset: null,
   origin: null,
   sourceName: null,
@@ -180,13 +185,14 @@ export const useWizardStore = create<WizardStore>()((set, get) => {
   return {
     ...INITIAL_STATE,
 
-    goToZone: (zone) => {
+    goToZone: (zone, panel = null) => {
       if (get().zoneBlockedReason(zone) !== null) return;
-      set({ zone });
+      set({ zone, panel: zone === "analizar" ? panel : null });
     },
 
     zoneBlockedReason: (zone) => {
-      if (zone === "datos" || zone === "informe" || zone === "rentabilidad") return null;
+      if (zone === "inicio" || zone === "datos" || zone === "informe" || zone === "rentabilidad")
+        return null;
       const state = get();
       for (const step of [0, 1] as const) {
         const verdict = canProceedPure(state, step);
@@ -249,6 +255,7 @@ export const useWizardStore = create<WizardStore>()((set, get) => {
         availableSheets: [],
         pastedText: "",
         zone: "explorar",
+        panel: null,
       });
     },
 

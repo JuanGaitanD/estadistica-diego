@@ -84,6 +84,26 @@ describe("ProfitabilityPanel", () => {
     expect(screen.getByText(/hay 6 años sin datos/)).toBeTruthy();
   });
 
+  it("los años se eligen de una lista y los montos no aceptan letras", () => {
+    render(<ProfitabilityPanel />);
+    expect(screen.getByRole("combobox", { name: "Año 0 (año calendario)" })).toBeTruthy();
+    expect(screen.getByRole("combobox", { name: "Horizonte" })).toBeTruthy();
+    expect(screen.getByRole("combobox", { name: "Último año con datos" })).toBeTruthy();
+    const tmar = screen.getByLabelText("Tasa de oportunidad, TMAR (%)") as HTMLInputElement;
+    fireEvent.change(tmar, { target: { value: "-1a2,5%" } });
+    expect(tmar.value).toBe("12,5");
+  });
+
+  it("al mover el año 0 antes del último dato, el último dato se ajusta", () => {
+    render(<ProfitabilityPanel />);
+    fireEvent.change(screen.getByLabelText("Año 0 (año calendario)"), {
+      target: { value: "2020" },
+    });
+    const form = useScenariosStore.getState().scenarios[0]!.form;
+    expect(form.startYear).toBe("2020");
+    expect(form.historyLastYear).toBe("2020");
+  });
+
   it("proyecta la demanda desde las ventas históricas", () => {
     render(<ProfitabilityPanel />);
     fireEvent.change(screen.getByLabelText(/Unidades, año 1/), { target: { value: "1" } });
