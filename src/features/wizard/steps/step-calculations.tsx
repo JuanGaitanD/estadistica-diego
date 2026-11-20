@@ -3,6 +3,7 @@
 /** Paso 3: "¿Qué cálculos y gráficas necesitas?" (RF-13 a RF-25). */
 import { StepHeader } from "@/components/layout/step-header";
 import { appliesTo, CHART_KINDS, CHART_REGISTRY, CHART_THUMBNAILS } from "@/components/charts";
+import { Field } from "@/components/shared/form-fields";
 import { OptionCard } from "@/components/shared/option-card";
 import { SectionCard } from "@/components/shared/section-card";
 import { Button } from "@/components/ui/button";
@@ -15,12 +16,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { MAX_CLASSES, MIN_CLASSES } from "@/core/statistics";
 import { getApplicability, type CalculationKey } from "@/features/analysis";
 
 import { isGroupedVariable } from "../model/build-request";
 import type { CalculationSelection, ClassRuleChoice, ColumnConfig } from "../model/types";
 import { isQuantitative, parsePercentiles } from "../model/validation";
 import { useWizardStore } from "../store/wizard-store";
+
+/** K elegido a mano, dentro de los límites del núcleo. */
+const K_OPTIONS = Array.from({ length: MAX_CLASSES - MIN_CLASSES + 1 }, (_, index) => {
+  const k = String(MIN_CLASSES + index);
+  return { id: k, label: k };
+});
 
 interface OptionState {
   readonly disabled: boolean;
@@ -178,17 +186,12 @@ export function StepCalculations({ embedded = false }: { embedded?: boolean } = 
                 </SelectContent>
               </Select>
               {calculation.rule === "manual" ? (
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="k-manual">Número de intervalos</Label>
-                  <Input
-                    id="k-manual"
-                    type="number"
-                    min={2}
-                    max={30}
-                    value={calculation.manualK}
-                    placeholder="5"
-                    onChange={(event) => patch({ manualK: Number(event.target.value) })}
-                    className="w-full sm:w-32"
+                <div className="w-full sm:w-40">
+                  <Field
+                    label="Número de intervalos"
+                    value={String(calculation.manualK)}
+                    onChange={(value) => patch({ manualK: Number(value) })}
+                    options={K_OPTIONS}
                   />
                 </div>
               ) : null}
@@ -322,7 +325,10 @@ export function StepCalculations({ embedded = false }: { embedded?: boolean } = 
                 id="lista-percentiles"
                 value={calculation.percentilesText}
                 placeholder="10, 90"
-                onChange={(event) => patch({ percentilesText: event.target.value })}
+                onChange={(event) =>
+                  patch({ percentilesText: event.target.value.replace(/[^\d.,;\s]/g, "") })
+                }
+                inputMode="decimal"
                 className="w-full sm:w-80"
                 {...(percentilesError !== null
                   ? { "aria-invalid": true, "aria-describedby": "error-percentiles" }

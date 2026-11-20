@@ -52,6 +52,28 @@ export function readNumber(text: string): number | null {
   return parseLocaleNumber(text, undefined, ",").value;
 }
 
+/**
+ * Qué acepta un campo numérico: `signed` (con signo, por defecto),
+ * `decimal` (sin signo; montos, tasas, cantidades) o `integer` (solo dígitos).
+ */
+export type NumberKind = "signed" | "decimal" | "integer";
+
+const NOT_ALLOWED: Readonly<Record<NumberKind, RegExp>> = {
+  signed: /[^\d.,-]/g,
+  decimal: /[^\d.,]/g,
+  integer: /\D/g,
+};
+
+/**
+ * Quita lo que no puede ir en un número escrito a mano: letras, espacios y
+ * símbolos. Deja dígitos, la coma y el punto (decimal o de miles) y, si es
+ * con signo, un solo «-» al inicio.
+ */
+export function cleanNumberText(text: string, kind: NumberKind = "signed"): string {
+  const kept = text.replace(NOT_ALLOWED[kind], "");
+  return kind === "signed" ? kept.replace(/(?!^)-/g, "") : kept;
+}
+
 export interface NumberFieldProps {
   label: string;
   value: string;
@@ -62,9 +84,15 @@ export interface NumberFieldProps {
   className?: string;
   /** Al salir del campo (por ejemplo, para darle formato al número). */
   onBlur?: () => void;
+  /** Qué caracteres acepta; por defecto, un número con signo. */
+  kind?: NumberKind;
 }
 
-/** Campo numérico con etiqueta, teclado decimal en móvil y error asociado. */
+/**
+ * Campo numérico con etiqueta, teclado numérico en móvil y error asociado. No
+ * deja escribir letras ni símbolos: se usa texto (no `type="number"`) para
+ * aceptar la coma decimal y los puntos de miles.
+ */
 export function NumberField({
   label,
   value,
@@ -73,6 +101,7 @@ export function NumberField({
   error = null,
   className,
   onBlur,
+  kind = "signed",
 }: NumberFieldProps) {
   const id = useId();
   const errorId = `${id}-error`;
@@ -81,10 +110,10 @@ export function NumberField({
       <Label htmlFor={id}>{label}</Label>
       <Input
         id={id}
-        inputMode="decimal"
+        inputMode={kind === "integer" ? "numeric" : "decimal"}
         autoComplete="off"
         value={value}
-        onChange={(event) => onChange(event.target.value)}
+        onChange={(event) => onChange(cleanNumberText(event.target.value, kind))}
         {...(onBlur !== undefined ? { onBlur } : {})}
         {...(placeholder !== undefined ? { placeholder } : {})}
         aria-invalid={error !== null}

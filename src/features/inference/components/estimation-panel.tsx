@@ -265,12 +265,14 @@ export function EstimationPanel({ columns }: { columns: readonly AnalysisColumn[
           <div className="grid gap-5 sm:grid-cols-2">
             <NumberField
               label="Desviación estándar esperada (σ)"
+              kind="decimal"
               value={sdText}
               onChange={setSdText}
               placeholder="Por ejemplo, 0,73"
             />
             <NumberField
               label="Margen de error aceptable (E)"
+              kind="decimal"
               value={marginText}
               onChange={setMarginText}
               placeholder="Por ejemplo, 0,1"
@@ -289,6 +291,7 @@ export function EstimationPanel({ columns }: { columns: readonly AnalysisColumn[
         >
           <NumberField
             label="Margen de error en puntos porcentuales"
+            kind="decimal"
             value={pMarginText}
             onChange={setPMarginText}
             placeholder="Por ejemplo, 5"

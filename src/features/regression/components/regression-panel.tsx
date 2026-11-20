@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cleanNumberText } from "@/components/shared/form-fields";
 import { parseLocaleNumber } from "@/core/data";
 import {
   formatValue,
@@ -242,7 +243,7 @@ export function RegressionPanel({ columns }: RegressionPanelProps) {
                   placeholder="Por ejemplo, 3,5"
                   className="w-44"
                   value={xText}
-                  onChange={(event) => setXText(event.target.value)}
+                  onChange={(event) => setXText(cleanNumberText(event.target.value))}
                   aria-invalid={predictionError !== null}
                   {...(predictionError !== null ? { "aria-describedby": ids.error } : {})}
                 />

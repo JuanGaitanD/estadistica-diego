@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   bestScenario,
+  MAX_YEARS,
   cashFlowSteps,
   cashFlowTable,
   COST_KINDS,
@@ -79,6 +80,28 @@ function withThousands(text: string): string {
 
 const yearsOrNot = (value: number | null): string =>
   value !== null ? `${formatValue(value, 1)} años` : "No se recupera";
+
+const THIS_YEAR = new Date().getFullYear();
+
+/**
+ * Opciones de un selector de enteros de `from` a `to`. Si el valor actual
+ * queda fuera (por ejemplo, tras acortar el horizonte), se conserva para que
+ * el selector no quede en blanco y el aviso del cálculo lo explique.
+ */
+function rangeOptions(
+  from: number,
+  to: number,
+  current: string,
+  label: (value: number) => string = String,
+): { id: string; label: string }[] {
+  const values = Array.from({ length: Math.max(0, to - from + 1) }, (_, index) => from + index);
+  const now = Number(current);
+  if (current.trim() !== "" && Number.isInteger(now) && !values.includes(now)) {
+    values.push(now);
+    values.sort((a, b) => a - b);
+  }
+  return values.map((value) => ({ id: String(value), label: label(value) }));
+}
 
 /** «Año 2 (2028)» si hay año calendario; si no, «Año 2». */
 function yearLabel(form: ScenarioForm, year: number): string {
@@ -355,10 +378,15 @@ function ProjectForm({ form }: { form: ScenarioForm }) {
     value: form[key] as string,
     onChange: (text: string) => patch({ [key]: text }),
   });
+  /** Montos en pesos: sin signo y con puntos de miles al salir del campo. */
   const moneyField = (key: keyof ScenarioForm) => ({
     ...field(key),
+    kind: "decimal" as const,
     onBlur: () => patch({ [key]: withThousands(form[key] as string) }),
   });
+  const start = Number(form.startYear);
+  const horizon = Number(form.years);
+  const years = Number.isInteger(horizon) && horizon > 0 ? horizon : form.demand.length;
 
   const project = (): void => {
     const history = parseHistory(form.history);
@@ -407,11 +435,37 @@ function ProjectForm({ form }: { form: ScenarioForm }) {
         description="Los porcentajes se escriben como 35 para 35 %. Montos en pesos."
       >
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <NumberField label="Horizonte (años)" {...field("years")} />
-          <NumberField label="Año 0 (año calendario)" {...field("startYear")} />
-          <NumberField label="Tasa de oportunidad, TMAR (%)" {...field("discountRate")} />
-          <NumberField label="Impuesto de renta (%)" {...field("taxRate")} />
-          <NumberField label="Impuesto de ganancia ocasional (%)" {...field("gainTaxRate")} />
+          <Field
+            label="Horizonte"
+            {...field("years")}
+            options={rangeOptions(1, MAX_YEARS, form.years, (n) =>
+              n === 1 ? "1 año" : `${n} años`,
+            )}
+          />
+          <Field
+            label="Año 0 (año calendario)"
+            value={form.startYear}
+            onChange={(text) => {
+              // El último año con datos no puede quedar después del año 0.
+              patch(
+                Number(form.historyLastYear) > Number(text)
+                  ? { startYear: text, historyLastYear: text }
+                  : { startYear: text },
+              );
+            }}
+            options={rangeOptions(THIS_YEAR - 15, THIS_YEAR + 15, form.startYear)}
+          />
+          <NumberField
+            label="Tasa de oportunidad, TMAR (%)"
+            kind="decimal"
+            {...field("discountRate")}
+          />
+          <NumberField label="Impuesto de renta (%)" kind="decimal" {...field("taxRate")} />
+          <NumberField
+            label="Impuesto de ganancia ocasional (%)"
+            kind="decimal"
+            {...field("gainTaxRate")}
+          />
         </div>
       </SectionCard>
 
@@ -424,9 +478,19 @@ function ProjectForm({ form }: { form: ScenarioForm }) {
             <TextField
               label="Ventas de años anteriores (separadas por punto y coma)"
               value={form.history}
-              onChange={(text) => patch({ history: text })}
+              // Solo cifras, separadores y espacios: «1.200; 1.350; 1.500».
+              onChange={(text) => patch({ history: text.replace(/[^\d.,;\s]/g, "") })}
+              inputMode="decimal"
             />
-            <NumberField label="Último año con datos" {...field("historyLastYear")} />
+            <Field
+              label="Último año con datos"
+              {...field("historyLastYear")}
+              options={rangeOptions(
+                (Number.isInteger(start) ? start : THIS_YEAR) - 30,
+                Number.isInteger(start) ? start : THIS_YEAR,
+                form.historyLastYear,
+              ).reverse()}
+            />
             <Button type="button" variant="outline" onClick={project}>
               <TrendingUp aria-hidden="true" />
               Proyectar
@@ -451,6 +515,7 @@ function ProjectForm({ form }: { form: ScenarioForm }) {
               <NumberField
                 key={index}
                 label={`Unidades, ${yearLabel(form, index + 1).toLowerCase()}`}
+                kind="decimal"
                 value={value}
                 onChange={(text) =>
                   patch({ demand: form.demand.map((entry, i) => (i === index ? text : entry)) })
@@ -493,6 +558,7 @@ function ProjectForm({ form }: { form: ScenarioForm }) {
                 />
                 <NumberField
                   label={cost.kind === "porcentaje" ? "% de los ingresos" : "Monto del año 1 ($)"}
+                  kind="decimal"
                   value={cost.amount}
                   onChange={(amount) => update({ amount })}
                   onBlur={() =>
@@ -527,22 +593,26 @@ function ProjectForm({ form }: { form: ScenarioForm }) {
                 />
                 <NumberField
                   label="Valor ($)"
+                  kind="decimal"
                   value={asset.value}
                   onChange={(value) => update({ value })}
                   onBlur={() => update({ value: withThousands(asset.value) })}
                 />
-                <NumberField
+                <Field
                   label="Año de compra"
                   value={asset.year}
                   onChange={(year) => update({ year })}
+                  options={rangeOptions(0, years, asset.year, (n) => yearLabel(form, n))}
                 />
                 <NumberField
                   label="Vida útil (años)"
+                  kind="integer"
                   value={asset.life}
                   onChange={(life) => update({ life })}
                 />
                 <NumberField
                   label="Valor comercial al final ($)"
+                  kind="decimal"
                   value={asset.salvage}
                   onChange={(salvage) => update({ salvage })}
                   onBlur={() => update({ salvage: withThousands(asset.salvage) })}
@@ -578,17 +648,20 @@ function ProjectForm({ form }: { form: ScenarioForm }) {
               />
               <NumberField
                 label="Monto ($)"
+                kind="decimal"
                 value={loan.amount}
                 onChange={(amount) => update({ amount })}
                 onBlur={() => update({ amount: withThousands(loan.amount) })}
               />
               <NumberField
                 label="Tasa E.A. (%)"
+                kind="decimal"
                 value={loan.rate}
                 onChange={(rate) => update({ rate })}
               />
               <NumberField
                 label="Plazo (años)"
+                kind="integer"
                 value={loan.term}
                 onChange={(term) => update({ term })}
               />
@@ -604,16 +677,23 @@ function TextField({
   label,
   value,
   onChange,
+  inputMode,
 }: {
   label: string;
   value: string;
   onChange: (text: string) => void;
+  inputMode?: "decimal";
 }) {
   const id = useId();
   return (
     <div className="flex min-w-0 flex-col gap-1.5">
       <Label htmlFor={id}>{label}</Label>
-      <Input id={id} value={value} onChange={(event) => onChange(event.target.value)} />
+      <Input
+        id={id}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        {...(inputMode !== undefined ? { inputMode } : {})}
+      />
     </div>
   );
 }

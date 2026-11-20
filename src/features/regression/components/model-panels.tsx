@@ -547,6 +547,7 @@ export function LogisticPanel({ columns }: { columns: readonly ModelColumn[] }) 
           />
           <NumberField
             label="Umbral para decir «sí» (%)"
+            kind="decimal"
             value={thresholdText}
             onChange={setThresholdText}
           />

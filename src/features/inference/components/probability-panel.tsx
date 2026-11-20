@@ -33,29 +33,31 @@ import { captureChartAsDataUrl, ChartDownloadButton, CopyButton } from "@/featur
 import type { NumericColumn } from "@/features/regression";
 import { AddToReportButton } from "@/features/report";
 
-import { NumberField, readNumber } from "@/components/shared/form-fields";
+import { NumberField, readNumber, type NumberKind } from "@/components/shared/form-fields";
 
 import { CentralLimitPanel } from "./central-limit-panel";
 
 type Kind = DistributionSpec["kind"];
 
 /** Parámetros de cada distribución: etiqueta y valor inicial. */
-const PARAMS: Readonly<Record<Kind, readonly { key: string; label: string; initial: string }[]>> = {
+const PARAMS: Readonly<
+  Record<Kind, readonly { key: string; label: string; initial: string; kind?: NumberKind }[]>
+> = {
   normal: [
     { key: "mean", label: "Media (μ)", initial: "0" },
-    { key: "sd", label: "Desviación estándar (σ)", initial: "1" },
+    { key: "sd", label: "Desviación estándar (σ)", initial: "1", kind: "decimal" },
   ],
-  t: [{ key: "df", label: "Grados de libertad", initial: "10" }],
-  chi2: [{ key: "df", label: "Grados de libertad", initial: "4" }],
+  t: [{ key: "df", label: "Grados de libertad", initial: "10", kind: "decimal" }],
+  chi2: [{ key: "df", label: "Grados de libertad", initial: "4", kind: "decimal" }],
   f: [
-    { key: "d1", label: "Grados de libertad del numerador", initial: "3" },
-    { key: "d2", label: "Grados de libertad del denominador", initial: "20" },
+    { key: "d1", label: "Grados de libertad del numerador", initial: "3", kind: "decimal" },
+    { key: "d2", label: "Grados de libertad del denominador", initial: "20", kind: "decimal" },
   ],
   binomial: [
-    { key: "n", label: "Número de intentos (n)", initial: "10" },
-    { key: "p", label: "Probabilidad de éxito (p)", initial: "0,5" },
+    { key: "n", label: "Número de intentos (n)", initial: "10", kind: "integer" },
+    { key: "p", label: "Probabilidad de éxito (p)", initial: "0,5", kind: "decimal" },
   ],
-  poisson: [{ key: "lambda", label: "Promedio de casos (λ)", initial: "3" }],
+  poisson: [{ key: "lambda", label: "Promedio de casos (λ)", initial: "3", kind: "decimal" }],
 };
 
 const HINT: Readonly<Record<Kind, string>> = {
@@ -180,6 +182,7 @@ export function ProbabilityPanel({ columns }: { columns: readonly NumericColumn[
             <NumberField
               key={`${kind}-${param.key}`}
               label={param.label}
+              kind={param.kind ?? "signed"}
               value={params[param.key] ?? ""}
               onChange={(text) => setParams((current) => ({ ...current, [param.key]: text }))}
             />
