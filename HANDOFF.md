@@ -35,6 +35,23 @@ Pedido por Juan: que la app no sea un asistente sino un tablero desde el que se 
 - **Modo guiado:** en Modelado lleva directo a la herramienta del tipo de pregunta (comparar → Pruebas de hipótesis, relacionar → Correlación y regresión, predecir → Regresión simple; describir → Qué dicen tus datos) y muestra un botón por cada herramienta que aplica. La Evaluación ya no cierra la herramienta abierta. Los textos dejan de nombrar «Analizar» y «Explorar».
 - **Campos con sentido:** `NumberField` no deja escribir letras ni símbolos (`kind`: con signo, sin signo o entero; texto y no `type="number"` para aceptar la coma decimal y los puntos de miles). En Rentable, el horizonte (1 a 50), el año 0, el último año con datos y el año de compra de cada activo son selectores; mover el año 0 antes del último dato lo ajusta. La vida útil y el plazo solo aceptan enteros; montos y tasas, sin signo; los crecimientos pueden ser negativos. Las ventas históricas y la lista de percentiles solo aceptan cifras y separadores, y el número de intervalos K es un selector de 2 a 50 (los límites del núcleo).
 
+### Flujo del proyecto y del inversionista, WACC y valor residual (2026-11-20)
+
+Pedido por Juan al probar el ejercicio «Confecciones Otún» con su Excel resuelto a mano: la app no daba lo mismo. Rama `feat/flujo-inversionista`.
+
+- **Por qué no daba lo mismo:** la app deprecia sin valor residual contable, no tenía flujo del inversionista (los préstamos solo restaban intereses del flujo, como en la clase del café) y usaba una sola tasa escrita a mano. En la captura de Juan, además, la TMAR estaba en 0 y las unidades o los costos no eran los del ejercicio.
+- **Núcleo (`src/core/finance`):**
+  - cada activo tiene `residual`: depreciación = (valor − residual) ÷ vida, como `SLN`;
+  - la utilidad en la venta de activos se grava y la pérdida ahorra impuesto;
+  - el flujo del proyecto ya no resta intereses y se descuenta al WACC (`fundingSources`: participación de cada préstamo y del aporte de los socios, deuda a tasa × (1 − renta), aporte a la TIO);
+  - con préstamos hay `investor`: intereses antes de impuestos, desembolso en el año 0 y abonos a capital (cuota − interés), descontado a la TIO (`equityRate`, antes `discountRate`). El aporte de los socios es la inversión del año 0 menos los préstamos;
+  - los préstamos ya no pueden pasar del horizonte ni superar la inversión del año 0.
+- **Pantalla:** campo «Rentabilidad exigida por los socios, TIO (%)» en lugar de la TMAR; «Valor residual contable» por activo; en los resultados, tabla del WACC y flujo del inversionista con sus indicadores; el resumen lateral muestra WACC, VPN y TIR de los socios.
+- **Excel:** Supuestos con valor residual y bloque de WACC con fórmulas; Flujo sin intereses, al WACC; hoja nueva «Inversionista» con intereses y abonos por préstamo, a la TIO; Resumen con los indicadores de los socios y un control más. Recalculado con LibreOffice, da lo mismo que la app y que el Excel de Juan, con todos los controles en OK.
+- **Arranca en blanco:** el escenario inicial no trae ningún caso; los ejemplos (Otún, Café Cordillera, Transporte) se cargan a pedido. «Ver un ejemplo» del tablero abre Otún.
+- **Caso de referencia nuevo:** Confecciones Otún, exacto al Excel de Juan: WACC 13,536 %; proyecto VPN $174.220.714,55, TIR 32,1611 %, payback 3,10 y 3,84 años; socios VPN $126.110.063,39, TIR 55,3940 %, payback 2,47 y 3,21 años.
+- **Ojo:** Café Cordillera ya no reproduce el Excel viejo del profesor (VPN −$28.358.291,51), porque ese método metía los intereses y el aporte como préstamo en un solo flujo. Con el método nuevo, el café da VPN $94.870.838 al WACC del 12,265 %.
+
 ### Rediseño de la cabecera del espacio de trabajo (2026-11-18)
 
 Pedido por Juan con una captura: a unos 880 px las pistas de las pestañas se montaban, y «Guíame paso a paso» y «Proyecto» ocupaban dos filas sueltas. Rama `feat/rediseno-cabecera`.
@@ -59,7 +76,7 @@ Pedido por Juan; no es de la electiva de datos. Rama `feat/rentabilidad-flujo-ca
   - hasta 6 escenarios con tabla comparativa.
 - Indicadores: VPN, TIR, payback simple y descontado, B/C, EBITDA y margen EBITDA, y promedios. Decisión «Aceptar / Revisar supuestos / Rechazar o rediseñar», como pide el prompt del profesor; «revisar» = VPN positivo con payback de más de dos tercios del horizonte.
 - Dos ejemplos para cargar:
-  - Café Cordillera, del Excel del profesor; el test lo reproduce exacto: VPN −$28.358.291,51 y TIR 15,0604 %.
+  - Café Cordillera, del Excel del profesor; el test lo reproducía exacto (VPN −$28.358.291,51 y TIR 15,0604 %) hasta el cambio de método del 2026-11-20 (ver arriba).
   - Transporte turístico en Pereira, del prompt del profesor: 10 vehículos, sin deuda, 10 años al 10 %. Sus cifras son **referenciales** (precio del vehículo, tarifa, nómina, seguros); no salen de fuentes consultadas.
 - **Libro de Excel** con la estructura del prompt: Resumen, Supuestos, Flujo, Data histórica, Fuentes y Control de calidad. Las fórmulas están conectadas a Supuestos; recalculado con LibreOffice, da lo mismo que la app y los 10 controles salen en OK. Se escribe con ExcelJS (nueva dependencia, cargada al exportar), porque la versión libre de SheetJS no escribe estilos.
 - **UX** (revisada en el navegador a 1440 y 390 px):

@@ -34,6 +34,7 @@ describe("buildProjectWorkbook", () => {
       "Resumen",
       "Supuestos",
       "Flujo",
+      "Inversionista",
       "Data histórica",
       "Fuentes",
       "Control de calidad",
@@ -49,9 +50,20 @@ describe("buildProjectWorkbook", () => {
     expect(formulaOf(row(resumen, "TIR")?.[1])).toMatch(/IRR\(Flujo!\$B\$\d+:\$G\$\d+\)/);
     expect(formulaOf(row(resumen, "Decisión")?.[1])).toContain("Revisar supuestos");
     // Préstamo de cuota fija como IPMT; capitalizable con interés compuesto.
-    const flujo = sheet(book, "Flujo");
-    expect(formulaOf(row(flujo, "Préstamo del banco")?.[2])).toContain("IPMT(");
-    expect(formulaOf(row(flujo, "Préstamo de los socios")?.[2])).toMatch(/\^\(C\$4-1\)/);
+    const inversionista = sheet(book, "Inversionista");
+    expect(formulaOf(row(inversionista, "Intereses · Préstamo del banco")?.[2])).toContain("IPMT(");
+    expect(formulaOf(row(inversionista, "Intereses · Préstamo de los socios")?.[2])).toMatch(
+      /\^\(C\$4-1\)/,
+    );
+    expect(formulaOf(row(inversionista, "Abono a capital · Préstamo del banco")?.[2])).toContain(
+      "PMT(",
+    );
+    expect(formulaOf(row(resumen, "VPN de los socios")?.[1])).toMatch(/^NPV\(Supuestos!/);
+    // Intereses y abonos van intercalados por préstamo: se suman uno por uno, no por rango.
+    expect(formulaOf(row(inversionista, "(−) Intereses")?.[2])).toMatch(/^C\d+\+C\d+$/);
+    expect(formulaOf(row(inversionista, "(−) Abono a capital")?.[2])).toMatch(/^-\(C\d+\+C\d+\)$/);
+    // El flujo del proyecto no lleva intereses.
+    expect(row(sheet(book, "Flujo"), "(−) Intereses")).toBeUndefined();
   });
 
   it("separa costos variables y fijos, con un renglón por rubro", () => {
@@ -61,10 +73,8 @@ describe("buildProjectWorkbook", () => {
     );
     expect(row(flujo, "Costos variables totales")).toBeDefined();
     expect(row(flujo, "Costos fijos totales")).toBeDefined();
-    // Sin préstamos no hay bloque de intereses.
-    expect(
-      row(flujo, "Intereses por préstamo (solo los intereses entran al flujo)"),
-    ).toBeUndefined();
+    // Sin préstamos no hay hoja del inversionista.
+    expect(workbook(TRANSPORT_FORM).some((entry) => entry.name === "Inversionista")).toBe(false);
   });
 
   it("aguanta proyectos sin activos, sin préstamos y de un año", () => {
@@ -78,7 +88,10 @@ describe("buildProjectWorkbook", () => {
 
   it("los supuestos editables van resaltados y el horizonte no", () => {
     const supuestos = sheet(workbook(CAFE_FORM), "Supuestos");
-    expect((row(supuestos, "Tasa de descuento (TMAR)")?.[1] as WorkbookCell).style).toBe("input");
+    expect(
+      (row(supuestos, "Rentabilidad exigida por los socios (TIO)")?.[1] as WorkbookCell).style,
+    ).toBe("input");
+    expect(formulaOf(row(supuestos, "Costo de capital (WACC)")?.[1])).toMatch(/^SUM\(\$E\$/);
     expect((row(supuestos, "Horizonte de evaluación")?.[1] as WorkbookCell).style).toBeUndefined();
   });
 });

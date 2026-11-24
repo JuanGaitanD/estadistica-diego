@@ -1,8 +1,9 @@
 /**
  * Libro de Excel del proyecto, con la estructura del prompt de evaluación de
- * proyectos: Resumen, Supuestos, Flujo, Data histórica, Fuentes y Control de
- * calidad. Todo el flujo son fórmulas conectadas a la hoja Supuestos: al
- * cambiar un supuesto, Excel recalcula VPN, TIR y payback.
+ * proyectos: Resumen, Supuestos, Flujo (del proyecto, al WACC), Inversionista
+ * (con los préstamos, a la TIO; solo si hay préstamos), Data histórica, Fuentes
+ * y Control de calidad. Todo el flujo son fórmulas conectadas a la hoja
+ * Supuestos: al cambiar un supuesto, Excel recalcula WACC, VPN, TIR y payback.
  *
  * Lo que fija la forma del libro (horizonte, cuántos rubros, activos y
  * préstamos, el tipo de cada uno) queda como texto: para cambiarlo se vuelve
@@ -100,11 +101,11 @@ export function buildProjectWorkbook({
         "Solo rotula las columnas.",
       )
     : null;
-  const tmar = s.add(
-    "Tasa de descuento (TMAR)",
-    input(data.discountRate, PERCENT),
+  const tio = s.add(
+    "Rentabilidad exigida por los socios (TIO)",
+    input(data.equityRate, PERCENT),
     "% anual",
-    "Rentabilidad mínima que se exige; con ella se descuentan los flujos.",
+    "Con ella se descuenta el flujo del inversionista; sin préstamos, también el del proyecto.",
   );
   const tax = s.add(
     "Impuesto de renta",
@@ -116,7 +117,7 @@ export function buildProjectWorkbook({
     "Impuesto de ganancia ocasional",
     input(data.gainTaxRate, PERCENT),
     "%",
-    "Sobre la utilidad en la venta de activos al final.",
+    "Sobre la utilidad en la venta de activos al final; una pérdida en la venta lo ahorra.",
   );
   s.blank();
   s.add(...section("Supuestos de ingresos", 6));
@@ -167,13 +168,14 @@ export function buildProjectWorkbook({
     ),
   );
   s.blank();
-  s.add(...section("Inversión, depreciación (línea recta) y valor residual", 6));
+  s.add(...section("Inversión, depreciación (línea recta) y valor residual", 7));
   s.add(
     ...header(
       "Activo",
       "Valor",
       "Año de compra",
       "Vida útil (años)",
+      "Valor residual contable",
       "Valor comercial al final",
       "Depreciación anual",
     ),
@@ -185,8 +187,9 @@ export function buildProjectWorkbook({
       input(asset.value, MONEY),
       input(asset.year, "0"),
       input(asset.life, "0"),
+      input(asset.residual, MONEY),
       input(asset.salvage, MONEY),
-      formula(`B${row}/D${row}`, MONEY),
+      formula(`(B${row}-E${row})/D${row}`, MONEY),
     );
   });
   const workingCapital = s.add(
@@ -195,11 +198,32 @@ export function buildProjectWorkbook({
     "COP",
     "Sale en el año 0 y se recupera en el último año.",
   );
+  const assetYears =
+    assetRows.length > 0 ? `Supuestos!$C$${assetRows[0]}:$C$${assetRows.at(-1)}` : null;
+  const assetValues =
+    assetRows.length > 0 ? `Supuestos!$B$${assetRows[0]}:$B$${assetRows.at(-1)}` : null;
+  const initial =
+    assetYears !== null && assetValues !== null
+      ? `SUMIF(${assetYears},0,${assetValues})+${S(workingCapital)}`
+      : S(workingCapital);
   s.blank();
-  s.add(...section("Financiación", 6));
+  s.add(...section("Financiación y costo de capital (WACC)", 6));
   const loanRows: number[] = [];
+  let wacc: number;
+  let equity: number | null = null;
   if (data.loans.length === 0) {
-    s.add(...note("Sin préstamos: el flujo es libre y no apalancado (sin deuda ni intereses).", 6));
+    s.add(
+      ...note(
+        "Sin préstamos: los socios ponen toda la inversión y el proyecto se descuenta a su TIO.",
+        6,
+      ),
+    );
+    wacc = s.add(
+      "Tasa de descuento del proyecto (TIO)",
+      formula(S(tio), PERCENT, "highlight"),
+      "% anual",
+      "Sin deuda, el costo de capital es la TIO.",
+    );
   } else {
     s.add(...header("Préstamo", "Monto", "Tasa efectiva anual", "Plazo (años)", "Forma de pago"));
     for (const loan of data.loans)
@@ -212,6 +236,51 @@ export function buildProjectWorkbook({
           LOAN_KINDS.find((kind) => kind.id === loan.kind)?.label ?? loan.kind,
         ),
       );
+    s.blank();
+    s.add(
+      ...header(
+        "Fuente",
+        "Monto",
+        "Participación",
+        "Costo después de impuestos",
+        "Ponderado",
+        "Comentario",
+      ),
+    );
+    const first = s.rows.length + 1;
+    const lastSource = first + data.loans.length;
+    const total = `SUM($B$${first}:$B$${lastSource})`;
+    const source = (label: string, amount: string, cost: string, comment: string): number => {
+      const row = s.rows.length + 1;
+      return s.add(
+        label,
+        formula(amount, MONEY),
+        formula(`IFERROR(B${row}/${total},0)`, PERCENT),
+        formula(cost, PERCENT),
+        formula(`C${row}*D${row}`, PERCENT),
+        comment,
+      );
+    };
+    data.loans.forEach((loan, index) =>
+      source(
+        loan.name,
+        S(loanRows[index]!),
+        `${S(loanRows[index]!, "C")}*(1-${S(tax)})`,
+        "Los intereses se descuentan de la renta: cuesta su tasa × (1 − impuesto).",
+      ),
+    );
+    equity = source(
+      "Aporte de los socios",
+      `MAX(0,${initial}-SUM(${S(loanRows[0]!)}:${S(loanRows.at(-1)!)}))`,
+      S(tio),
+      "La inversión del año 0 que no cubren los préstamos; cuesta su TIO.",
+    );
+    wacc = s.add(
+      "Costo de capital (WACC)",
+      formula(`SUM($E$${first}:$E$${lastSource})`, PERCENT, "highlight"),
+      "% anual",
+      "Con esta tasa se descuenta el flujo del proyecto.",
+    );
   }
 
   // ── Flujo ───────────────────────────────────────────────────────────────
@@ -219,10 +288,10 @@ export function buildProjectWorkbook({
   const col = (t: number): string => excelColumn(t + 1); // B = año 0.
   const last = col(n);
   const years = Array.from({ length: n + 1 }, (_, t) => t);
-  f.add({ value: "Flujo de caja libre proyectado", style: "title" });
+  f.add({ value: "Flujo de caja del proyecto (sin financiación)", style: "title" });
   f.add({
     value:
-      "Pesos colombianos (COP). Todo sale de la hoja Supuestos; no hay valores escritos a mano.",
+      "Pesos colombianos (COP). Sin intereses ni préstamos; se descuenta al costo de capital. Todo sale de la hoja Supuestos.",
     style: "subtitle",
   });
   f.add(
@@ -238,22 +307,26 @@ export function buildProjectWorkbook({
     { value: "Periodo (t)", style: "section" },
     ...years.map((t) => ({ value: t, style: "section" as const })),
   );
-  const line = (
-    label: string,
-    cell: (c: string, t: number) => WorkbookEntry,
-    style?: WorkbookCell["style"],
-    format = MONEY,
-  ): number =>
-    f.add(
-      style !== undefined ? { value: label, style } : label,
-      ...years.map((t): WorkbookEntry => {
-        const value = cell(col(t), t);
-        if (typeof value === "string") return formula(value, format, style);
-        if (typeof value === "number")
-          return { value, format, ...(style !== undefined ? { style } : {}) };
-        return value;
-      }),
-    );
+  /** Una fila por concepto, con una celda por año, en la hoja `target`. */
+  const lineOn =
+    (target: ReturnType<typeof sheetRows>) =>
+    (
+      label: string,
+      cell: (c: string, t: number) => WorkbookEntry,
+      style?: WorkbookCell["style"],
+      format = MONEY,
+    ): number =>
+      target.add(
+        style !== undefined ? { value: label, style } : label,
+        ...years.map((t): WorkbookEntry => {
+          const value = cell(col(t), t);
+          if (typeof value === "string") return formula(value, format, style);
+          if (typeof value === "number")
+            return { value, format, ...(style !== undefined ? { style } : {}) };
+          return value;
+        }),
+      );
+  const line = lineOn(f);
   const t = (c: string): string => `${c}$${T}`;
   const prev = (tt: number): string => col(tt - 1);
   const sumRows = (c: string, rows: readonly number[]): string =>
@@ -274,15 +347,13 @@ export function buildProjectWorkbook({
     1 +
     1 + // costos
     1 +
-    7 + // estado de resultados
+    5 + // estado de resultados
     1 +
     7 +
     6; // flujo libre, descuentos y años de recuperación
   const depStart = mainRows + 3;
   const depRows = data.assets.map((_, index) => depStart + index);
-  const intStart = depStart + data.assets.length + (data.assets.length > 0 ? 2 : 0);
-  const intRows = data.loans.map((_, index) => intStart + index);
-  const saleStart = intStart + data.loans.length + (data.loans.length > 0 ? 2 : 0) + 1;
+  const saleStart = depStart + data.assets.length + (data.assets.length > 0 ? 2 : 0) + 1;
   const saleRows = data.assets.map((_, index) => saleStart + index);
 
   f.add(...section("Ingresos", n + 2));
@@ -331,56 +402,59 @@ export function buildProjectWorkbook({
     (c) => `${c}${ebitda}-${c}${depreciation}`,
     "total",
   );
-  const interest = line("(−) Intereses", (c) => sumRows(c, intRows));
-  const taxable = line(
-    "Utilidad antes de impuestos",
-    (c) => `${c}${ebit}-${c}${interest}`,
-    "total",
-  );
-  const taxes = line("(−) Impuesto de renta", (c) => `MAX(0,${c}${taxable})*${S(tax)}`);
-  const netIncome = line("Utilidad neta", (c) => `${c}${taxable}-${c}${taxes}`, "total");
+  const taxes = line("(−) Impuesto de renta", (c) => `MAX(0,${c}${ebit})*${S(tax)}`);
+  const netIncome = line("Utilidad neta", (c) => `${c}${ebit}-${c}${taxes}`, "total");
   f.add(...section("Flujo de caja libre", n + 2));
   line("Utilidad neta", (c) => `${c}${netIncome}`);
   line("(+) Depreciación", (c) => `${c}${depreciation}`);
-  const assetYears =
-    assetRows.length > 0 ? `Supuestos!$C$${assetRows[0]}:$C$${assetRows.at(-1)}` : null;
-  const assetValues =
-    assetRows.length > 0 ? `Supuestos!$B$${assetRows[0]}:$B$${assetRows.at(-1)}` : null;
   const investment = line("(−) Inversión en activos", (c) =>
     assetYears !== null && assetValues !== null
       ? `-SUMIF(${assetYears},${t(c)},${assetValues})`
       : "0",
   );
   const wcOut = line("(−) Capital de trabajo", (_, tt) => (tt === 0 ? `-${S(workingCapital)}` : 0));
-  line("(+) Recuperación del capital de trabajo", (_, tt) => (tt === n ? S(workingCapital) : 0));
+  const wcIn = line("(+) Recuperación del capital de trabajo", (_, tt) =>
+    tt === n ? S(workingCapital) : 0,
+  );
   const residual = line("(+) Valor residual (venta de activos, neto de impuesto)", (_, tt) =>
     tt === n && saleRows.length > 0 ? `SUM($G$${saleRows[0]}:$G$${saleRows.at(-1)})` : 0,
   );
   const first = netIncome + 2; // «Utilidad neta» repetida al inicio del bloque.
   const flow = line("Flujo de caja libre", (c) => `SUM(${c}${first}:${c}${residual})`, "highlight");
-  const factor = line("Factor de descuento", (c) => `1/(1+${S(tmar)})^${t(c)}`, undefined, FACTOR);
-  const discounted = line("Flujo descontado", (c) => `${c}${flow}*${c}${factor}`);
-  const cumulative = line("Flujo acumulado", (c, tt) =>
-    tt === 0 ? `${c}${flow}` : `${prev(tt)}${f.rows.length + 1}+${c}${flow}`,
-  );
-  const cumulativeDiscounted = line("Flujo descontado acumulado", (c, tt) =>
-    tt === 0 ? `${c}${discounted}` : `${prev(tt)}${f.rows.length + 1}+${c}${discounted}`,
-  );
-  const recovery = (label: string, cum: number, flows: number): number =>
-    line(
-      label,
-      (c, tt) =>
-        tt === 0
-          ? `IF(${c}${cum}>=0,0,"")`
-          : `IF(AND(${prev(tt)}${cum}<0,${c}${cum}>=0),${prev(tt)}$${T}-${prev(tt)}${cum}/${c}${flows},"")`,
-      undefined,
-      "0.00",
+  /** Factor, descontado, acumulados y años de recuperación de la fila `flow` a la tasa `rate`. */
+  const discountBlock = (target: ReturnType<typeof sheetRows>, flow: number, rate: string) => {
+    const add = lineOn(target);
+    const factor = add("Factor de descuento", (c) => `1/(1+${rate})^${t(c)}`, undefined, FACTOR);
+    const discounted = add("Flujo descontado", (c) => `${c}${flow}*${c}${factor}`);
+    const cumulative = add("Flujo acumulado", (c, tt) =>
+      tt === 0 ? `${c}${flow}` : `${prev(tt)}${target.rows.length + 1}+${c}${flow}`,
     );
-  const paybackRow = recovery("Año en que se recupera (simple)", cumulative, flow);
-  const discountedPaybackRow = recovery(
-    "Año en que se recupera (descontado)",
-    cumulativeDiscounted,
-    discounted,
+    const cumulativeDiscounted = add("Flujo descontado acumulado", (c, tt) =>
+      tt === 0 ? `${c}${discounted}` : `${prev(tt)}${target.rows.length + 1}+${c}${discounted}`,
+    );
+    const recovery = (label: string, cum: number, flows: number): number =>
+      add(
+        label,
+        (c, tt) =>
+          tt === 0
+            ? `IF(${c}${cum}>=0,0,"")`
+            : `IF(AND(${prev(tt)}${cum}<0,${c}${cum}>=0),${prev(tt)}$${T}-${prev(tt)}${cum}/${c}${flows},"")`,
+        undefined,
+        "0.00",
+      );
+    return {
+      payback: recovery("Año en que se recupera (simple)", cumulative, flow),
+      discountedPayback: recovery(
+        "Año en que se recupera (descontado)",
+        cumulativeDiscounted,
+        discounted,
+      ),
+    };
+  };
+  const { payback: paybackRow, discountedPayback: discountedPaybackRow } = discountBlock(
+    f,
+    flow,
+    S(wacc),
   );
   if (f.rows.length !== mainRows)
     throw new Error(`Filas del flujo descuadradas: ${f.rows.length} ≠ ${mainRows}`);
@@ -398,26 +472,8 @@ export function buildProjectWorkbook({
       line(
         asset.name,
         (c) =>
-          `IF(AND(${t(c)}>${S(r, "C")},${t(c)}<=${S(r, "C")}+${S(r, "D")}),${S(r)}/${S(r, "D")},0)`,
+          `IF(AND(${t(c)}>${S(r, "C")},${t(c)}<=${S(r, "C")}+${S(r, "D")}),(${S(r)}-${S(r, "E")})/${S(r, "D")},0)`,
       );
-    });
-    f.blank();
-  }
-  if (data.loans.length > 0) {
-    f.add(...section("Intereses por préstamo (solo los intereses entran al flujo)", n + 2));
-    data.loans.forEach((loan, index) => {
-      const r = loanRows[index]!;
-      const [amount, rate, term] = [S(r), S(r, "C"), S(r, "D")];
-      line(loan.name, (c) => {
-        const inTerm = `AND(${t(c)}>=1,${t(c)}<=${term})`;
-        const value =
-          loan.kind === "cuota-fija"
-            ? `IPMT(${rate},${t(c)},${term},-${amount})`
-            : loan.kind === "intereses-anuales"
-              ? `${amount}*${rate}`
-              : `${amount}*${rate}*(1+${rate})^(${t(c)}-1)`;
-        return `IF(${inTerm},${value},0)`;
-      });
     });
     f.blank();
   }
@@ -429,7 +485,7 @@ export function buildProjectWorkbook({
       "Depreciación acumulada",
       "Valor en libros",
       "Utilidad en la venta",
-      "Impuesto de ganancia ocasional",
+      "Impuesto sobre la utilidad",
       "Flujo de la venta",
     ),
   );
@@ -438,25 +494,111 @@ export function buildProjectWorkbook({
     const row = f.rows.length + 1;
     f.add(
       asset.name,
-      formula(S(r, "E"), MONEY),
-      formula(`${S(r)}/${S(r, "D")}*MIN(${S(r, "D")},MAX(0,${S(horizon)}-${S(r, "C")}))`, MONEY),
+      formula(S(r, "F"), MONEY),
+      formula(
+        `(${S(r)}-${S(r, "E")})/${S(r, "D")}*MIN(${S(r, "D")},MAX(0,${S(horizon)}-${S(r, "C")}))`,
+        MONEY,
+      ),
       formula(`${S(r)}-C${row}`, MONEY),
       formula(`B${row}-D${row}`, MONEY),
-      formula(`MAX(0,E${row})*${S(gainTax)}`, MONEY),
+      formula(`E${row}*${S(gainTax)}`, MONEY),
       formula(`B${row}-F${row}`, MONEY),
     );
   });
   if (data.assets.length > 0 && f.rows.length !== saleRows.at(-1))
     throw new Error("Filas de la venta de activos descuadradas.");
 
-  // ── Resumen ─────────────────────────────────────────────────────────────
+  // ── Inversionista (solo con préstamos) ──────────────────────────────────
+  const v = sheetRows();
   const F = (column: string, row: number): string => abs("Flujo", column, row);
-  const range = (row: number, from = "B"): string => `Flujo!$${from}$${row}:$${last}$${row}`;
+  let investorRows: { flow: number; payback: number; discountedPayback: number } | null = null;
+  if (data.loans.length > 0) {
+    const add = lineOn(v);
+    v.add({ value: "Flujo de caja del inversionista (con financiación)", style: "title" });
+    v.add({
+      value:
+        "Parte de la utilidad operacional del proyecto (hoja Flujo), resta los intereses antes de impuestos, suma los préstamos en el año 0 y resta los abonos a capital. Se descuenta a la TIO de los socios.",
+      style: "subtitle",
+    });
+    v.add(
+      { value: "Concepto", style: "header" },
+      ...years.map((tt): WorkbookCell => ({ formula: `Flujo!${col(tt)}3`, style: "header" })),
+    );
+    v.add(
+      { value: "Periodo (t)", style: "section" },
+      ...years.map((tt) => ({ value: tt, style: "section" as const })),
+    );
+    v.add(...section("Préstamos: intereses y abonos a capital por año", n + 2));
+    const interestRows: number[] = [];
+    const principalRows: number[] = [];
+    data.loans.forEach((loan, index) => {
+      const r = loanRows[index]!;
+      const [amount, rate, term] = [S(r), S(r, "C"), S(r, "D")];
+      const inTerm = (c: string): string => `AND(${t(c)}>=1,${t(c)}<=${term})`;
+      const interest = add(`Intereses · ${loan.name}`, (c) => {
+        const value =
+          loan.kind === "cuota-fija"
+            ? `IPMT(${rate},${t(c)},${term},-${amount})`
+            : loan.kind === "intereses-anuales"
+              ? `${amount}*${rate}`
+              : `${amount}*${rate}*(1+${rate})^(${t(c)}-1)`;
+        return `IF(${inTerm(c)},${value},0)`;
+      });
+      interestRows.push(interest);
+      // Abono a capital = lo que se paga en el año − el interés del año.
+      const paid = (c: string): string =>
+        loan.kind === "cuota-fija"
+          ? `IF(${inTerm(c)},PMT(${rate},${term},-${amount}),0)`
+          : loan.kind === "intereses-anuales"
+            ? `IF(${inTerm(c)},${amount}*${rate}+IF(${t(c)}=${term},${amount},0),0)`
+            : `IF(${t(c)}=${term},${amount}*(1+${rate})^${term},0)`;
+      principalRows.push(
+        add(`Abono a capital · ${loan.name}`, (c) => `${paid(c)}-${c}${interest}`),
+      );
+    });
+    v.add(...section("Estado de resultados con intereses", n + 2));
+    const vEbit = add("EBIT (utilidad operacional)", (c) => `Flujo!${c}${ebit}`, "total");
+    const vInterest = add("(−) Intereses", (c) => interestRows.map((r) => `${c}${r}`).join("+"));
+    const vTaxable = add(
+      "Utilidad antes de impuestos",
+      (c) => `${c}${vEbit}-${c}${vInterest}`,
+      "total",
+    );
+    const vTaxes = add("(−) Impuesto de renta", (c) => `MAX(0,${c}${vTaxable})*${S(tax)}`);
+    const vNet = add("Utilidad neta", (c) => `${c}${vTaxable}-${c}${vTaxes}`, "total");
+    v.add(...section("Flujo de caja del inversionista", n + 2));
+    const fromFlujo = (label: string, row: number): number => add(label, (c) => `Flujo!${c}${row}`);
+    const vFirst = add("Utilidad neta", (c) => `${c}${vNet}`);
+    fromFlujo("(+) Depreciación", depreciation);
+    fromFlujo("(+) Valor residual (venta de activos, neto de impuesto)", residual);
+    fromFlujo("(+) Recuperación del capital de trabajo", wcIn);
+    add(
+      "(−) Inversión (activos y capital de trabajo)",
+      (c) => `Flujo!${c}${investment}+Flujo!${c}${wcOut}`,
+    );
+    add("(+) Préstamos", (_, tt) =>
+      tt === 0 ? `SUM(${S(loanRows[0]!)}:${S(loanRows.at(-1)!)})` : 0,
+    );
+    const vPrincipal = add(
+      "(−) Abono a capital",
+      (c) => `-(${principalRows.map((r) => `${c}${r}`).join("+")})`,
+    );
+    const vFlow = add(
+      "Flujo de caja del inversionista",
+      (c) => `SUM(${c}${vFirst}:${c}${vPrincipal})`,
+      "highlight",
+    );
+    investorRows = { flow: vFlow, ...discountBlock(v, vFlow, S(tio)) };
+  }
+
+  // ── Resumen ─────────────────────────────────────────────────────────────
+  const range = (row: number, from = "B", sheet = "Flujo"): string =>
+    `${sheet}!$${from}$${row}:$${last}$${row}`;
   const r = sheetRows();
   r.add({ value: `Resumen ejecutivo · ${name.trim() || "Escenario base"}`, style: "title" });
   r.add({
     value:
-      "Evaluación financiera con flujo de caja libre. Los indicadores se recalculan al cambiar la hoja Supuestos.",
+      "Evaluación financiera con el flujo de caja del proyecto (al WACC) y, si hay préstamos, el del inversionista (a la TIO). Los indicadores se recalculan al cambiar la hoja Supuestos.",
     style: "subtitle",
   });
   r.blank();
@@ -467,11 +609,15 @@ export function buildProjectWorkbook({
     formula(`-(${F("B", investment)}+${F("B", wcOut)})`, MONEY),
     "Activos del año 0 más capital de trabajo.",
   );
-  r.add("Tasa de descuento", formula(S(tmar), PERCENT), "TMAR de la hoja Supuestos.");
+  r.add(
+    "Tasa de descuento del proyecto",
+    formula(S(wacc), PERCENT),
+    data.loans.length > 0 ? "WACC de la hoja Supuestos." : "TIO de la hoja Supuestos (sin deuda).",
+  );
   r.add("Horizonte de evaluación", formula(S(horizon), '0 "años"'), "");
   const npv = r.add(
     "VPN",
-    formula(`NPV(${S(tmar)},${range(flow, "C")})+${F("B", flow)}`, MONEY, "highlight"),
+    formula(`NPV(${S(wacc)},${range(flow, "C")})+${F("B", flow)}`, MONEY, "highlight"),
     "Aceptar si es positivo: se gana más que en la alternativa.",
   );
   const irr = r.add(
@@ -495,7 +641,7 @@ export function buildProjectWorkbook({
   r.add(
     "Valor residual estimado de los activos",
     formula(
-      assetRows.length > 0 ? `SUM(Supuestos!$E$${assetRows[0]}:$E$${assetRows.at(-1)})` : "0",
+      assetRows.length > 0 ? `SUM(Supuestos!$F$${assetRows[0]}:$F$${assetRows.at(-1)})` : "0",
       MONEY,
     ),
     "Valor comercial al final, antes del impuesto de ganancia ocasional.",
@@ -508,6 +654,49 @@ export function buildProjectWorkbook({
   );
   r.add("Utilidad neta promedio anual", formula(`AVERAGE(${range(netIncome, "C")})`, MONEY), "");
   r.add("Flujo de caja libre promedio anual", formula(`AVERAGE(${range(flow, "C")})`, MONEY), "");
+  let investorNpv: number | null = null;
+  if (investorRows !== null && equity !== null) {
+    const I = (row: number, from = "B"): string => range(row, from, "Inversionista");
+    r.blank();
+    r.add(...section("Indicadores del inversionista (socios)", 3));
+    r.add(...header("Indicador", "Valor", "Criterio"));
+    r.add(
+      "Aporte de los socios",
+      formula(S(equity), MONEY),
+      "Inversión del año 0 menos préstamos.",
+    );
+    r.add("TIO de los socios", formula(S(tio), PERCENT), "Rentabilidad que exigen.");
+    investorNpv = r.add(
+      "VPN de los socios",
+      formula(
+        `NPV(${S(tio)},${I(investorRows.flow, "C")})+Inversionista!$B$${investorRows.flow}`,
+        MONEY,
+        "highlight",
+      ),
+      "Positivo: los socios ganan más de lo que exigen.",
+    );
+    r.add(
+      "TIR de los socios",
+      formula(`IFERROR(IRR(${I(investorRows.flow)}),"No se puede calcular")`, PERCENT, "highlight"),
+      "Mayor que la del proyecto si la deuda cuesta menos de lo que rinde (apalancamiento).",
+    );
+    r.add(
+      "Payback simple de los socios",
+      formula(
+        `IF(COUNT(${I(investorRows.payback)})=0,"No se recupera",MIN(${I(investorRows.payback)}))`,
+        YEARS,
+      ),
+      "",
+    );
+    r.add(
+      "Payback descontado de los socios",
+      formula(
+        `IF(COUNT(${I(investorRows.discountedPayback)})=0,"No se recupera",MIN(${I(investorRows.discountedPayback)}))`,
+        YEARS,
+      ),
+      "",
+    );
+  }
   r.blank();
   r.add(...section("Decisión sugerida", 3));
   r.add(
@@ -797,9 +986,9 @@ export function buildProjectWorkbook({
   );
   check(`Horizonte igual a ${n} años`, n, formula(S(horizon)), (row) => `B${row}=C${row}`);
   check(
-    "Tasa de descuento igual a la del escenario exportado",
-    { value: data.discountRate, format: PERCENT },
-    formula(S(tmar), PERCENT),
+    "Tasa de descuento (WACC) igual a la del escenario exportado",
+    { value: result.discountRate, format: PERCENT },
+    formula(S(wacc), PERCENT),
     (row) => `ABS(B${row}-C${row})<0.000001`,
   );
   check("Flujo del año 0 negativo", "< 0", formula(F("B", flow), MONEY), (row) => `C${row}<0`);
@@ -821,14 +1010,22 @@ export function buildProjectWorkbook({
     formula(R(npv), MONEY),
     equal,
   );
+  if (investorNpv !== null && result.investor !== null)
+    check(
+      "VPN de los socios igual al de StatLab al exportar",
+      { value: Math.round(result.investor.npv), format: MONEY },
+      formula(R(investorNpv), MONEY),
+      equal,
+    );
   check(
     "Sin errores (#REF!, #DIV/0!, #VALUE!, #NAME?, #N/A) en el libro",
     0,
     formula(
       [
         `Resumen!A1:C${r.rows.length}`,
-        `Supuestos!A1:F${s.rows.length}`,
+        `Supuestos!A1:G${s.rows.length}`,
         `Flujo!A1:${excelColumn(Math.max(n + 1, 6))}${f.rows.length}`,
+        ...(v.rows.length > 0 ? [`Inversionista!A1:${excelColumn(n + 1)}${v.rows.length}`] : []),
         `'Data histórica'!A1:I${h.rows.length}`,
       ]
         .map((area) => `SUMPRODUCT(--ISERROR(${area}))`)
@@ -857,13 +1054,23 @@ export function buildProjectWorkbook({
 
   return [
     { name: "Resumen", rows: r.rows, widths: [40, 22, 70] },
-    { name: "Supuestos", rows: s.rows, widths: [46, 20, 18, 18, 22, 20] },
+    { name: "Supuestos", rows: s.rows, widths: [46, 20, 18, 22, 22, 22, 20] },
     {
       name: "Flujo",
       rows: f.rows,
       widths: [52, ...years.map(() => 17), 17, 17, 17, 17, 17, 17],
       freeze: { rows: T, columns: 1 },
     },
+    ...(v.rows.length > 0
+      ? [
+          {
+            name: "Inversionista",
+            rows: v.rows,
+            widths: [52, ...years.map(() => 17)],
+            freeze: { rows: T, columns: 1 },
+          },
+        ]
+      : []),
     { name: "Data histórica", rows: h.rows, widths: [10, 14, 12, 26, 14, 14, 14, 24, 24] },
     { name: "Fuentes", rows: fuentes.rows, widths: [40, 40, 34, 30, 20, 60] },
     { name: "Control de calidad", rows: q.rows, widths: [62, 22, 22, 12] },

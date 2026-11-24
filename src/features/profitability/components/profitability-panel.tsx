@@ -24,6 +24,7 @@ import {
   COST_KINDS,
   describeCashFlow,
   formatMoney,
+  investorTable,
   LOAN_KINDS,
   percent,
   projectCashFlow,
@@ -174,12 +175,20 @@ function ScenarioSummary({
       </div>
     );
   const { input, result } = evaluation;
-  const items: readonly [string, string][] = [
-    [`VPN al ${percent(input.discountRate)}`, formatMoney(result.npv)],
+  const { investor } = result;
+  const items: [string, string][] = [
+    [`VPN al ${percent(result.discountRate)}`, formatMoney(result.npv)],
     ["TIR", result.irr !== null ? percent(result.irr) : "No se puede calcular"],
     ["Payback simple", yearsOrNot(result.payback)],
     ["Payback descontado", yearsOrNot(result.discountedPayback)],
   ];
+  if (investor !== null) {
+    items.unshift(["Costo de capital (WACC)", percent(result.discountRate)]);
+    items.push(
+      [`VPN de los socios al ${percent(input.equityRate)}`, formatMoney(investor.npv)],
+      ["TIR de los socios", investor.irr !== null ? percent(investor.irr) : "No se puede calcular"],
+    );
+  }
   return (
     <div className="border-rule bg-card flex flex-col gap-4 rounded-[var(--radius)] border p-5">
       <div className="flex flex-col gap-1">
@@ -432,7 +441,7 @@ function ProjectForm({ form }: { form: ScenarioForm }) {
     <div className="flex flex-col gap-6">
       <SectionCard
         title="Horizonte y tasas"
-        description="Los porcentajes se escriben como 35 para 35 %. Montos en pesos."
+        description="Los porcentajes se escriben como 35 para 35 %. Montos en pesos. La TIO es lo que exigen los socios por su dinero: sin préstamos, es la tasa con la que se descuenta el proyecto; con préstamos, entra en el WACC. La ganancia ocasional grava la utilidad en la venta de activos (15 % en Colombia); si tu caso la grava con la renta, escribe la misma tasa."
       >
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Field
@@ -456,9 +465,9 @@ function ProjectForm({ form }: { form: ScenarioForm }) {
             options={rangeOptions(THIS_YEAR - 15, THIS_YEAR + 15, form.startYear)}
           />
           <NumberField
-            label="Tasa de oportunidad, TMAR (%)"
+            label="Rentabilidad exigida por los socios, TIO (%)"
             kind="decimal"
-            {...field("discountRate")}
+            {...field("equityRate")}
           />
           <NumberField label="Impuesto de renta (%)" kind="decimal" {...field("taxRate")} />
           <NumberField
@@ -573,7 +582,7 @@ function ProjectForm({ form }: { form: ScenarioForm }) {
 
       <SectionCard
         title="Inversiones"
-        description="Cada activo sale en el año en que se compra (0 = antes de operar) y se deprecia en línea recta. El valor comercial es en cuánto se vende al final. El capital de trabajo sale en el año 0 y se recupera al final."
+        description="Cada activo sale en el año en que se compra (0 = antes de operar) y se deprecia en línea recta sobre su valor menos el valor residual contable (0 si se deprecia todo). El valor comercial es en cuánto se vende al final. El capital de trabajo sale en el año 0 y se recupera al final."
       >
         <div className="flex flex-col gap-5">
           <div className="max-w-xs">
@@ -583,6 +592,7 @@ function ProjectForm({ form }: { form: ScenarioForm }) {
             items={form.assets}
             noun="activo"
             empty={EMPTY_ASSET}
+            layout="lg:grid-cols-3"
             onChange={(assets) => patch({ assets })}
             render={(asset, update, index) => (
               <>
@@ -611,6 +621,13 @@ function ProjectForm({ form }: { form: ScenarioForm }) {
                   onChange={(life) => update({ life })}
                 />
                 <NumberField
+                  label="Valor residual contable ($)"
+                  kind="decimal"
+                  value={asset.residual}
+                  onChange={(residual) => update({ residual })}
+                  onBlur={() => update({ residual: withThousands(asset.residual) })}
+                />
+                <NumberField
                   label="Valor comercial al final ($)"
                   kind="decimal"
                   value={asset.salvage}
@@ -625,7 +642,7 @@ function ProjectForm({ form }: { form: ScenarioForm }) {
 
       <SectionCard
         title="Financiación"
-        description="Préstamos y aportes con su tasa efectiva anual (E.A.). Al flujo de caja pasan solo sus intereses, antes de impuestos. Cuota fija: cuotas iguales. Intereses cada año: el capital se paga al final. Todo al final: el interés se suma al saldo y se paga todo en la última cuota. Sin préstamos, el flujo es libre (sin deuda)."
+        description="Préstamos con su tasa efectiva anual (E.A.), desembolsados en el año 0. Lo que no cubren de la inversión del año 0 lo ponen los socios, que exigen la TIO. Cuota fija: cuotas iguales. Intereses cada año: el capital se paga al final. Todo al final: el interés se suma al saldo y se paga todo en la última cuota. Con préstamos, el proyecto se descuenta al WACC y aparece el flujo del inversionista; sin préstamos, el flujo es libre y se descuenta a la TIO."
       >
         <RowList
           items={form.loans}
@@ -774,6 +791,16 @@ function Results({
   const interpretation = describeCashFlow(input, result);
   const columns = result.rows.map((row) => yearLabel(form, row.year));
   const table = cashFlowTable(input, result);
+  const investorLines = investorTable(result);
+  const { investor } = result;
+  const copyTable = (rows: readonly CashFlowLine[]) => () =>
+    tableToTsv(
+      ["Concepto", ...columns],
+      rows.map((line) => [
+        line.label,
+        ...line.values.map((value) => Math.round(value * 100) / 100),
+      ]),
+    );
 
   return (
     <div id="resultados" className="flex scroll-mt-6 flex-col gap-8">
@@ -792,18 +819,24 @@ function Results({
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <MetricCard
-          name={`VPN (${percent(input.discountRate)})`}
+          name={`VPN (${percent(result.discountRate)})`}
           value={formatMoney(result.npv)}
-          meaning="Lo que el proyecto deja en pesos de hoy, después de recuperar la inversión y de pagar tu tasa de oportunidad."
+          meaning={
+            investor !== null
+              ? "Lo que el proyecto deja en pesos de hoy, después de recuperar la inversión y de pagar el costo de su financiación (WACC)."
+              : "Lo que el proyecto deja en pesos de hoy, después de recuperar la inversión y de pagar tu tasa de oportunidad."
+          }
           purpose="Positivo: se espera ganar más que en la alternativa; se recomienda. Negativo: se espera ganar menos, no es pérdida."
-          formula="VPN = Σ Flujoₜ ÷ (1 + TMAR)ᵗ"
+          formula={
+            investor !== null ? "VPN = Σ Flujoₜ ÷ (1 + WACC)ᵗ" : "VPN = Σ Flujoₜ ÷ (1 + TIO)ᵗ"
+          }
         />
         {result.irr !== null ? (
           <MetricCard
             name="TIR"
             value={percent(result.irr)}
             meaning="La rentabilidad que genera la inversión: la tasa con la que el VPN da cero."
-            purpose="Negativa: pérdida. Cero: punto de equilibrio. Positiva: rentable; se recomienda si supera la TMAR."
+            purpose="Negativa: pérdida. Cero: punto de equilibrio. Positiva: rentable; se recomienda si supera la tasa de descuento."
           />
         ) : (
           <MetricCard
@@ -870,30 +903,69 @@ function Results({
       />
 
       <SectionCard
-        title="Flujo de caja proyectado"
-        description="Año por año, de los ingresos al flujo de caja y su valor en pesos de hoy."
-        actions={
-          <CopyButton
-            what="el flujo de caja"
-            getText={() =>
-              tableToTsv(
-                ["Concepto", ...columns],
-                table.map((line) => [
-                  line.label,
-                  ...line.values.map((value) => Math.round(value * 100) / 100),
-                ]),
-              )
-            }
-          />
+        title={investor !== null ? "Flujo de caja del proyecto" : "Flujo de caja proyectado"}
+        description={
+          investor !== null
+            ? `Sin financiación: sin intereses ni préstamos. Año por año, de los ingresos al flujo de caja y su valor en pesos de hoy al WACC (${percent(result.discountRate)}).`
+            : "Año por año, de los ingresos al flujo de caja y su valor en pesos de hoy."
         }
+        actions={<CopyButton what="el flujo de caja" getText={copyTable(table)} />}
       >
         <MoneyTable caption="Flujo de caja proyectado por año" columns={columns} rows={table} />
       </SectionCard>
 
+      {investor !== null ? (
+        <>
+          <SectionCard
+            title="Costo de capital (WACC)"
+            description="Cada fuente pesa según su parte de la inversión del año 0. Los intereses se descuentan de la renta, así que un préstamo cuesta su tasa × (1 − impuesto de renta); el aporte de los socios cuesta su TIO."
+          >
+            <WaccTable result={result} />
+          </SectionCard>
+
+          <SectionCard
+            title="Flujo de caja del inversionista"
+            description={`Con financiación: se restan los intereses antes de impuestos, entra el dinero de los préstamos en el año 0 y salen los abonos a capital. En el año 0 queda el aporte de los socios (${formatMoney(investor.equity)}). Se descuenta a su TIO (${percent(input.equityRate)}).`}
+            actions={
+              <CopyButton what="el flujo del inversionista" getText={copyTable(investorLines)} />
+            }
+          >
+            <div className="flex flex-col gap-6">
+              <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {(
+                  [
+                    [`VPN de los socios (${percent(input.equityRate)})`, formatMoney(investor.npv)],
+                    [
+                      "TIR de los socios",
+                      investor.irr !== null ? percent(investor.irr) : "No se puede calcular",
+                    ],
+                    ["Payback simple", yearsOrNot(investor.payback)],
+                    ["Payback descontado", yearsOrNot(investor.discountedPayback)],
+                  ] as const
+                ).map(([label, value]) => (
+                  <div
+                    key={label}
+                    className="border-rule flex flex-col gap-1 rounded-[var(--radius)] border p-4"
+                  >
+                    <dt className="text-muted-foreground text-sm">{label}</dt>
+                    <dd className="sl-number text-xl font-semibold">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+              <MoneyTable
+                caption="Flujo de caja del inversionista por año"
+                columns={columns}
+                rows={investorLines}
+              />
+            </div>
+          </SectionCard>
+        </>
+      ) : null}
+
       {result.loanSchedules.length > 0 ? (
         <SectionCard
           title="Tablas de amortización"
-          description="Interés = tasa × saldo anterior. Al flujo de caja pasa la suma de los intereses de cada año."
+          description="Interés = tasa × saldo anterior. Los intereses y los abonos a capital pasan al flujo del inversionista."
         >
           <div className="flex flex-col gap-6">
             {result.loanSchedules.map((schedule, index) => {
@@ -921,6 +993,67 @@ function Results({
           </div>
         </SectionCard>
       ) : null}
+    </div>
+  );
+}
+
+function WaccTable({ result }: { result: CashFlowResult }) {
+  const head = [
+    "Fuente",
+    "Monto",
+    "Participación",
+    "Tasa E.A.",
+    "Costo después de impuestos",
+    "Ponderado",
+  ];
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full border-collapse text-sm">
+        <caption className="sr-only">Fuentes de financiación y WACC</caption>
+        <thead>
+          <tr>
+            {head.map((column, index) => (
+              <th
+                key={column}
+                scope="col"
+                className={cn(
+                  "border-rule border-b px-3 py-2 font-semibold",
+                  index === 0 ? "text-left" : "text-right",
+                )}
+              >
+                {column}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {result.sources.map((source) => (
+            <tr key={source.name}>
+              <th scope="row" className="px-3 py-1.5 text-left font-medium">
+                {source.name}
+              </th>
+              {[
+                formatMoney(source.amount),
+                percent(source.share),
+                percent(source.rate),
+                percent(source.cost),
+                percent(source.weighted),
+              ].map((value, index) => (
+                <td key={index} className="sl-number px-3 py-1.5 text-right">
+                  {value}
+                </td>
+              ))}
+            </tr>
+          ))}
+          <tr className="bg-muted border-rule border-t font-bold">
+            <th scope="row" className="px-3 py-1.5 text-left">
+              WACC
+            </th>
+            <td colSpan={4} />
+            <td className="sl-number px-3 py-1.5 text-right">{percent(result.discountRate)}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   );
 }

@@ -279,12 +279,14 @@ Detalle de cada módulo, pantallas y fases en `docs/09-plan-plataforma.md`.
 - **RF-57** Zona «¿Es mi proyecto rentable?» (`/app#rentabilidad`, no necesita datos cargados): flujo de caja proyectado a N años (1 a 50), con VPN, TIR, payback simple y descontado, relación beneficio/costo, EBITDA promedio, margen EBITDA, utilidad neta y flujo promedio. Debe permitir:
   - demanda escrita, con crecimiento fijo desde el año 1 o proyectada con la recta de mínimos cuadrados sobre ventas históricas;
   - rubros de costo fijos, por unidad o como % de los ingresos (comisiones), con crecimiento anual de precios y costos;
-  - inversiones en cualquier año, con depreciación en línea recta por activo, venta al final con impuesto de ganancia ocasional y capital de trabajo que se recupera en el año N;
-  - préstamos de cuota fija, de intereses anuales con capital al final, o capitalizables; solo sus intereses entran al flujo. Sin préstamos queda el flujo libre no apalancado;
+  - inversiones en cualquier año, con depreciación en línea recta sobre el valor menos el valor residual contable, venta al final con impuesto sobre la utilidad (una pérdida lo ahorra) y capital de trabajo que se recupera en el año N;
+  - préstamos de cuota fija, de intereses anuales con capital al final, o capitalizables, desembolsados en el año 0 y con plazo dentro del horizonte; los socios ponen la inversión del año 0 que no cubren los préstamos y exigen su TIO;
+  - dos flujos: el del proyecto (sin intereses ni préstamos) descontado al WACC, que se calcula con la participación de cada fuente y el costo de la deuda después de impuestos; y, si hay préstamos, el del inversionista (intereses antes de impuestos, desembolso y abonos a capital) descontado a la TIO. Sin préstamos, el WACC es la TIO;
+  - arrancar en blanco, sin ningún caso cargado; los ejemplos se cargan a pedido;
   - hasta 6 escenarios comparables, con la decisión «Aceptar», «Revisar supuestos» (VPN positivo con payback de más de dos tercios del horizonte) o «Rechazar o rediseñar»;
   - descargar el escenario como libro de Excel con la estructura del prompt del profesor: Resumen, Supuestos (editables y resaltados), Flujo (todo con fórmulas conectadas a Supuestos), Data histórica (plantilla 2022–2025 por completar), Fuentes y Control de calidad (OK o Revisar).
 
-  Casos de referencia: el Excel del profesor (Café Cordillera: VPN al 20 % = −$28.358.291,51 y TIR = 15,0604 %) y el prompt de evaluación de proyectos (10 vehículos de transporte turístico en Pereira, sin deuda, 10 años al 10 %).
+  Casos de referencia: el ejercicio Confecciones Otún resuelto a mano en Excel (WACC 13,536 %; proyecto: VPN $174.220.714,55 y TIR 32,1611 %; inversionista a la TIO del 22 %: VPN $126.110.063,39 y TIR 55,3940 %) y el prompt de evaluación de proyectos (10 vehículos de transporte turístico en Pereira, sin deuda, 10 años al 10 %). Café Cordillera queda como ejemplo con préstamo capitalizable.
 
 ### Caso de prueba de referencia (clase de regresión)
 
